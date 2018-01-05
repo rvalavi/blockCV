@@ -23,7 +23,7 @@ sb <- spatialBlock(speciesData = pa_data,
                     rasterLayer = awt,
                     theRange = 68000, # size of the blocks
                     k = 5,
-                    selection = 'random',
+                    selection = "random",
                     iteration = 250, # find evenly dispersed folds
                     biomod2Format = TRUE)
 
