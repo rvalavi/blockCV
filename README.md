@@ -17,15 +17,21 @@ The following is an example of using spatial block cross-validation for evaluati
 # loading the package
 library(blockCV)
 
+# investigate spatial autocorrelation in raster covariates
+spatialAutoRange(rasterLayer = awt, # raster file
+                 sampleNumber = 5000, # number of cells to be used
+                 doParallel = TRUE,
+                 showPlots = TRUE)
+
 # spatial blocking by specified range and random assignment
 sb <- spatialBlock(speciesData = pa_data,
-                    species = "Species",
-                    rasterLayer = awt,
-                    theRange = 68000, # size of the blocks
-                    k = 5,
-                    selection = "random",
-                    iteration = 250, # find evenly dispersed folds
-                    biomod2Format = TRUE)
+                   species = "Species",
+                   rasterLayer = awt,
+                   theRange = 68000, # size of the blocks
+                   k = 5,
+                   selection = "random",
+                   iteration = 250, # find evenly dispersed folds
+                   biomod2Format = TRUE)
 
 ```
 
