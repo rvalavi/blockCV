@@ -5,11 +5,11 @@ Version: 0.1.0
 Date: 2018-01-04
 Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "valavi.r@gmail.com"),
-             person("Gurutzeta", "Guillera-Arroita", role = c("aut", "ctb"),
+             person("Gurutzeta", "Guillera-Arroita", role = "aut",
                     email = "gurutzeta.guillera@unimelb.edu.au"),
-             person("José", "Lahoz-Monfort", role = c("aut", "ctb"),
+             person("José", "Lahoz-Monfort", role = "aut",
                     email = "jose.lahoz@unimelb.edu.au"),
-             person("Jane", "Elith", role = c("aut", "ctb"),
+             person("Jane", "Elith", role = "aut",
                     email = "j.elith@unimelb.edu.au"))
 Author: Roozbeh Valavi, Gurutzeta Guillera-Arroita, José Lahoz-Monfort and Jane Elith
 Maintainer: Roozbeh Valavi <valavi.r@gmail.com>

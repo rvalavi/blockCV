@@ -23,7 +23,7 @@
 #' # import presence-absence species data
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 #' # make a SpatialPointsDataFrame object from data.frame
-#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
+#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
 #'
 #' # spatial blocking by specified range and random assignment
 #' sb <- spatialBlock(speciesData = pa_data,
@@ -332,7 +332,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' # import presence-absence species data
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 #' # make a SpatialPointsDataFrame object from data.frame
-#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
+#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
 #'
 #' rangeExplorer(rasterLayer = awt) # the only mandatory input
 #'
