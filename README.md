@@ -33,6 +33,9 @@ sb <- spatialBlock(speciesData = pa_data,
                    iteration = 250, # find evenly dispersed folds
                    biomod2Format = TRUE)
 
+# explor the generated folds
+foldExplorer(sb, awt, pa_data)
+
 ```
 
 ### Features
