@@ -11,7 +11,7 @@ devtools::install_github("rvalavi/blockCV")
 ```
 
 ### Bsic usage
-The following is an example of using spatial block cross-validation for evaluation of species distribution modelling. In this example, random forest model is used for model fitting. You can find a comprehensive tutorial in the vignette of the package.
+The following is an example of using spatial block cross-validation for evaluation of species distribution modelling. You can find a comprehensive tutorial in the vignette of the package.
 
 ```r
 # loading the package
