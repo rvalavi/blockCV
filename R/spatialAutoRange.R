@@ -324,7 +324,7 @@ print.SpatialAutoRange <- function(x, ...){
 #' @export
 plot.SpatialAutoRange <- function(x, y, ...){
   if(length(x$plots) == 2){
-    blockCV::multiplot(x$plots$barchart, x$plots$mapplot)
+    multiplot(x$plots$barchart, x$plots$mapplot)
   } else{
     plot(x$plots$mapplot)
   }

@@ -183,12 +183,11 @@ To support a first choice of block size, prior to any model fitting, package **b
 
 ```{r, eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
 sac <- spatialAutoRange(rasterLayer = awt,
-                         sampleNumber = 5000,
-                         border = NULL,
-                         showPlots = TRUE,
-                         plotVariograms = FALSE,
-                         doParallel = TRUE,
-                         nCores = NULL) # use half of the available CUP cores
+                        sampleNumber = 5000,
+                        border = NULL,
+                        showPlots = TRUE,
+                        plotVariograms = FALSE,
+                        doParallel = FALSE)
 
 ```
   
