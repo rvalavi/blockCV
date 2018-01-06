@@ -1,7 +1,5 @@
 [![Build Status](https://travis-ci.org/rvalavi/blockCV.svg?branch=master)]()
 [![codecov.io](https://codecov.io/github/rvalavi/blockCV/coverage.svg?branch=master)]()
-[![GitHub package version](https://img.shields.io/github/package-json/v/badges/shields.svg?style=for-the-badge)]()
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg?style=for-the-badge)]()
 
 # blockCV
 
