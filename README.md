@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/rvalavi/blockCV.svg?branch=master)](https://travis-ci.org/rvalavi/blockCV?branch=master)
-[![codecov.io](https://codecov.io/github/rvalavi/blockCV/coverage.svg?branch=master)](https://codecov.io/github/rvalavi/blockCV/coverage?branch=master)
+[![codecov](https://codecov.io/gh/rvalavi/blockCV/branch/master/graph/badge.svg)](https://codecov.io/gh/rvalavi/blockCV)
 
 # blockCV
 
