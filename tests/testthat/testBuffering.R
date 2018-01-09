@@ -20,7 +20,7 @@ test_that("test that buffering function works properly with presence-absence dat
                    species= "Species", # to count the number of presences and absences
                    theRange= 68000,
                    spDataType = "PA",
-                   progress = FALSE)
+                   progress = TRUE)
 
   expect_true(exists("bf1"))
   expect_is(bf1, "BufferedBlock")
@@ -65,5 +65,36 @@ test_that("test that buffering function works properly with presence-background 
   expect_true(
     !all(bf2$records == 0)
   )
+
+})
+
+test_that("test that buffering function works properly with no species specified", {
+
+  PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
+  Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
+  pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=sp::CRS(Zone55s))
+
+  # buffering with presence-absence data
+  bf3 <- buffering(speciesData= pa_data,
+                   theRange= 68000,
+                   spDataType = "PA",
+                   progress = TRUE)
+
+  expect_true(exists("bf3"))
+  expect_is(bf3, "BufferedBlock")
+  expect_equal(names(bf3), expect_names)
+  expect_equal(length(bf3$folds), nrow(pa_data))
+  expect_is(bf3$folds, "list")
+  expect_is(bf3$k, "integer")
+  expect_null(bf3$species)
+  expect_is(bf3$range, "numeric")
+  expect_equal(bf3$dataType, "PA")
+  expect_equal(dim(bf3$records), c(nrow(pa_data), 2))
+  expect_true(
+    !all(bf3$records == 0)
+  )
+
+  expect_equal(print.BufferedBlock(bf3), "BufferedBlock")
+  expect_output(summary.BufferedBlock(bf3))
 
 })

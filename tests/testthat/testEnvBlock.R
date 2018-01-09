@@ -8,7 +8,7 @@ expect_names <- c("folds",
                   "species",
                   "records")
 
-test_that("test that environmental blocking function works properly", {
+test_that("test that environmental blocking function with rasterBlock, standard and species column", {
 
   awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
@@ -33,5 +33,35 @@ test_that("test that environmental blocking function works properly", {
   expect_true(
     !all(eb$records == 0)
   )
+
+})
+
+test_that("test that environmental blocking function with no rasterBlock, normalize and no species column", {
+
+  awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
+  PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
+  pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
+
+  # environmental clustering
+  eb2 <- envBlock(rasterLayer = awt,
+                  speciesData = pa_data,
+                  k = 5,
+                  standardization = "normal",
+                  rasterBlock = FALSE)
+
+  expect_true(exists("eb2"))
+  expect_is(eb2, "EnvironmentalBlock")
+  expect_equal(names(eb2), expect_names)
+  expect_equal(length(eb2$folds), 5)
+  expect_is(eb2$folds, "list")
+  expect_equal(eb2$k, 5)
+  expect_null(eb2$species)
+  expect_equal(dim(eb2$records), c(5, 2))
+  expect_true(
+    !all(eb2$records == 0)
+  )
+
+  expect_equal(print.EnvironmentalBlock(eb2), "EnvironmentalBlock")
+  expect_output(summary.EnvironmentalBlock(eb2))
 
 })

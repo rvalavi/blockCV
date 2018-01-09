@@ -172,14 +172,13 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
   if(methods::is(rasterLayer, 'Raster')){
     numLayer <- raster::nlayers(rasterLayer)
     if(numLayer==1){
-      rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
+      rasterPoints <- raster::rasterToPoints(rasterLayer, spatial=TRUE)
       set.seed(2017)
       points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
       names(points) <- 'target'
       fittedVar = automap::autofitVariogram(target~1, points)
       theRange <- fittedVar$var_model[2,3]
       vars <- fittedVar
-      print(c(row, col))
       if(plotVariograms==TRUE){
         plot(fittedVar)
       }
@@ -246,9 +245,11 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
     if(mapext >= -180 && mapext <= 180){
       theRange2 <- theRange * 1000
       modelInfo$range <- modelInfo$range * 1000
+    } else{
+      theRange2 <- theRange
     }
   } else{
-    if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=crs(rasterLayer)))){
+    if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=raster::crs(rasterLayer)))){
       theRange2 <- theRange
     } else{
       theRange2 <- theRange * 1000
@@ -305,7 +306,7 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
     finalList <- list(range=theRange2, rangeTable=modelInfo, plots=list(barchart = p1, mapplot = p2),
                       sampleNumber=sampleNumber, variograms=variogramList)
   } else{
-    finalList <- list(range=theRange2, plots=list(mapplot = p2), sampleNumber=sampleNumber)
+    finalList <- list(range=theRange2, plots=list(mapplot = p2), sampleNumber=sampleNumber, variograms=fittedVar)
   }
   # gc() # to release the occupied RAM in windows OS
   # specify the output class
@@ -316,7 +317,6 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
 
 #' @export
 print.SpatialAutoRange <- function(x, ...){
-  # print(paste("The median of calculated spatial autocorrelation ranges is", round(x$range)))
   print(class(x))
 }
 
