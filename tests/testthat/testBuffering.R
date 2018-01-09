@@ -10,7 +10,6 @@ expect_names <- c("folds",
                   "records")
 
 test_that("test that buffering function works properly with presence-absence data", {
-  skip_on_cran()
 
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
   Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
@@ -41,7 +40,6 @@ test_that("test that buffering function works properly with presence-absence dat
 
 
 test_that("test that buffering function works properly with presence-background data", {
-  skip_on_cran()
 
   PB <- read.csv(system.file("extdata", "PB.csv", package = "blockCV"))
   Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"

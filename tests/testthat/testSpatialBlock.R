@@ -12,7 +12,6 @@ expect_names <- c("folds",
                   "records")
 
 test_that("test spatiaBlock function works properly", {
-  skip_on_cran()
 
   awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))

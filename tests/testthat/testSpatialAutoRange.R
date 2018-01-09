@@ -9,7 +9,6 @@ expect_names <- c("range",
                   "variograms")
 
 test_that("test spatialAutoRange function", {
-  skip_on_cran()
 
   awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
   names(awt) <- c("bc01",  "bc04",  "bc05",  "bc06",  "bc12",  "bc15",  "bc17",  "bc20",  "bc33", "slope", "topo")

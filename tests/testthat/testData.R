@@ -3,7 +3,6 @@ library(blockCV)
 context("Test the availablbe data in the package")
 
 test_that("test that the data exist", {
-  skip_on_cran()
 
   expect_true(file.exists(system.file("extdata", "awt.tif", package = "blockCV")))
   expect_true(file.exists(system.file("extdata", "PA.csv", package = "blockCV")))
