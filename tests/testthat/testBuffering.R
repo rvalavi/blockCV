@@ -14,7 +14,7 @@ test_that("test that buffering function works properly with presence-absence dat
 
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
   Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
-  pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=CRS(Zone55s))
+  pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=sp::CRS(Zone55s))
 
   # buffering with presence-absence data
   bf1 <- buffering(speciesData= pa_data,
@@ -45,7 +45,7 @@ test_that("test that buffering function works properly with presence-background 
 
   PB <- read.csv(system.file("extdata", "PB.csv", package = "blockCV"))
   Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
-  pb_data <- sp::SpatialPointsDataFrame(PB[,c("x", "y")], PB, proj4string=CRS(Zone55s))
+  pb_data <- sp::SpatialPointsDataFrame(PB[,c("x", "y")], PB, proj4string=sp::CRS(Zone55s))
 
   # buffering with presence-background data
   bf2 <- buffering(speciesData= pb_data,
