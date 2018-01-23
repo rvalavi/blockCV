@@ -56,6 +56,7 @@ rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, degree=111325, x
     rasterNet <- raster::raster(ext, nrow=yPix, ncol=xPix, crs=crs(x))
   } else stop("A value should be specified for the block size")
   values(rasterNet) <- 1:ncell(rasterNet)
+  rasterNet <- raster::rasterToPolygons(rasterNet)
   return(rasterNet)
 }
 
@@ -256,8 +257,7 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
       modelInfo$range <- modelInfo$range * 1000
     }
   }
-  rasterNet1 <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre)
-  net <- raster::rasterToPolygons(rasterNet1)
+  net <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre)
   if(is.null(border)){
     points <- raster::rasterToPoints(rasterLayer[[1]], spatial=TRUE)
     if(nrow(points) > 2500000){

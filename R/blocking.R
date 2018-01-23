@@ -333,8 +333,7 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer, th
       if(is.null(rasterLayer)){
         stop("A raster file should be provided when maskBySpecies is set to FALSE")
       }
-      rasterNet1 <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
-      net <- rasterToPolygons(rasterNet1)
+      net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
       if(is.null(border)){
         points <- raster::rasterToPoints(rasterLayer[[1]], spatial=TRUE)
         if(nrow(points) > 2500000){
@@ -346,12 +345,10 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer, th
       }
     } else{
       if(is.null(rasterLayer)){
-        rasterNet1 <- rasterNet(speciesData, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
-        net <- raster::rasterToPolygons(rasterNet1)
+        net <- rasterNet(speciesData, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
         subBlocks <- raster::intersect(net, speciesData)
       } else{
-        rasterNet1 <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
-        net <- raster::rasterToPolygons(rasterNet1)
+        net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
         subBlocks <- raster::intersect(net, speciesData)
       }
     }

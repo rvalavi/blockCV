@@ -467,8 +467,7 @@ rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTabl
   # create shiny server and main code
   server <- function(input, output){
     output$ggplot <- shiny::renderPlot({
-      rasterNet1 <- rasterNet(rasterLayer[[1]], resolution=input$num)
-      net <- raster::rasterToPolygons(rasterNet1)
+      net <- rasterNet(rasterLayer[[1]], resolution=input$num)
       points <- raster::rasterToPoints(rasterLayer[[1]], spatial=TRUE)
       if(nrow(points) > 1000000){
         points2 <- points[sample(1:nrow(points), 150000, replace=FALSE), ]
