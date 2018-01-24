@@ -340,15 +340,13 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
       net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
       if(is.null(border)){
         if(maskBySpecies==FALSE){
-          points <- raster::rasterToPoints(rasterLayer[[1]], spatial=TRUE)
-          if(nrow(points) > 1000000){
-            points2 <- points[sample(1:nrow(points), 500000, replace=FALSE), ]
-            subBlocks <- raster::intersect(net, points2)
-          } else  subBlocks <- raster::intersect(net, points)
+          subBlocks <- rasterNet(rasterLayer[[1]], mask=TRUE, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
         } else{
+          net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
           subBlocks <- raster::intersect(net, speciesData)
         }
       } else{ # having a border
+        net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
         subBlocks <- crop(net, border)
       }
     }

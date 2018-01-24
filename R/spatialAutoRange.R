@@ -1,4 +1,5 @@
-rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, degree=111325, xOffset=NULL, yOffset=NULL){
+rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degree=111325, xOffset=NULL, yOffset=NULL,
+                      maxpixels=250000){
   ext <- raster::extent(x)
   extRef <- raster::extent(x)
   if(is.na(sp::proj4string(x))){
@@ -57,8 +58,20 @@ rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, degree=111325, x
   } else stop("A value should be specified for the block size")
   values(rasterNet) <- 1:ncell(rasterNet)
   rasterNet <- raster::rasterToPolygons(rasterNet)
+  if(mask==TRUE){
+    if(methods::is(x, 'Raster')){
+      points <- raster::rasterToPoints(x[[1]], spatial=TRUE)
+      if(nrow(points) > 1000000){
+        points2 <- points[sample(1:nrow(points), maxpixels, replace=FALSE), ]
+        rasterNet <- raster::intersect(rasterNet, points2)
+      } else  rasterNet <- raster::intersect(rasterNet, points)
+    } else{
+      rasterNet <- raster::intersect(rasterNet, x)
+    }
+  }
   return(rasterNet)
 }
+
 
 
 multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
@@ -257,14 +270,10 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
       modelInfo$range <- modelInfo$range * 1000
     }
   }
-  net <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre)
   if(is.null(border)){
-    points <- raster::rasterToPoints(rasterLayer[[1]], spatial=TRUE)
-    if(nrow(points) > 1000000){
-      points2 <- points[sample(1:nrow(points), maxpixels, replace=FALSE), ]
-      subBlocks <- raster::intersect(net, points2)
-    } else  subBlocks <- raster::intersect(net, points)
+    subBlocks <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre, mask=TRUE, maxpixel =maxpixels)
   } else{
+    net <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre, mask=FALSE)
     subBlocks <- raster::crop(net, border)
   }
   if(numLayer>1){
