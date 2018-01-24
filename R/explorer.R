@@ -466,12 +466,7 @@ rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTabl
   # create shiny server and main code
   server <- function(input, output){
     output$ggplot <- shiny::renderPlot({
-      net <- rasterNet(rasterLayer[[1]], resolution=input$num)
-      points <- raster::rasterToPoints(rasterLayer[[1]], spatial=TRUE)
-      if(nrow(points) > 1000000){
-        points2 <- points[sample(1:nrow(points), 150000, replace=FALSE), ]
-        subBlocks <- raster::intersect(net, points2)
-      } else  subBlocks <- raster::intersect(net, points)
+      subBlocks <- rasterNet(rasterLayer[[1]], resolution=input$num, mask=TRUE, maxpixels=150000)
       p2 <- basePlot + ggtitle('Spatial blocks', subtitle=paste('Based on', input$num, '(m) distance')) +
         geom_polygon(aes(x = long, y = lat, group=id),
                      data = subBlocks, color ="red",
