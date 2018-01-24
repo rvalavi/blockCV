@@ -7,7 +7,7 @@
 spatialBlock(speciesData, species = NULL, blocks = NULL, rasterLayer,
   theRange = NULL, rows = NULL, cols = NULL, k = 5,
   selection = "random", iteration = 250, numLimit = NULL,
-  maskBySpecies = FALSE, degMetre = 111325, border = NULL,
+  maskBySpecies = TRUE, degMetre = 111325, border = NULL,
   showBlocks = TRUE, biomod2Format = TRUE, xOffset = 0, yOffset = 0,
   progress = TRUE)
 }
@@ -20,8 +20,7 @@ the presence and absence data will be treated the same and only training and tes
 \item{blocks}{A SpatialPolygons* object to be used as the blocks. This can be a user defined polygon and it must cover all
 the species points.}
 
-\item{rasterLayer}{RasterLayer for visualisation. If \code{maskBySpecies = FALSE}, this will be used to specify the blocks
-covering the area.}
+\item{rasterLayer}{RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.}
 
 \item{theRange}{Numeric value of the specified range by which blocks are created and training/testing data are separated.
 This distance should be in \strong{metres}. The range could be explored by \code{spatialAutoRange()} and \code{rangeExplorer()} functions.}
@@ -41,9 +40,8 @@ and \emph{testing-absence}), as specified by \code{numLimit} value.}
 \item{numLimit}{Integer value. The minimum number of points in each category of data (see above - \code{iterration}).
 If \code{numLimit = NULL}, the most evenly dispersed number of records is chosen (given the number of iteration).}
 
-\item{maskBySpecies}{Logical. If \code{maskBySpecies = TRUE}, the blocks will be selected based on species spatial data
-rather than the background raster. This might increase the computation time. If \code{maskBySpecies = FALSE}, \code{rasterLayer} should be provided.
-The default is \code{FALSE}.}
+\item{maskBySpecies}{Logical. If raster layer is provided and \code{maskBySpecies = TRUE}, the blocks will be masked
+by species spatial data rather than the background raster. The default is \code{TRUE}.}
 
 \item{degMetre}{Integer. The conversion rate of metres to degree. See the details section for more information.}
 
@@ -115,13 +113,11 @@ pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::
 # spatial blocking by specified range and random assignment
 sb1 <- spatialBlock(speciesData = pa_data,
                     species = "Species",
-                    rasterLayer = awt,
                     theRange = 68000,
                     k = 5,
                     selection = 'random',
                     iteration = 250,
                     numLimit = NULL,
-                    maskBySpecies = FALSE,
                     biomod2Format = TRUE,
                     xOffset = 0.3, # shift the blocks horizontally
                     yOffset = 0)
@@ -134,7 +130,7 @@ sb2 <- spatialBlock(speciesData = pa_data,
                     cols = 8,
                     k = 5,
                     selection = 'systematic',
-                    maskBySpecies = FALSE,
+                    maskBySpecies = TRUE,
                     biomod2Format = TRUE)
 
 }

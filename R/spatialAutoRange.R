@@ -169,7 +169,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #' summary(range1)
 #' }
 spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doParallel=TRUE, nCores=NULL,
-                             showPlots=TRUE, degMetre=111325, maxpixels=1e+06, plotVariograms=FALSE, progress=TRUE){
+                             showPlots=TRUE, degMetre=111325, maxpixels=1e+05, plotVariograms=FALSE, progress=TRUE){
   if(methods::is(rasterLayer, 'Raster')){
     numLayer <- raster::nlayers(rasterLayer)
     if(numLayer==1){
@@ -260,7 +260,7 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
   net <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre)
   if(is.null(border)){
     points <- raster::rasterToPoints(rasterLayer[[1]], spatial=TRUE)
-    if(nrow(points) > 2500000){
+    if(nrow(points) > 1000000){
       points2 <- points[sample(1:nrow(points), maxpixels, replace=FALSE), ]
       subBlocks <- raster::intersect(net, points2)
     } else  subBlocks <- raster::intersect(net, points)

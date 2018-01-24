@@ -16,7 +16,6 @@ test_that("test that explorer function with presence-absence data", {
                      selection = 'random',
                      iteration = 250,
                      numLimit = NULL,
-                     maskBySpecies = FALSE,
                      biomod2Format = TRUE)
 
   expect_silent(foldExplorer(sb, awt, pa_data))

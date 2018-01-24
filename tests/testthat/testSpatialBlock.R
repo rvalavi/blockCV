@@ -26,7 +26,6 @@ test_that("test spatiaBlock function with random assingment and raster file", {
                       selection = 'random',
                       iteration = 25,
                       numLimit = NULL,
-                      maskBySpecies = FALSE,
                       biomod2Format = TRUE,
                       xOffset = 0.3,
                       yOffset = 0,
@@ -64,7 +63,6 @@ test_that("test spatiaBlock function with systematic assingment and no raster fi
                       k = 5,
                       selection = 'systematic',
                       numLimit = 1,
-                      maskBySpecies = FALSE,
                       biomod2Format = TRUE,
                       showBlocks = TRUE)
 

@@ -34,7 +34,6 @@
 #'                    selection = 'random',
 #'                    iteration = 250,
 #'                    numLimit = NULL,
-#'                    maskBySpecies = FALSE,
 #'                    biomod2Format = TRUE)
 #'
 #' foldExplorer(sb, awt, pa_data)

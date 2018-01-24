@@ -6,7 +6,7 @@
 \usage{
 spatialAutoRange(rasterLayer, sampleNumber = 5000, border = NULL,
   doParallel = TRUE, nCores = NULL, showPlots = TRUE, degMetre = 111325,
-  maxpixels = 1e+06, plotVariograms = FALSE, progress = TRUE)
+  maxpixels = 1e+05, plotVariograms = FALSE, progress = TRUE)
 }
 \arguments{
 \item{rasterLayer}{RasterLayer, RasterBrick or RasterStack of covariates to find spatial autocorrelation range.}

@@ -82,6 +82,11 @@ buffering <- function(speciesData, species=NULL, theRange, spDataType="PA", addB
   if(!methods::is(speciesData, 'SpatialPoints')){stop("speciesData should be SpatialPoints or SpatialPointsDataFrame")}
   speciesData$ID <- 1:nrow(speciesData)
   sfobj <- sf::st_as_sfc(speciesData)
+  if(is.null(sf::st_crs(sfobj))){
+    stop("The coordinate reference system of species data should be defined")
+  } else if(sp::is.projected(speciesData)){ # this is due to a recent change (Jan 2018) in the sf package that doesn't recognize the projected crs units. It will be changed soon.
+    sf::st_crs(sfobj) <- NA
+  }
   dmatrix <- sf::st_distance(sfobj)
   distuni <- dmatrix[1,1] # take the unit to avoid using units package
   distuni[1] <- theRange
@@ -243,12 +248,10 @@ systematicNum <- function(layer, num=5){
 #' and \emph{testing-absence}), as specified by \code{numLimit} value.
 #' @param numLimit Integer value. The minimum number of points in each category of data (see above - \code{iterration}).
 #' If \code{numLimit = NULL}, the most evenly dispersed number of records is chosen (given the number of iteration).
-#' @param maskBySpecies Logical. If \code{maskBySpecies = TRUE}, the blocks will be selected based on species spatial data
-#' rather than the background raster. This might increase the computation time. If \code{maskBySpecies = FALSE}, \code{rasterLayer} should be provided.
-#' The default is \code{FALSE}.
+#' @param maskBySpecies Logical. If raster layer is provided and \code{maskBySpecies = TRUE}, the blocks will be masked
+#' by species spatial data rather than the background raster. The default is \code{TRUE}.
 #' @param degMetre Integer. The conversion rate of metres to degree. See the details section for more information.
-#' @param rasterLayer RasterLayer for visualisation. If \code{maskBySpecies = FALSE}, this will be used to specify the blocks
-#' covering the area.
+#' @param rasterLayer RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.
 #' @param border SpatialPolygons* to clip the block based on a border. This might increase the computation time.
 #' @param showBlocks Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer should be specified
 #' in \code{rasterlayer} argument.
@@ -301,13 +304,11 @@ systematicNum <- function(layer, num=5){
 #' # spatial blocking by specified range and random assignment
 #' sb1 <- spatialBlock(speciesData = pa_data,
 #'                     species = "Species",
-#'                     rasterLayer = awt,
 #'                     theRange = 68000,
 #'                     k = 5,
 #'                     selection = 'random',
 #'                     iteration = 250,
 #'                     numLimit = NULL,
-#'                     maskBySpecies = FALSE,
 #'                     biomod2Format = TRUE,
 #'                     xOffset = 0.3, # shift the blocks horizontally
 #'                     yOffset = 0)
@@ -320,53 +321,43 @@ systematicNum <- function(layer, num=5){
 #'                     cols = 8,
 #'                     k = 5,
 #'                     selection = 'systematic',
-#'                     maskBySpecies = FALSE,
+#'                     maskBySpecies = TRUE,
 #'                     biomod2Format = TRUE)
 #'
 #' }
 spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer, theRange=NULL, rows=NULL, cols=NULL, k=5,
-                         selection='random', iteration=250, numLimit=NULL, maskBySpecies=FALSE, degMetre=111325, border=NULL,
+                         selection='random', iteration=250, numLimit=NULL, maskBySpecies=TRUE, degMetre=111325, border=NULL,
                          showBlocks=TRUE, biomod2Format=TRUE, xOffset=0, yOffset=0, progress=TRUE){
   if(selection != 'systematic' && selection != 'random'){stop("The selection argument must be 'systematic' or 'random'")}
   if(is.null(blocks)){
-    if(maskBySpecies==FALSE){
-      if(is.null(rasterLayer)){
-        stop("A raster file should be provided when maskBySpecies is set to FALSE")
-      }
-      net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
-      if(is.null(border)){
-        points <- raster::rasterToPoints(rasterLayer[[1]], spatial=TRUE)
-        if(nrow(points) > 2500000){
-          points2 <- points[sample(1:nrow(points), 1000000, replace=FALSE), ]
-          subBlocks <- raster::intersect(net, points2)
-        } else  subBlocks <- raster::intersect(net, points)
-      } else{ # having a border
+    if(is.null(rasterLayer)){
+      net <- rasterNet(speciesData, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
+      if(!is.null(border)){
         subBlocks <- crop(net, border)
       }
     } else{
-      if(is.null(rasterLayer)){
-        net <- rasterNet(speciesData, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
-        subBlocks <- raster::intersect(net, speciesData)
-      } else{
-        net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
-        subBlocks <- raster::intersect(net, speciesData)
+      net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
+      if(is.null(border)){
+        if(maskBySpecies==FALSE){
+          points <- raster::rasterToPoints(rasterLayer[[1]], spatial=TRUE)
+          if(nrow(points) > 1000000){
+            points2 <- points[sample(1:nrow(points), 500000, replace=FALSE), ]
+            subBlocks <- raster::intersect(net, points2)
+          } else  subBlocks <- raster::intersect(net, points)
+        } else{
+          subBlocks <- raster::intersect(net, speciesData)
+        }
+      } else{ # having a border
+        subBlocks <- crop(net, border)
       }
     }
   } else{
     if(methods::is(blocks, "SpatialPolygonsDataFrame")){
-      if(maskBySpecies==TRUE){
-        subBlocks <- raster::intersect(blocks, speciesData)
-      } else{
-        subBlocks <- blocks
-      }
+      subBlocks <- raster::intersect(blocks, speciesData)
     } else if(methods::is(blocks, "SpatialPolygons")){
       df <- data.frame(ID=1:length(blocks))
       blocks <- sp::SpatialPolygonsDataFrame(blocks, df, match.ID=FALSE)
-      if(maskBySpecies==TRUE){
-        subBlocks <- raster::intersect(blocks, speciesData)
-      } else{
-        subBlocks <- blocks
-      }
+      subBlocks <- raster::intersect(blocks, speciesData)
     } else{
       stop("The input blocks should be a SpatialPolygons* object")
     }

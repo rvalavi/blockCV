@@ -40,17 +40,16 @@ table(pb_data$Species)
 ## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
 # spatial blocking by specified range and random assignment
 sb <- spatialBlock(speciesData = pa_data,
-                    species = "Species",
-                    rasterLayer = awt,
-                    theRange = 68000, # size of the blocks
-                    k = 5,
-                    selection = 'random',
-                    iteration = 250,
-                    numLimit = NULL, # find evenly dispersed folds
-                    maskBySpecies = FALSE,
-                    biomod2Format = TRUE,
-                    xOffset = 0.3, # shift the blocks horizontally
-                    yOffset = 0)
+                   species = "Species",
+                   rasterLayer = awt,
+                   theRange = 68000, # size of the blocks
+                   k = 5,
+                   selection = 'random',
+                   iteration = 250,
+                   numLimit = NULL, # find evenly dispersed folds
+                   biomod2Format = TRUE,
+                   xOffset = 0.3, # shift the blocks horizontally
+                   yOffset = 0)
 
 
 ## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
@@ -62,6 +61,7 @@ sb3 <- spatialBlock(speciesData = pa_data,
                     cols = 6,
                     k = 5,
                     selection = 'random',
+                    maskBySpecies = TRUE,
                     biomod2Format = TRUE)
 
 
