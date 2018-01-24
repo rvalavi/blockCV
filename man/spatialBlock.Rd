@@ -4,9 +4,9 @@
 \alias{spatialBlock}
 \title{Use spatial blocks to separate train and test folds}
 \usage{
-spatialBlock(speciesData, species = NULL, blocks = NULL, rasterLayer,
-  theRange = NULL, rows = NULL, cols = NULL, k = 5,
-  selection = "random", iteration = 250, numLimit = NULL,
+spatialBlock(speciesData, species = NULL, blocks = NULL,
+  rasterLayer = NULL, theRange = NULL, rows = NULL, cols = NULL,
+  k = 5, selection = "random", iteration = 250, numLimit = NULL,
   maskBySpecies = TRUE, degMetre = 111325, border = NULL,
   showBlocks = TRUE, biomod2Format = TRUE, xOffset = 0, yOffset = 0,
   progress = TRUE)

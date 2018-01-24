@@ -325,13 +325,14 @@ systematicNum <- function(layer, num=5){
 #'                     biomod2Format = TRUE)
 #'
 #' }
-spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer, theRange=NULL, rows=NULL, cols=NULL, k=5,
+spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NULL, theRange=NULL, rows=NULL, cols=NULL, k=5,
                          selection='random', iteration=250, numLimit=NULL, maskBySpecies=TRUE, degMetre=111325, border=NULL,
                          showBlocks=TRUE, biomod2Format=TRUE, xOffset=0, yOffset=0, progress=TRUE){
   if(selection != 'systematic' && selection != 'random'){stop("The selection argument must be 'systematic' or 'random'")}
   if(is.null(blocks)){
     if(is.null(rasterLayer)){
       net <- rasterNet(speciesData, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
+      subBlocks <- raster::intersect(net, speciesData)
       if(!is.null(border)){
         subBlocks <- crop(net, border)
       }
