@@ -19,7 +19,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-  R (>= 3.4.1),
+  R (>= 3.3),
   ggplot2 (>= 2.2.1)
 Imports:
   raster (>= 2.5-8),
