@@ -84,6 +84,24 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
   kmax <- length(folds)
   species <- blocks$species
   # set x and y coordinates
+  if(is.na(sp::proj4string(speciesData))){
+    mapext <- raster::extent(speciesData)[1:4]
+    if(mapext >= -180 && mapext <= 180){
+      xaxes <- "Longitude"
+      yaxes <- "Latitude"
+    } else {
+      xaxes <- "Easting"
+      yaxes <- "Northing"
+    }
+  } else{
+    if(sp::is.projected(speciesData)){
+      xaxes <- "Easting"
+      yaxes <- "Northing"
+    } else{
+      xaxes <- "Longitude"
+      yaxes <- "Latitude"
+    }
+  }
   coor <- sp::coordinates(speciesData)
   coor <- as.data.frame(coor)
   speciesData@data <- cbind(speciesData@data, coor)
@@ -93,7 +111,8 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
   colnames(map.df) <- c("Easting", "Northing", "MAP")
   mid <- stats::median(map.df$MAP)
   basePlot <- ggplot2::ggplot(data=map.df, aes(y=Northing, x=Easting)) + geom_raster(aes(fill=MAP)) + coord_fixed() +
-    scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) + guides(fill=FALSE)
+    scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) + guides(fill=FALSE) +
+    xlab(xaxes) + ylab(yaxes)
   # create UI for shniy app
   ui <- shinydashboard::dashboardPage(
     shinydashboard::dashboardHeader(title = "Fold Explorer"),
@@ -346,12 +365,53 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' }
 rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTable=NULL, minRange=NULL, maxRange=NULL){
   # plot raster file in ggplot2
+  Xmx <- raster::xmax(rasterLayer)
+  Xmn <- raster::xmin(rasterLayer)
+  Ymx <- raster::ymax(rasterLayer)
+  Ymn <- raster::ymin(rasterLayer)
+  Ymean <- (Ymx - Ymn)/2
+  if(is.na(sp::proj4string(rasterLayer))){
+    mapext <- raster::extent(rasterLayer)[1:4]
+    if(mapext >= -180 && mapext <= 180){
+      xrange <- geosphere::distGeo(c(Xmx, Ymean), c(Xmn, Ymean))
+      yrange <- geosphere::distGeo(c(Xmn, Ymx), c(Xmn, Ymn))
+      maxy <- max(c(xrange, yrange))
+      resol <- raster::res(rasterLayer) * 111000
+      xaxes <- "Longitude"
+      yaxes <- "Latitude"
+      warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have an un-projected reference system")
+    } else {
+      xrange <- Xmx - Xmn
+      yrange <- Ymx - Ymn
+      maxy <- max(c(xrange, yrange))
+      resol <- raster::res(rasterLayer)
+      xaxes <- "Easting"
+      yaxes <- "Northing"
+    }
+  } else{
+    if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=crs(rasterLayer)))){
+      xrange <- Xmx - Xmn
+      yrange <- Ymx - Ymn
+      maxy <- max(c(xrange, yrange))
+      resol <- raster::res(rasterLayer)
+      xaxes <- "Easting"
+      yaxes <- "Northing"
+    } else{
+      xrange <- geosphere::distGeo(c(Xmx, Ymean), c(Xmn, Ymean))
+      yrange <- geosphere::distGeo(c(Xmn, Ymx), c(Xmn, Ymn))
+      maxy <- max(c(xrange, yrange))
+      resol <- raster::res(rasterLayer) * 111000
+      xaxes <- "Longitude"
+      yaxes <- "Latitude"
+    }
+  }
   samp <- raster::sampleRegular(rasterLayer[[1]], 5e+05, asRaster=TRUE)
   map.df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
   colnames(map.df) <- c("Easting", "Northing", "MAP")
   mid <- mean(map.df$MAP)
   basepl <- ggplot(data=map.df, aes(y=Northing, x=Easting)) + geom_raster(aes(fill=MAP)) + coord_fixed() +
-    scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) + guides(fill=FALSE)
+    scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) + guides(fill=FALSE) +
+    xlab(xaxes) + ylab(yaxes)
   if(!is.null(speciesData)){
     coor <- sp::coordinates(speciesData)
     coor <- as.data.frame(coor)
@@ -380,38 +440,6 @@ rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTabl
     basePlot <- basepl
   } else if(is.null(speciesData) && !is.null(species)){
     basePlot <- basepl
-  }
-  Xmx <- raster::xmax(rasterLayer)
-  Xmn <- raster::xmin(rasterLayer)
-  Ymx <- raster::ymax(rasterLayer)
-  Ymn <- raster::ymin(rasterLayer)
-  Ymean <- (Ymx - Ymn)/2
-  if(is.na(sp::proj4string(rasterLayer))){
-    mapext <- raster::extent(rasterLayer)[1:4]
-    if(mapext >= -180 && mapext <= 180){
-      xrange <- geosphere::distGeo(c(Xmx, Ymean), c(Xmn, Ymean))
-      yrange <- geosphere::distGeo(c(Xmn, Ymx), c(Xmn, Ymn))
-      maxy <- max(c(xrange, yrange))
-      resol <- raster::res(rasterLayer) * 111000
-      warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have an un-projected reference system")
-    } else {
-      xrange <- Xmx - Xmn
-      yrange <- Ymx - Ymn
-      maxy <- max(c(xrange, yrange))
-      resol <- raster::res(rasterLayer)
-    }
-  } else{
-    if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=crs(rasterLayer)))){
-      xrange <- Xmx - Xmn
-      yrange <- Ymx - Ymn
-      maxy <- max(c(xrange, yrange))
-      resol <- raster::res(rasterLayer)
-    } else{
-      xrange <- geosphere::distGeo(c(Xmx, Ymean), c(Xmn, Ymean))
-      yrange <- geosphere::distGeo(c(Xmn, Ymx), c(Xmn, Ymn))
-      maxy <- max(c(xrange, yrange))
-      resol <- raster::res(rasterLayer) * 111000
-    }
   }
   # define min and max range based on the parameters
   if(!is.null(rangeTable)){

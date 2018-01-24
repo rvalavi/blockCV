@@ -258,20 +258,32 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
     mapext <- raster::extent(rasterLayer)[1:4]
     if(mapext >= -180 && mapext <= 180){
       theRange2 <- theRange * 1000
-      modelInfo$range <- modelInfo$range * 1000
+      if(numLayer>1){
+        modelInfo$range <- modelInfo$range * 1000
+      }
+      xaxes <- "Longitude"
+      yaxes <- "Latitude"
     } else{
       theRange2 <- theRange
+      xaxes <- "Easting"
+      yaxes <- "Northing"
     }
   } else{
     if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=raster::crs(rasterLayer)))){
       theRange2 <- theRange
+      xaxes <- "Easting"
+      yaxes <- "Northing"
     } else{
       theRange2 <- theRange * 1000
-      modelInfo$range <- modelInfo$range * 1000
+      if(numLayer>1){
+        modelInfo$range <- modelInfo$range * 1000
+      }
+      xaxes <- "Longitude"
+      yaxes <- "Latitude"
     }
   }
   if(is.null(border)){
-    subBlocks <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre, mask=TRUE, maxpixel =maxpixels)
+    subBlocks <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre, mask=TRUE, maxpixels =maxpixels)
   } else{
     net <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre, mask=FALSE)
     subBlocks <- raster::crop(net, border)
@@ -303,7 +315,8 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
                  data = subBlocks, color ="red",
                  fill ="orangered4",
                  alpha = 0.04,
-                 size = 0.2)
+                 size = 0.2) +
+    xlab(xaxes) + ylab(yaxes)
   if(showPlots==TRUE){
     if(numLayer>1){
       multiplot(p1, p2)

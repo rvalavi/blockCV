@@ -84,7 +84,7 @@ buffering <- function(speciesData, species=NULL, theRange, spDataType="PA", addB
   sfobj <- sf::st_as_sfc(speciesData)
   if(is.null(sf::st_crs(sfobj))){
     stop("The coordinate reference system of species data should be defined")
-  } else if(sp::is.projected(speciesData)){ # this is due to a recent change (Jan 2018) in the sf package that doesn't recognize the projected crs units. It will be changed soon.
+  } else if(sp::is.projected(speciesData)){ # this is due to a recent change (Jan 2018) in the sf package that doesn't recognize the projected crs units. It will be fixed soon.
     sf::st_crs(sfobj) <- NA
   }
   dmatrix <- sf::st_distance(sfobj)
@@ -332,12 +332,12 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
   if(is.null(blocks)){
     if(is.null(rasterLayer)){
       net <- rasterNet(speciesData, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
-      subBlocks <- raster::intersect(net, speciesData)
-      if(!is.null(border)){
+      if(is.null(border)){
+        subBlocks <- raster::intersect(net, speciesData)
+      } else{
         subBlocks <- crop(net, border)
       }
     } else{
-      net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
       if(is.null(border)){
         if(maskBySpecies==FALSE){
           subBlocks <- rasterNet(rasterLayer[[1]], mask=TRUE, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
@@ -476,6 +476,24 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
   centroids <- as.data.frame(sp::coordinates(subBlocks)); names(centroids) <- c("Easting", "Northing") # take the centroids
   subBlocks@data <- cbind(subBlocks@data, centroids) # add the centeroids to blocks
   polyObj <- ggplot2::fortify(subBlocks)
+  if(is.na(sp::proj4string(speciesData))){
+    mapext <- raster::extent(speciesData)[1:4]
+    if(mapext >= -180 && mapext <= 180){
+      xaxes <- "Longitude"
+      yaxes <- "Latitude"
+    } else {
+      xaxes <- "Easting"
+      yaxes <- "Northing"
+    }
+  } else{
+    if(sp::is.projected(speciesData)){
+      xaxes <- "Easting"
+      yaxes <- "Northing"
+    } else{
+      xaxes <- "Longitude"
+      yaxes <- "Latitude"
+    }
+  }
   if(is.null(rasterLayer)){
     p2 <- ggplot() +
       geom_polygon(aes(x = long, y = lat, group=group),
@@ -484,6 +502,7 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
                    alpha = 0.04,
                    size = 0.2) +
       geom_text(aes(label=folds, x=Easting, y=Northing), data=subBlocks@data) +
+      xlab(xaxes) + ylab(yaxes) +
       coord_fixed() +
       ggtitle('Spatial blocks', subtitle=paste("The", selection, 'fold assignment by', i, 'iteration'))
   } else{
@@ -503,6 +522,7 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
                      fill ="orangered4",
                      alpha = 0.04,
                      size = 0.2) +
+        xlab(xaxes) + ylab(yaxes) +
         geom_text(aes(label=folds, x=Easting, y=Northing), data=subBlocks@data) # lable blocks
     }
   }
