@@ -192,7 +192,6 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
       names(points) <- 'target'
       fittedVar = automap::autofitVariogram(target~1, points)
       theRange <- fittedVar$var_model[2,3]
-      vars <- fittedVar
       if(plotVariograms==TRUE){
         plot(fittedVar)
       }
