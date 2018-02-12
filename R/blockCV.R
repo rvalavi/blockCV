@@ -14,6 +14,7 @@
 #' written with \emph{species distribution modelling} in mind, and the functions allow for a number of common scenarios (including presence-absence
 #' and presence-background species data, rare and common species, raster data for predictor variables).
 #'
+#' @seealso \code{\link{spatialBlock}}, \code{\link{buffering}} and \code{\link{envBlock}} for blocking strategies.
 #'
 #' @references Roberts et al., 2017. Cross-validation strategies for data with temporal, spatial, hierarchical,
 #' or phylogenetic structure. Ecography. 40: 913-929.

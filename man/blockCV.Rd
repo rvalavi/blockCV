@@ -26,6 +26,9 @@ or phylogenetic structure. Ecography. 40: 913-929.
 
 Telford, R.J., Birks, H.J.B., 2009. Evaluation of transfer functions in spatially structured environments. Quat. Sci. Rev. 28, 1309–1316.
 }
+\seealso{
+\code{\link{spatialBlock}}, \code{\link{buffering}} and \code{\link{envBlock}} for blocking strategies.
+}
 \author{
 Roozbeh Valavi, Gurutzeta Guillera-Arroita, José Lahoz-Monfort and Jane Elith
 }

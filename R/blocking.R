@@ -286,7 +286,7 @@ systematicNum <- function(layer, num=5){
 #'     \item{blocks - SpatialPolygon of the blocks}
 #'     \item{range - the distance band of separating trainig and testing folds}
 #'     \item{species - the name of the species (column), if provided}
-#'     \item{plots - ggplot object (when \code{showBlocks = TRUE})}
+#'     \item{plots - ggplot object}
 #'     \item{records - a table with the number of points in each category of training and testing}
 #'     }
 #' @export

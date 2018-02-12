@@ -69,7 +69,7 @@ An object of class S3. A list of objects including:
     \item{blocks - SpatialPolygon of the blocks}
     \item{range - the distance band of separating trainig and testing folds}
     \item{species - the name of the species (column), if provided}
-    \item{plots - ggplot object (when \code{showBlocks = TRUE})}
+    \item{plots - ggplot object}
     \item{records - a table with the number of points in each category of training and testing}
     }
 }
