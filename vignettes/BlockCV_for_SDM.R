@@ -45,10 +45,9 @@ sb <- spatialBlock(speciesData = pa_data,
                    theRange = 68000, # size of the blocks
                    k = 5,
                    selection = 'random',
-                   iteration = 250,
-                   numLimit = NULL, # find evenly dispersed folds
+                   iteration = 250, # find evenly dispersed folds
                    biomod2Format = TRUE,
-                   xOffset = 0.3, # shift the blocks horizontally
+                   xOffset = 0, # shift the blocks horizontally
                    yOffset = 0)
 
 

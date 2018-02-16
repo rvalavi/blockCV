@@ -32,7 +32,7 @@ library(blockCV)
 ## Package data
 The package contains the raw format of the following data:
 
-- Raster covariates of Australian West Tropic (.tif)
+- Raster covariates of Australian Wet Tropic (.tif)
 - Simulated species data (.csv)
 
 These data are used to illustrate how the package is used. The raster data include several bioclimatic and topographic variables from Australian Wet Tropic region aggregated to 800 m resolution. The species data contains records of a species, simulated based on the above environmental variables for the region. There are two .csv files with presence-absence and presence-background data.
@@ -94,10 +94,9 @@ sb <- spatialBlock(speciesData = pa_data,
                    theRange = 68000, # size of the blocks
                    k = 5,
                    selection = 'random',
-                   iteration = 250,
-                   numLimit = NULL, # find evenly dispersed folds
+                   iteration = 250, # find evenly dispersed folds
                    biomod2Format = TRUE,
-                   xOffset = 0.3, # shift the blocks horizontally
+                   xOffset = 0, # shift the blocks horizontally
                    yOffset = 0)
 
 ```
