@@ -63,7 +63,7 @@ Compared to other available packages, **blockCV** provides more strategies and c
 ### Citation
 To cite package ‘blockCV’ in publications use:
 
-  Roozbeh Valavi, Gurutzeta Guillera-Arroita, José Lahoz-Monfort and Jane Elith
+  Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita
   (2018). blockCV: Spatial and environmental blocking for k-fold cross-validation.
   R package version 0.1.0.
 

@@ -5,13 +5,13 @@ Version: 0.1.0
 Date: 2018-01-04
 Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "valavi.r@gmail.com"),
-             person("Gurutzeta", "Guillera-Arroita", role = "aut",
-                    email = "gurutzeta.guillera@unimelb.edu.au"),
+             person("Jane", "Elith", role = "aut",
+                    email = "j.elith@unimelb.edu.au"),
              person("José", "Lahoz-Monfort", role = "aut",
                     email = "jose.lahoz@unimelb.edu.au"),
-             person("Jane", "Elith", role = "aut",
-                    email = "j.elith@unimelb.edu.au"))
-Author: Roozbeh Valavi, Gurutzeta Guillera-Arroita, José Lahoz-Monfort and Jane Elith
+             person("Gurutzeta", "Guillera-Arroita", role = "aut",
+                    email = "gurutzeta.guillera@unimelb.edu.au"))
+Author: Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita
 URL: https://github.com/rvalavi/blockCV
 Maintainer: Roozbeh Valavi <valavi.r@gmail.com>
 Description: The blockCV package creates spatially or environmentally separated training and testing folds for cross-validation to provide a robust error estimation in spatially structured environments. It also investigates the effective range of spatial autocorrelation in continuous raster covariates to find an initial realistic distance band to separate training and testing datasets spatially. The distance band can be used for spatial blocking or buffering to create folds.

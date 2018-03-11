@@ -1,6 +1,6 @@
 ---
 title: "Block cross-validation for species distribution modelling"
-author: "Roozbeh Valavi, Gurutzeta Guillera-Arroita, José Lahoz-Monfort and Jane Elith"
+author: "Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
