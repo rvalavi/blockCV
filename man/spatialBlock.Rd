@@ -47,8 +47,8 @@ by species spatial data rather than the background raster. The default is \code{
 
 \item{border}{SpatialPolygons* to clip the block based on a border. This might increase the computation time.}
 
-\item{showBlocks}{Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer should be specified
-in \code{rasterlayer} argument.}
+\item{showBlocks}{Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer could be specified
+in \code{rasterlayer} argument to be as background.}
 
 \item{biomod2Format}{Logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 a \emph{DataSplitTable} for cross-validation.}
