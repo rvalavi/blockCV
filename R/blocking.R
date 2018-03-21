@@ -80,7 +80,7 @@
 #' }
 buffering <- function(speciesData, species=NULL, theRange, spDataType="PA", addBG=TRUE, progress=TRUE){
   if(!methods::is(speciesData, 'SpatialPoints')){stop("speciesData should be SpatialPoints or SpatialPointsDataFrame")}
-  speciesData$ID <- 1:nrow(speciesData)
+  speciesData$ID <- 1:length(speciesData)
   sfobj <- sf::st_as_sfc(speciesData)
   if(is.null(sf::st_crs(sfobj))){
     stop("The coordinate reference system of species data should be defined")
@@ -130,7 +130,7 @@ buffering <- function(speciesData, species=NULL, theRange, spDataType="PA", addB
         }
       }
     } else if(spDataType=="PA"){
-      n <- nrow(speciesData)
+      n <- length(speciesData)
       trainTestTable <- base::data.frame(trainPr=rep(0, n), trainAb=0, testPr=0, testAb=0)
       if(progress==TRUE){
         pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
@@ -158,7 +158,7 @@ buffering <- function(speciesData, species=NULL, theRange, spDataType="PA", addB
       }
     }
   } else{ # data with no species column
-    n <- nrow(speciesData)
+    n <- length(speciesData)
     trainTestTable <- base::data.frame(train=rep(0, n), test=0)
     if(progress==TRUE){
       pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
@@ -375,7 +375,7 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
   maxNumRecord <- 0
   maxSD <- Inf
   for(i in 1:iteration){
-    nrowBlocks <- nrow(subBlocks)
+    nrowBlocks <- length(subBlocks)
     if(k > nrowBlocks){
       stop("'k' is bigger than the number of the blocks")
     } else if(k < 2){stop("'k' must be 2 or higher")}
@@ -384,7 +384,7 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
     } else if(selection=='random'){
       # create random folds
       subBlocks$folds <- 0
-      nrowBlocks <- nrow(subBlocks)
+      nrowBlocks <- length(subBlocks)
       if(k==2){
         subBlocks$folds[sample(nrowBlocks, nrowBlocks/2, replace=FALSE)] <- 1
         unfold <- which(subBlocks$folds==0)
@@ -409,7 +409,7 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
       trainTestTable <- base::data.frame(train=rep(0, k), test=0)
     }
     foldList <- list()
-    biomodTable <- data.frame(RUN1=rep(TRUE, nrow(speciesData)))
+    biomodTable <- data.frame(RUN1=rep(TRUE, length(speciesData)))
     for(p in 1:k){
       sp.over <- sp::over(speciesData, subBlocks[subBlocks$folds==p, ]) # overlay layers to specify the inside & oudside points
       trainSet <- which(is.na(sp.over[,1])) # exclude all the data from the bufer area
