@@ -75,6 +75,11 @@ sb2 <- spatialBlock(speciesData = pa_data,
                     biomod2Format = TRUE)
 
 
+## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
+# adding points on saptialBlock plot
+sb$plots + geom_point(data = as.data.frame(coordinates(pa_data)), aes(x=x, y=y), alpha=0.7)
+
+
 ## ---- warning=FALSE, message=FALSE---------------------------------------
 # buffering with presence-absence data
 bf1 <- buffering(speciesData= pa_data,
