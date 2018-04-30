@@ -219,6 +219,7 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
         }
         variogramList <- pp # save variogram of all layer
         parallel::stopCluster(cl)
+        foreach::registerDoSEQ()
       } else{
         if(progress==TRUE){
           pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
