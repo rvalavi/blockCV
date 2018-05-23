@@ -31,7 +31,7 @@ This distance should be in \strong{metres}. The range could be explored by \code
 
 \item{k}{Integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.}
 
-\item{selection}{Type of assignment of blocks into  folds. Can be \strong{random} (default) or \strong{systematic}.}
+\item{selection}{Type of assignment of blocks into  folds. Can be \strong{random} (default), \strong{systematic} or \strong{checkerboard} pattern (not working with user-defined blocks).}
 
 \item{iteration}{Integer value. The number of attempts to create folds that fulfil the set requirement for minimum number
 of points in each category (\emph{training-presence}, \emph{training-absence}, \emph{testing-presence}
@@ -58,7 +58,7 @@ The value is the proportion of block size.}
 
 \item{yOffset}{Numeric value between \strong{0} and \strong{1} for shifting the blocks vertically. The value is the proportion of block size.}
 
-\item{progress}{Logical. If TRUE shows a progress bar when \code{numLimit = NULL}.}
+\item{progress}{Logical. If TRUE shows a progress bar when \code{numLimit = NULL} in random fold selection.}
 }
 \value{
 An object of class S3. A list of objects including:

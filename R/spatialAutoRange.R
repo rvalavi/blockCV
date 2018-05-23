@@ -1,5 +1,5 @@
 rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degree=111325, xOffset=NULL, yOffset=NULL,
-                      maxpixels=250000){
+                      checkerboard=FALSE, maxpixels=250000){
   ext <- raster::extent(x)
   extRef <- raster::extent(x)
   if(is.na(sp::proj4string(x))){
@@ -56,7 +56,20 @@ rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degr
     }
     rasterNet <- raster::raster(ext, nrow=yPix, ncol=xPix, crs=crs(x))
   } else stop("A value should be specified for the block size")
-  values(rasterNet) <- 1:ncell(rasterNet)
+  if(checkerboard == TRUE){
+    values(rasterNet) <- 1:ncell(rasterNet)
+    for(i in 1:ncol(rasterNet)){
+      m <- as.matrix(rasterNet)
+      if(i %% 2 == 0){
+        m[,i] <- rep(1:2, nrow(m))[1:nrow(m)]
+      } else{
+        m[,i] <- rep(2:1, nrow(m))[1:nrow(m)]
+      }
+      rasterNet[] <- m
+    }
+  } else{
+    values(rasterNet) <- 1:ncell(rasterNet)
+  }
   rasterNet <- raster::rasterToPolygons(rasterNet)
   if(mask==TRUE){
     if(methods::is(x, 'Raster')){

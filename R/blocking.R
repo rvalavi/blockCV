@@ -242,7 +242,7 @@ systematicNum <- function(layer, num=5){
 #' @param theRange Numeric value of the specified range by which blocks are created and training/testing data are separated.
 #' This distance should be in \strong{metres}. The range could be explored by \code{spatialAutoRange()} and \code{rangeExplorer()} functions.
 #' @param k Integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.
-#' @param selection Type of assignment of blocks into  folds. Can be \strong{random} (default) or \strong{systematic}.
+#' @param selection Type of assignment of blocks into  folds. Can be \strong{random} (default), \strong{systematic} or \strong{checkerboard} pattern (not working with user-defined blocks).
 #' @param iteration Integer value. The number of attempts to create folds that fulfil the set requirement for minimum number
 #' of points in each category (\emph{training-presence}, \emph{training-absence}, \emph{testing-presence}
 #' and \emph{testing-absence}), as specified by \code{numLimit} value.
@@ -257,7 +257,7 @@ systematicNum <- function(layer, num=5){
 #' in \code{rasterlayer} argument to be as background.
 #' @param biomod2Format Logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 #' a \emph{DataSplitTable} for cross-validation.
-#' @param progress Logical. If TRUE shows a progress bar when \code{numLimit = NULL}.
+#' @param progress Logical. If TRUE shows a progress bar when \code{numLimit = NULL} in random fold selection.
 #' @param rows Integer value by which the area is divided into latitudinal bins.
 #' @param cols Integer value by which the area is divided into longitudinal bins.
 #' @param xOffset Numeric value between \strong{0} and \strong{1} for shifting the blocks horizontally.
@@ -328,10 +328,18 @@ systematicNum <- function(layer, num=5){
 spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NULL, theRange=NULL, rows=NULL, cols=NULL, k=5,
                          selection='random', iteration=250, numLimit=NULL, maskBySpecies=TRUE, degMetre=111325, border=NULL,
                          showBlocks=TRUE, biomod2Format=TRUE, xOffset=0, yOffset=0, progress=TRUE){
-  if(selection != 'systematic' && selection != 'random'){stop("The selection argument must be 'systematic' or 'random'")}
+  if(selection != 'systematic' && selection != 'random' && selection != 'checkerboard'){stop("The selection argument must be 'systematic', 'random' or 'checkerboard'")}
+  chpattern <- FALSE
+  if(selection == 'checkerboard'){
+    chpattern <- TRUE
+    if(k != 2){
+      k <- 2
+      message("k has been set to 2 because of checkerboard fold selection")
+    }
+  }
   if(is.null(blocks)){
     if(is.null(rasterLayer)){
-      net <- rasterNet(speciesData, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
+      net <- rasterNet(speciesData, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset, checkerboard=chpattern)
       if(is.null(border)){
         subBlocks <- raster::intersect(net, speciesData)
       } else{
@@ -340,13 +348,13 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
     } else{
       if(is.null(border)){
         if(maskBySpecies==FALSE){
-          subBlocks <- rasterNet(rasterLayer[[1]], mask=TRUE, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
+          subBlocks <- rasterNet(rasterLayer[[1]], mask=TRUE, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset, checkerboard=chpattern)
         } else{
-          net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
+          net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset, checkerboard=chpattern)
           subBlocks <- raster::intersect(net, speciesData)
         }
       } else{ # having a border
-        net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset)
+        net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset, checkerboard=chpattern)
         subBlocks <- crop(net, border)
       }
     }
@@ -357,8 +365,16 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
       df <- data.frame(ID=1:length(blocks))
       blocks <- sp::SpatialPolygonsDataFrame(blocks, df, match.ID=FALSE)
       subBlocks <- raster::intersect(blocks, speciesData)
+      if(!is.null(species)){
+        species <- NULL
+        message("The species has been set to NULL since there is no associated table with SpatialPoints object")
+      }
     } else{
       stop("The input blocks should be a SpatialPolygons* object")
+    }
+    if(selection == 'checkerboard'){
+      selection <- 'systematic'
+      message("'checkerboard' fold selection does not work with user defined blocks. 'systematic' will be used instead.")
     }
   }
   # given a wrong iteration, ensure the process will be run at least once
@@ -381,6 +397,8 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
     } else if(k < 2){stop("'k' must be 2 or higher")}
     if(selection=='systematic'){
       subBlocks$folds <- systematicNum(subBlocks, k)
+    } else if(selection=='checkerboard'){
+      subBlocks$folds <- subBlocks$layer
     } else if(selection=='random'){
       # create random folds
       subBlocks$folds <- 0
@@ -433,8 +451,8 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
         biomodTable[,colm][trainSet] <- TRUE # biomodTable[trainSet,colm] <- TRUE # #### Change this!
       }
     }
-    if(selection=='systematic'){
-      if(iteration > 1){message('Iteration has been set to 1 due to systematic selection')}
+    if(selection=='systematic' || selection == 'checkerboard'){
+      # if(iteration > 1){message('Iteration has been set to 1 due to systematic selection')}
       break
     } else{ # do the rest if the selection is random
       if(is.numeric(numLimit) && numLimit >= 0){
