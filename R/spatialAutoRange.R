@@ -58,8 +58,8 @@ rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degr
   } else stop("A value should be specified for the block size")
   if(checkerboard == TRUE){
     values(rasterNet) <- 1:ncell(rasterNet)
+    m <- as.matrix(rasterNet)
     for(i in 1:ncol(rasterNet)){
-      m <- as.matrix(rasterNet)
       if(i %% 2 == 0){
         m[,i] <- rep(1:2, nrow(m))[1:nrow(m)]
       } else{
