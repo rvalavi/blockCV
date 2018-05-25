@@ -65,8 +65,8 @@ rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degr
       } else{
         m[,i] <- rep(2:1, nrow(m))[1:nrow(m)]
       }
-      rasterNet[] <- m
     }
+    rasterNet[] <- m
   } else{
     values(rasterNet) <- 1:ncell(rasterNet)
   }
