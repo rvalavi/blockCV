@@ -80,7 +80,7 @@ table(pb_data$Species)
 
 ## Blocking strategies
 ### Spatial block
-The function *spatialBlock* creates spatially separated folds based on a pre-specified distance (cell size of the blocks). It then assigns blocks to the training and testing folds either *randomly* or in a *systematic* manner. Another blocking strategy provided by this function is to divide the study area into vertical or horizontal bins of a given number of rows/colmuns, as used by Bahn & McGill (2013) and Wenger & Olden (2012) respectively.
+The function *spatialBlock* creates spatially separated folds based on a pre-specified distance (cell size of the blocks). It then assigns blocks to the training and testing folds with *random*, *checkerboard pattern* or in a *systematic* manner. Another blocking strategy provided by this function is to divide the study area into vertical or horizontal bins of a given number of rows/colmuns, as used by Bahn & McGill (2013) and Wenger & Olden (2012) respectively.
    
 To keep the consistency with other functions, the distance (`theRange`) should be in **metres**, regardless of the unit of the reference system of the input data. When the input map has *geographic coordinate system* (decimal degrees), the block size is calculated based on dividing theRange by **111325** (the standard distance of a degree in metres, on the Equator) to change metre to degree. This value can be changed by the user via the `degMetre` argument.
    
