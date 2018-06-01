@@ -198,6 +198,13 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
                              showPlots=TRUE, degMetre=111325, maxpixels=1e+05, plotVariograms=FALSE, progress=TRUE){
   if(methods::is(rasterLayer, 'Raster')){
     numLayer <- raster::nlayers(rasterLayer)
+    if(is.na(sp::proj4string(rasterLayer))){
+      mapext <- raster::extent(rasterLayer)[1:4]
+      if(mapext >= -180 && mapext <= 180){
+        raster::crs(rasterLayer) <- sp::CRS("+init=epsg:4326")
+        warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have geographic coordinate system")
+      }
+    }
     if(numLayer==1){
       rasterPoints <- raster::rasterToPoints(rasterLayer, spatial=TRUE)
       set.seed(2017)
