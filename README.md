@@ -15,7 +15,7 @@ To install the package from GitHub use:
 devtools::install_github("rvalavi/blockCV")
 ```
 
-### Bsic usage 
+### Bsic usage
 The following is an example of using spatial block cross-validation for evaluation of species distribution modelling. You can find a comprehensive tutorial in the vignette of the package.
 
 ```r
