@@ -28,7 +28,7 @@ spatialAutoRange(rasterLayer = awt, # raster file
                  doParallel = TRUE,
                  showPlots = TRUE)
 ```
-![](/Users/rvalavi/Dropbox/My PhD thesis/My package/Package extra data/spatialAuto.jpeg)
+![](https://www.dropbox.com/s/bm3nyu6yp9tzcj7/spatialAuto.jpeg?dl=0)
 
 ```r
 # spatial blocking by specified range and random assignment
