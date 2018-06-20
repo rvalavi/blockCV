@@ -3,8 +3,14 @@
 language: r
 r:
   - release
-os: osx
 sudo: false
+os: 
+  - linux
+  - osx
 cache: packages
 
+script:
+    - R CMD build . --no-resave-data --no-manual
+    - R CMD check *tar.gz --as-cran --timings --no-manual
+    
 warnings_are_errors: false
