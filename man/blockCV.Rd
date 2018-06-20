@@ -7,7 +7,7 @@
 \title{blockCV: A package for generating spatially or environmentally separated
         folds for k-fold cross-validation of species distribution modelling.}
 \description{
-Simple random selection of testing and training folds in structured data leads to underestimation of error in the evaluation of spatial
+Simple random selection of testing and training folds in structured environment leads to underestimation of error in the evaluation of spatial
 predictions and may result in inappropriate model selection (Telford and Birks, 2009; Roberts et al., 2017). The use of spatial and
 environmental blocks to separate test and train sets has been suggested as a good strategy for realistic error estimation in datasets
 with dependence structures, and more generally as a robust method for estimating predictive performance of models used to predict mapped

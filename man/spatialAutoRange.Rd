@@ -72,7 +72,6 @@ for further information.
 
 # load the example raster data
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-# assign the names of the covariates
 
 # run the model in parallel
 range1 <- spatialAutoRange(rasterLayer = awt,
@@ -82,7 +81,7 @@ range1 <- spatialAutoRange(rasterLayer = awt,
                            plotVariograms = FALSE,
                            showPlots = TRUE)
 
-#' # run the model with no parallel
+# run the model with no parallel
 range2 <- spatialAutoRange(rasterLayer = awt,
                            sampleNumber = 5000,
                            doParallel = FALSE,

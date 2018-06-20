@@ -173,7 +173,6 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #'
 #' # load the example raster data
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-#' # assign the names of the covariates
 #'
 #' # run the model in parallel
 #' range1 <- spatialAutoRange(rasterLayer = awt,
@@ -183,7 +182,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #'                            plotVariograms = FALSE,
 #'                            showPlots = TRUE)
 #'
-#' #' # run the model with no parallel
+#' # run the model with no parallel
 #' range2 <- spatialAutoRange(rasterLayer = awt,
 #'                            sampleNumber = 5000,
 #'                            doParallel = FALSE,
