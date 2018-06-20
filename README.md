@@ -27,7 +27,10 @@ spatialAutoRange(rasterLayer = awt, # raster file
                  sampleNumber = 5000, # number of cells to be used
                  doParallel = TRUE,
                  showPlots = TRUE)
+```
+!["/Users/rvalavi/Dropbox/My PhD thesis/Confirmation Docs/Plots/spatialAuto.jpeg"]
 
+```r
 # spatial blocking by specified range and random assignment
 sb <- spatialBlock(speciesData = pa_data,
                    species = "Species",
