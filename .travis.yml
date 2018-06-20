@@ -5,7 +5,6 @@ r:
   - release
 sudo: false
 os: 
-  - linux
   - osx
 cache: packages
 
