@@ -10,6 +10,6 @@ cache: packages
 
 script:
     - R CMD build . --no-resave-data --no-manual
-    - R CMD check blockCV_0.1.0.tar.gz --as-cran --timings --no-manual
+#    - R CMD check blockCV_0.1.0.tar.gz --as-cran --timings --no-manual
     
 warnings_are_errors: false
