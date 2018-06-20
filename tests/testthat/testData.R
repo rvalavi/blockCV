@@ -4,7 +4,7 @@ context("Test the availablbe data in the package")
 
 test_that("test that the data exist", {
 
-  expect_true(file.exists(system.file("extdata", "awt.tif", package = "blockCV")))
+  expect_true(file.exists(system.file("extdata", "awt.grd", package = "blockCV")))
   expect_true(file.exists(system.file("extdata", "PA.csv", package = "blockCV")))
   expect_true(file.exists(system.file("extdata", "PB.csv", package = "blockCV")))
 
@@ -16,7 +16,7 @@ test_that("test that the data is corrrect", {
 
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
   PB <- read.csv(system.file("extdata", "PB.csv", package = "blockCV"))
-  awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
+  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 
   expect_true(exists("PA"))
   expect_equal(dim(PA), c(254, 3))

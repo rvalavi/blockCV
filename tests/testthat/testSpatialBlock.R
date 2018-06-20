@@ -13,7 +13,7 @@ expect_names <- c("folds",
 
 test_that("test spatiaBlock function with random assingment and raster file", {
 
-  awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
+  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
   pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
 
@@ -53,7 +53,7 @@ test_that("test spatiaBlock function with random assingment and raster file", {
 
 test_that("test spatiaBlock function with systematic assingment and no raster file", {
 
-  awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
+  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
   pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
 

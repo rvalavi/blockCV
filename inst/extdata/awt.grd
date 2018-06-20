@@ -1,0 +1,25 @@
+[general]
+creator=R package 'raster'
+created=2018-06-20 16:59:13
+[georeference]
+nrows=610
+ncols=306
+xmin=254015.825161
+ymin=7821167.848281
+xmax=498815.825161
+ymax=8309167.848281
+projection=+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs
+[data]
+datatype=FLT4S
+byteorder=little
+nbands=10
+bandorder=BIL
+minvalue=15.8830003070831:0.699999988079071:24.4950004386902:8.377000207901:777.926470588235:0:16.9929999732971:0.0299999993294477:0:0
+maxvalue=25:1.16539996147156:32.395001411438:18.3000011444092:6897.51:678.34:20.2720598613515:1:79.8380019760132:100
+nodatavalue=-3.4e+38
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=bc01:bc04:bc05:bc06:bc12:bc17:bc20:bc33:slope:topo

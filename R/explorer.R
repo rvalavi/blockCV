@@ -19,7 +19,7 @@
 #' \dontrun{
 #'
 #' # load package data
-#' awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
+#' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 #' # import presence-absence species data
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 #' # make a SpatialPointsDataFrame object from data.frame
@@ -346,7 +346,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' \dontrun{
 #'
 #' # load package data
-#' awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
+#' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 #' # import presence-absence species data
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 #' # make a SpatialPointsDataFrame object from data.frame

@@ -9,9 +9,7 @@ library(blockCV)
 # loading raster library
 library(raster)
 # import raster data
-awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
-# assign the names of the covariates
-names(awt) <- c("bc01",  "bc04",  "bc05",  "bc06",  "bc12",  "bc15",  "bc17",  "bc20",  "bc33", "slope", "topo")
+awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 
 
 ## ---- fig.height=4.5, fig.width=7.1--------------------------------------

@@ -10,8 +10,7 @@ expect_names <- c("range",
 
 test_that("test spatialAutoRange function with multi-layer raster in parallel", {
 
-  awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
-  names(awt) <- c("bc01",  "bc04",  "bc05",  "bc06",  "bc12",  "bc15",  "bc17",  "bc20",  "bc33", "slope", "topo")
+  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
   nl <- raster::nlayers(awt)
 
   range1 <- spatialAutoRange(rasterLayer = awt,
@@ -48,8 +47,7 @@ test_that("test spatialAutoRange function with multi-layer raster in parallel", 
 
 test_that("test spatialAutoRange function with multi-layer raster without parallel processing", {
 
-  awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
-  names(awt) <- c("bc01",  "bc04",  "bc05",  "bc06",  "bc12",  "bc15",  "bc17",  "bc20",  "bc33", "slope", "topo")
+  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
   nl <- raster::nlayers(awt)
   raster::crs(awt) <- NA
 
@@ -86,7 +84,7 @@ test_that("test spatialAutoRange function with multi-layer raster without parall
 
 test_that("test spatialAutoRange function with single-layer raster", {
 
-  awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
+  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 
   range3 <- spatialAutoRange(rasterLayer = awt[[1]],
                              sampleNumber = 5000,

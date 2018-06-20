@@ -172,7 +172,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #' \dontrun{
 #'
 #' # load the example raster data
-#' awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
+#' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 #' # assign the names of the covariates
 #' names(awt) <- c("bc01",  "bc04",  "bc05",  "bc06",  "bc12",  "bc15",  "bc17",  "bc20",  "bc33", "slope", "topo")
 #'

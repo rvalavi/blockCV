@@ -4,7 +4,7 @@ context("Explorer function")
 
 test_that("test that explorer function with presence-absence data", {
 
-  awt <- raster::brick(system.file("extdata", "awt.tif", package = "blockCV"))
+  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
   pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
 
