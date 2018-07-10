@@ -56,6 +56,7 @@ To see the vignette of the package use:
 ```r
 browseVignettes("blockCV")
 ```
+The vignette is alse avaiable in this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
 
 ### Features
 Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
