@@ -28,7 +28,7 @@ spatialAutoRange(rasterLayer = awt, # raster file
                  doParallel = TRUE,
                  showPlots = TRUE)
 ```
-![](https://www.dropbox.com/s/bm3nyu6yp9tzcj7/spatialAuto.jpeg?dl=0)
+![](https://image.ibb.co/eQGJZ8/spatial_Auto.jpg)
 
 ```r
 # spatial blocking by specified range and random assignment
@@ -41,6 +41,10 @@ sb <- spatialBlock(speciesData = pa_data,
                    iteration = 250, # find evenly dispersed folds
                    biomod2Format = TRUE)
 
+```
+![](https://image.ibb.co/dpDMnT/Rplot01.jpg)
+
+```r
 # explor the generated folds
 foldExplorer(sb, awt, pa_data)
 
