@@ -23,6 +23,6 @@
 #'
 #' @name blockCV
 #' @docType package
-#' @author Roozbeh Valavi, Gurutzeta Guillera-Arroita, José Lahoz-Monfort and Jane Elith
+#' @author Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita
 #' @import raster automap doParallel ggplot2 shiny progress
 NULL
