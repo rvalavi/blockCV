@@ -71,6 +71,6 @@ Compared to other available packages, **blockCV** provides more strategies and c
 ### Citation
 To cite package ‘blockCV’ in publications use:
 
-  Valavi, R., Elith, J., Lahoz-Monfort, J. J., & Guillera-Arroita, G. (2018). blockCV: an R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. BioRxiv, 357798.
+  Valavi, R., Elith, J., Lahoz-Monfort, J. J., & Guillera-Arroita, G. (2018). blockCV: an R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. [BioRxiv, 357798](https://www.biorxiv.org/content/early/2018/06/28/357798).
 
 Citation will be updated.
