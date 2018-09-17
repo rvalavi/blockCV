@@ -56,7 +56,7 @@ To see the vignette of the package use:
 ```r
 browseVignettes("blockCV")
 ```
-The vignette is also available in this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
+The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
 
 ### Features
 Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
@@ -71,8 +71,6 @@ Compared to other available packages, **blockCV** provides more strategies and c
 ### Citation
 To cite package ‘blockCV’ in publications use:
 
-  Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita
-  (2018). blockCV: Spatial and environmental blocking for k-fold cross-validation.
-  R package version 0.1.0.
+  Valavi, R., Elith, J., Lahoz-Monfort, J. J., & Guillera-Arroita, G. (2018). blockCV: an R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. [BioRxiv, 357798](https://www.biorxiv.org/content/early/2018/06/28/357798).
 
 Citation will be updated.
