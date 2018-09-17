@@ -214,7 +214,7 @@ systematicNum <- function(layer, num=5){
 #' regardless of the unit of the reference system of the input data (for more information see the details section). By default,
 #' the function creates blocks according to the extent and shape of the study area, assuming that the user has considered the
 #' landscape for the given species and case study.
-#' Alternatively, blocks can be masked based on species spatial data. This is especially useful when the
+#' Alternatively, blocks can be created based on species spatial data. This is especially useful when the
 #' species data is not evenly dispersed in the whole region. Blocks can also be offset so the origin is not at the outer
 #' corner of the rasters. Instead of providing a distance, the blocks can also be created by specifying a number of rows and
 #' columns and divide the study area into vertical or horizontal bins, as presented in Wenger & Olden (2012) and Bahn & McGill (2012).
@@ -248,8 +248,8 @@ systematicNum <- function(layer, num=5){
 #' and \emph{testing-absence}), as specified by \code{numLimit} value.
 #' @param numLimit Integer value. The minimum number of points in each category of data (see above - \code{iterration}).
 #' If \code{numLimit = NULL}, the most evenly dispersed number of records is chosen (given the number of iteration).
-#' @param maskBySpecies Logical. If raster layer is provided and \code{maskBySpecies = TRUE}, the blocks will be masked
-#' by species spatial data rather than the background raster. The default is \code{TRUE}.
+#' @param maskBySpecies Logical. If raster layer is provided and \code{maskBySpecies = TRUE}, the blocks will be
+#' created based on the raster extent, but only those blocks covering species data is kept. The default is \code{TRUE}.
 #' @param degMetre Integer. The conversion rate of metres to degree. See the details section for more information.
 #' @param rasterLayer RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.
 #' @param border SpatialPolygons* to clip the block based on a border. This might increase the computation time.

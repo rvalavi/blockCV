@@ -45,7 +45,8 @@ An object of class S3. A list of objects including:
 Environmental blocking for cross-validation. This function uses clustering methods to specify sets of similar environmental
 conditions based on the input covariates. Species data corresponding to any of these groups or clusters are assigned to a
 fold. This function does the clustering in raster space and species data. Clustering is done using \code{\link[stats]{kmeans}}
-for both approaches (for raster using \pkg{RStoolbox} which use the same function internally).
+for both approaches (for raster using \pkg{RStoolbox} which use the same function internally). This function works on single or
+multiple raster files; multiple rasters need to be in a brick or stack format.
 }
 \details{
 As k-means algorithms use Euclidean distance to estimate clusters, the input covariates should be quantitative variables. Since

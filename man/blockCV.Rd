@@ -30,5 +30,5 @@ Telford, R.J., Birks, H.J.B., 2009. Evaluation of transfer functions in spatiall
 \code{\link{spatialBlock}}, \code{\link{buffering}} and \code{\link{envBlock}} for blocking strategies.
 }
 \author{
-Roozbeh Valavi, Gurutzeta Guillera-Arroita, José Lahoz-Monfort and Jane Elith
+Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita
 }
