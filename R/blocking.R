@@ -214,7 +214,7 @@ systematicNum <- function(layer, num=5){
 #' Use spatial blocks to separate train and test folds
 #'
 #' This function creates spatially separated folds based on a pre-specified distance. It assigns blocks to the training and
-#' testing folds either randomly or in a systematic manner. The distance (\code{theRange}) should be in \strong{metres},
+#' testing folds randomly, systematically or in a checkerboard pattern. The distance (\code{theRange}) should be in \strong{metres},
 #' regardless of the unit of the reference system of the input data (for more information see the details section). By default,
 #' the function creates blocks according to the extent and shape of the study area, assuming that the user has considered the
 #' landscape for the given species and case study.
@@ -222,6 +222,7 @@ systematicNum <- function(layer, num=5){
 #' species data is not evenly dispersed in the whole region. Blocks can also be offset so the origin is not at the outer
 #' corner of the rasters. Instead of providing a distance, the blocks can also be created by specifying a number of rows and
 #' columns and divide the study area into vertical or horizontal bins, as presented in Wenger & Olden (2012) and Bahn & McGill (2012).
+#' Finally, the blocks can be specified by a user-defined spatial polygon layer.
 #'
 #'
 #' To keep the consistency, all the functions use \strong{metres} as their unit. In this function, when the input map
@@ -285,10 +286,11 @@ systematicNum <- function(layer, num=5){
 #' @return An object of class S3. A list of objects including:
 #'    \itemize{
 #'     \item{folds - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
+#'     \item{foldID - a vector of values indicating the number of the fold for each observation (each number corresponds to the same point in species data)}
 #'     \item{biomodTable - a matrix with the folds to be used in \pkg{biomod2} package}
 #'     \item{k - number of the folds}
 #'     \item{blocks - SpatialPolygon of the blocks}
-#'     \item{range - the distance band of separating trainig and testing folds}
+#'     \item{range - the distance band of separating trainig and testing folds, if provided}
 #'     \item{species - the name of the species (column), if provided}
 #'     \item{plots - ggplot object}
 #'     \item{records - a table with the number of points in each category of training and testing}
@@ -440,11 +442,13 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
       trainTestTable <- base::data.frame(train=rep(0, k), test=0)
     }
     foldList <- list()
+    foldNum <- rep(NA, nrow(speciesData))
     biomodTable <- data.frame(RUN1=rep(TRUE, length(speciesData)))
     for(p in 1:k){
       sp.over <- sp::over(speciesData, subBlocks[subBlocks$folds==p, ]) # overlay layers to specify the inside & oudside points
       trainSet <- which(is.na(sp.over[,1])) # exclude all the data from the bufer area
       testSet <- which(!is.na(sp.over[,1]))
+      foldNum[testSet] <- p
       foldList[[p]] <- assign(paste0("fold", p), list(trainSet, testSet))
       if(!is.null(species)){
         lnPrsences <- length(presences)
@@ -479,6 +483,7 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
           maxSD <- stats::sd(unlist(trainTestTable))
           subBlocks2 <- subBlocks
           foldList2 <- foldList
+          foldNum2 <- foldNum
           biomodTable2 <- biomodTable
           iter <- i
         }
@@ -492,6 +497,7 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
     subBlocks <- subBlocks2
     trainTestTable <- trainTestTable2
     foldList <- foldList2
+    foldNum <- foldNum2
     biomodTable <- biomodTable2
     print(paste0("The best fold was in iteration ", iter, ":"))
     # print(trainTestTable)
@@ -563,11 +569,11 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
   # save the objects
   if(biomod2Format==TRUE){
     biomodTable <- as.matrix(biomodTable)
-    theList <- list(folds=foldList, biomodTable=biomodTable, k=k, blocks=subBlocks, species=species, range=theRange,
-                    plots=p2, records=trainTestTable)
+    theList <- list(folds=foldList, foldID=foldNum, biomodTable=biomodTable, k=k, blocks=subBlocks, species=species,
+                    range=theRange, plots=p2, records=trainTestTable)
   } else{
-    theList <- list(folds=foldList, biomodTable=NULL, k=k, blocks=subBlocks, species=species, range=theRange,
-                    plots=p2, records=trainTestTable)
+    theList <- list(folds=foldList, foldID=foldNum, biomodTable=NULL, k=k, blocks=subBlocks, species=species,
+                    range=theRange, plots=p2, records=trainTestTable)
   }
   class(theList) <- c("SpatialBlock")
   return(theList)

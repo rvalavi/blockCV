@@ -35,6 +35,7 @@ in any of the folds happens to be less than this number.}
 An object of class S3. A list of objects including:
    \itemize{
     \item{folds - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
+    \item{foldID - a vector of values indicating the number of the fold for each observation (each number corresponds to the same point in species data)}
     \item{biomodTable - a matrix with the folds to be used in \pkg{biomod2} package}
     \item{k - number of the folds}
     \item{species - the name of the species (column), if provided}

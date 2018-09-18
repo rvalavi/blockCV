@@ -64,6 +64,7 @@ normalize <- function(x){
 #' @return An object of class S3. A list of objects including:
 #'    \itemize{
 #'     \item{folds - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
+#'     \item{foldID - a vector of values indicating the number of the fold for each observation (each number corresponds to the same point in species data)}
 #'     \item{biomodTable - a matrix with the folds to be used in \pkg{biomod2} package}
 #'     \item{k - number of the folds}
 #'     \item{species - the name of the species (column), if provided}
@@ -98,6 +99,7 @@ envBlock <- function(rasterLayer, speciesData, species=NULL, k=5, standardizatio
   if(methods::is(rasterLayer, 'Raster')){
     if(raster::nlayers(rasterLayer) >= 1){
       foldList <- list()
+      foldNum <- rep(NA, nrow(speciesData))
       if(!is.null(species)){
         presences <- speciesData[speciesData@data[,species]==1,] # creating a layer of presence data
         trainTestTable <- base::data.frame(trainPr=rep(0, k), trainAb=0, testPr=0, testAb=0)
@@ -130,6 +132,7 @@ envBlock <- function(rasterLayer, speciesData, species=NULL, k=5, standardizatio
       for(i in 1:k){
         testSet <- which(speciesData@data$fold == i)
         trainSet <- which(speciesData@data$fold != i)
+        foldNum[testSet] <- i
         foldList[[i]] <- assign(paste0("fold", i), list(trainSet, testSet))
         if(!is.null(species)){
           lnPrsences <- length(presences)
@@ -182,9 +185,9 @@ envBlock <- function(rasterLayer, speciesData, species=NULL, k=5, standardizatio
       }
       if(biomod2Format==TRUE){
         biomodTable <- as.matrix(biomodTable)
-        theList <- list(folds=foldList, biomodTable=biomodTable, k=k, species=species, records=trainTestTable)
+        theList <- list(folds=foldList, foldID=foldNum, biomodTable=biomodTable, k=k, species=species, records=trainTestTable)
       } else{
-        theList <- list(folds=foldList, biomodTable=NULL, k=k, species=species, records=trainTestTable)
+        theList <- list(folds=foldList, foldID=foldNum, biomodTable=NULL, k=k, species=species, records=trainTestTable)
       }
     } else stop("'The raster layer is empty!'")
   } else stop('The input file is not a valid R raster file')
