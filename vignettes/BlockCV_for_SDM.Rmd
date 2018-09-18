@@ -46,7 +46,7 @@ awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 
 ```
 
-The presence absence species data include 116 presence points and 138 absence points. The appropriate format of species data for the **blockCV** package is *SpatialPointsDataFrame*. We convert the data.frame to SpatialPointsDataFrame as follows:
+The presence absence species data include 116 presence points and 138 absence points. The appropriate format of species data for the **blockCV** package is *SpatialPointsDataFrame* (or *sf*). We convert the data.frame to SpatialPointsDataFrame as follows:
 
 ```{r, fig.height=4.5, fig.width=7.1}
 # import presence-absence species data
@@ -141,7 +141,7 @@ The function *Buffering* generates spatially separated train and test folds by c
   
 When working with *presence-background* (presence and pseudo-absence) data (specified by `spDataType` argument), only presence records are used for specifying the folds. Consider a target presence point. The buffer is defined around this target point, using the specified range (`theRange`). The testing fold comprises the target presence point and all background points within the buffer. Any non-target presence points inside the buffer are excluded. All points (presence and background) outside of buffer are used for training set. The method cycles through all the presence data, so the number of folds is equal to the number of presence points in the dataset.
 
-For *presence-absence* data, folds are created based on all records, both presences and absences. As above, a target observation (presence or absence) forms a test point. All presence and absence points other than the target point within the buffer are ignored, and the training set comprises all presences and absences outside the buffer. Apart from the folds, the number of *training-presence*, *training-absence*, *testing-presence* and *testing-absence* points is stored and returned in the `records` table. If `species = NULL`, the procedure is like presence-absence data. The `species` argument is the name of the column with 0s (absences or backgrounds) and 1s (presences) in the species SpatialPointsDataFrame file.
+For *presence-absence* data, folds are created based on all records, both presences and absences. As above, a target observation (presence or absence) forms a test point. All presence and absence points other than the target point within the buffer are ignored, and the training set comprises all presences and absences outside the buffer. Apart from the folds, the number of *training-presence*, *training-absence*, *testing-presence* and *testing-absence* points is stored and returned in the `records` table. If `species = NULL`, the procedure is like presence-absence data. The `species` argument is the name of the column with 0s (absences or backgrounds) and 1s (presences) in the species SpatialPointsDataFrame or sf object.
 
 ```{r, warning=FALSE, message=FALSE}
 # buffering with presence-absence data

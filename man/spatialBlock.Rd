@@ -12,12 +12,12 @@ spatialBlock(speciesData, species = NULL, blocks = NULL,
   progress = TRUE)
 }
 \arguments{
-\item{speciesData}{A SpatialPointsDataFrame or SpatialPoints object containing species data.}
+\item{speciesData}{A SpatialPointsDataFrame, SpatialPoints or sf object containing species data.}
 
 \item{species}{Character. Indicating the name of the field in which species presence/absence data (0s and 1s) are stored. If \code{speceis = NULL}
 the presence and absence data will be treated the same and only training and testing records will be counted.}
 
-\item{blocks}{A SpatialPolygons* object to be used as the blocks. This can be a user defined polygon and it must cover all
+\item{blocks}{A SpatialPolygons* or sf object to be used as the blocks. This can be a user defined polygon and it must cover all
 the species points.}
 
 \item{rasterLayer}{RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.}
@@ -45,7 +45,7 @@ created based on the raster extent, but only those blocks covering species data 
 
 \item{degMetre}{Integer. The conversion rate of metres to degree. See the details section for more information.}
 
-\item{border}{SpatialPolygons* to clip the block based on a border. This might increase the computation time.}
+\item{border}{SpatialPolygons* or sf object to clip the block based on a border. This might increase the computation time.}
 
 \item{showBlocks}{Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer could be specified
 in \code{rasterlayer} argument to be as background.}

@@ -11,7 +11,7 @@ envBlock(rasterLayer, speciesData, species = NULL, k = 5,
 \arguments{
 \item{rasterLayer}{RasterLayer, RasterBrick or RasterStack of covariates to identify environmental groups.}
 
-\item{speciesData}{A SpatialPointsDataFrame or SpatialPoints object containing species data.}
+\item{speciesData}{A SpatialPointsDataFrame, SpatialPoints or sf object containing species data.}
 
 \item{species}{Character. Indicating the name of the field in which species presence/absence data (0s and 1s) are stored. If \code{speceis = NULL}
 the presence and absence data will be treated the same and only training and testing records will be counted.}

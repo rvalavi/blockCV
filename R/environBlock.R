@@ -92,6 +92,9 @@ normalize <- function(x){
 #' }
 #'
 envBlock <- function(rasterLayer, speciesData, species=NULL, k=5, standardization="normal", rasterBlock=TRUE, biomod2Format=TRUE, numLimit=0){
+  if(methods::is(speciesData, "sf")){
+    speciesData <- sf::as_Spatial(speciesData)
+  }
   if(methods::is(rasterLayer, 'Raster')){
     if(raster::nlayers(rasterLayer) >= 1){
       foldList <- list()

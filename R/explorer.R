@@ -84,6 +84,9 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
   kmax <- length(folds)
   species <- blocks$species
   # set x and y coordinates
+  if(methods::is(speciesData, "sf")){
+    speciesData <- sf::as_Spatial(speciesData)
+  }
   if(is.na(sp::proj4string(speciesData))){
     mapext <- raster::extent(speciesData)[1:4]
     if(mapext >= -180 && mapext <= 180){
@@ -413,6 +416,9 @@ rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTabl
     scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) + guides(fill=FALSE) +
     xlab(xaxes) + ylab(yaxes)
   if(!is.null(speciesData)){
+    if(methods::is(speciesData, "sf")){
+      speciesData <- sf::as_Spatial(speciesData)
+    }
     coor <- sp::coordinates(speciesData)
     coor <- as.data.frame(coor)
     speciesData@data <- cbind(speciesData@data, coor)

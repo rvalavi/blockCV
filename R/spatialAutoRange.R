@@ -134,7 +134,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #' @param rasterLayer RasterLayer, RasterBrick or RasterStack of covariates to find spatial autocorrelation range.
 #' @param sampleNumber Integer. The number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 #' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
-#' @param border A SpatialPolygons* for clipping output blocks. This increases the computation time slightly.
+#' @param border A SpatialPolygons* or sf object for clipping output blocks. This increases the computation time slightly.
 #' @param showPlots Logical. Show final plot of spatial blocks and autocorrelation ranges.
 #' @param maxpixels Number of random pixels to select the blocks over the study area.
 #' @param plotVariograms Logical. Plot fitted variograms. This can also be done after the analysis. Set to \code{FALSE} by default.
@@ -304,6 +304,9 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
     subBlocks <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre, mask=TRUE, maxpixels =maxpixels)
   } else{
     net <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre, mask=FALSE)
+    if(methods::is(border, "sf")){
+      border <- sf::as_Spatial(border)
+    }
     subBlocks <- raster::crop(net, border)
   }
   if(numLayer>1){

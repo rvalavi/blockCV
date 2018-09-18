@@ -14,7 +14,7 @@ spatialAutoRange(rasterLayer, sampleNumber = 5000, border = NULL,
 \item{sampleNumber}{Integer. The number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).}
 
-\item{border}{A SpatialPolygons* for clipping output blocks. This increases the computation time slightly.}
+\item{border}{A SpatialPolygons* or sf object for clipping output blocks. This increases the computation time slightly.}
 
 \item{doParallel}{Logical. Run in parallel when more than one raster layer is available. Given multiple CPU cores, it is
 recommended to set it to \code{TRUE} when there is a large number of rasters to process.}

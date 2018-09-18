@@ -17,7 +17,7 @@
 #' records is stored and returned in the \code{records} table. If \code{species = NULL} (no column with 0s and 1s are defined), the procedure is like presence-absence data.
 #'
 #'
-#' @param speciesData A SpatialPointsDataFrame or SpatialPoints object containing species data.
+#' @param speciesData A SpatialPointsDataFrame, SpatialPoints or sf object containing species data.
 #' @param species Character. Indicating the name of the field in which species presence/absence data (0s and 1s) are stored. If \code{speceis = NULL}
 #' the presence and absence data will be treated the same and only training and testing records will be counted.
 #' @param theRange Numeric value of the specified range by which the training and testing datasets are separated (See \code{\link{spatialAutoRange}}).
@@ -79,9 +79,13 @@
 #'
 #' }
 buffering <- function(speciesData, species=NULL, theRange, spDataType="PA", addBG=TRUE, progress=TRUE){
-  if(!methods::is(speciesData, 'SpatialPoints')){stop("speciesData should be SpatialPoints or SpatialPointsDataFrame")}
+  if((methods::is(speciesData, "SpatialPoints") || methods::is(speciesData, "sf"))==FALSE){stop("speciesData should be SpatialPointsDataFrame, SpatialPoints or sf object")}
+  if(methods::is(speciesData, "sf")){
+    sfobj <- speciesData
+  } else{
+    sfobj <- sf::st_as_sf(speciesData)
+  }
   speciesData$ID <- 1:length(speciesData)
-  sfobj <- sf::st_as_sfc(speciesData)
   if(is.null(sf::st_crs(sfobj))){
     stop("The coordinate reference system of species data should be defined")
   } else if(sp::is.projected(speciesData)){ # this is due to a recent change (Jan 2018) in the sf package that doesn't recognize the projected crs units. It will be fixed soon.
@@ -141,7 +145,7 @@ buffering <- function(speciesData, species=NULL, theRange, spDataType="PA", addB
         testSet <- i
         foldList[[i]] <- assign(paste0("fold", i), list(trainSet, testSet))
         lnPrsences <- length(presences)
-        lnAbsence <- length(speciesData) - lnPrsences
+        # lnAbsence <- length(speciesData) - lnPrsences
         trainPoints <- speciesData[trainSet, ]
         trainTestTable$trainPr[i] <- length(trainPoints[trainPoints@data[,species]==1,])
         trainTestTable$trainAb[i] <- length(trainPoints[trainPoints@data[,species]!=1,])
@@ -237,7 +241,7 @@ systematicNum <- function(layer, num=5){
 #'
 #'
 #' @inheritParams buffering
-#' @param blocks A SpatialPolygons* object to be used as the blocks. This can be a user defined polygon and it must cover all
+#' @param blocks A SpatialPolygons* or sf object to be used as the blocks. This can be a user defined polygon and it must cover all
 #' the species points.
 #' @param theRange Numeric value of the specified range by which blocks are created and training/testing data are separated.
 #' This distance should be in \strong{metres}. The range could be explored by \code{spatialAutoRange()} and \code{rangeExplorer()} functions.
@@ -252,7 +256,7 @@ systematicNum <- function(layer, num=5){
 #' created based on the raster extent, but only those blocks covering species data is kept. The default is \code{TRUE}.
 #' @param degMetre Integer. The conversion rate of metres to degree. See the details section for more information.
 #' @param rasterLayer RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.
-#' @param border SpatialPolygons* to clip the block based on a border. This might increase the computation time.
+#' @param border SpatialPolygons* or sf object to clip the block based on a border. This might increase the computation time.
 #' @param showBlocks Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer could be specified
 #' in \code{rasterlayer} argument to be as background.
 #' @param biomod2Format Logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
@@ -337,6 +341,12 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
       message("k has been set to 2 because of checkerboard fold selection")
     }
   }
+  if(methods::is(speciesData, "sf")){
+    speciesData <- sf::as_Spatial(speciesData)
+  }
+  if(methods::is(border, "sf")){
+    border <- sf::as_Spatial(border)
+  }
   if(is.null(blocks)){
     if(is.null(rasterLayer)){
       net <- rasterNet(speciesData, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset, checkerboard=chpattern)
@@ -367,8 +377,11 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
       subBlocks <- raster::intersect(blocks, speciesData)
       if(!is.null(species)){
         species <- NULL
-        message("The species has been set to NULL since there is no associated table with SpatialPoints object")
+        message("The species argument has been set to NULL since there is no table associated with SpatialPoints object")
       }
+    } else if(methods::is(blocks, "sf")){
+      blocks <- sf::as_Spatial(blocks)
+      subBlocks <- raster::intersect(blocks, speciesData)
     } else{
       stop("The input blocks should be a SpatialPolygons* object")
     }
