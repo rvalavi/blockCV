@@ -42,7 +42,7 @@ sb <- spatialBlock(speciesData = pa_data,
                    rasterLayer = awt,
                    theRange = 68000, # size of the blocks
                    k = 5,
-                   selection = 'random',
+                   selection = "random",
                    iteration = 250, # find evenly dispersed folds
                    biomod2Format = TRUE,
                    xOffset = 0, # shift the blocks horizontally
@@ -57,7 +57,7 @@ sb3 <- spatialBlock(speciesData = pa_data,
                     rows = 5,
                     cols = 6,
                     k = 5,
-                    selection = 'random',
+                    selection = "checkerboard",
                     maskBySpecies = TRUE,
                     biomod2Format = TRUE)
 
@@ -69,13 +69,13 @@ sb2 <- spatialBlock(speciesData = pa_data,
                     rasterLayer = awt,
                     rows = 6,
                     k = 3,
-                    selection = 'systematic',
+                    selection = "systematic",
                     biomod2Format = TRUE)
 
 
 ## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
 # adding points on saptialBlock plot
-sb$plots + geom_point(data = as.data.frame(coordinates(pa_data)), aes(x=x, y=y), alpha=0.7)
+sb$plots + geom_point(data = as.data.frame(coordinates(pa_data)), aes(x=x, y=y), alpha=0.6)
 
 
 ## ---- warning=FALSE, message=FALSE---------------------------------------
