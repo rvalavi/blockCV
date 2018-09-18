@@ -36,7 +36,7 @@ table(pb_data$Species)
 
 
 ## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
-# spatial blocking by specified range and random assignment
+# spatial blocking by specified range with random assignment
 sb <- spatialBlock(speciesData = pa_data,
                    species = "Species",
                    rasterLayer = awt,
@@ -50,7 +50,7 @@ sb <- spatialBlock(speciesData = pa_data,
 
 
 ## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
-# spatial blocking by rows and columns
+# spatial blocking by rows and columns with checkerboard assignment
 sb3 <- spatialBlock(speciesData = pa_data,
                     species = "Species",
                     rasterLayer = awt,
@@ -63,7 +63,7 @@ sb3 <- spatialBlock(speciesData = pa_data,
 
 
 ## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
-# spatial blocking by rows and random assignment
+# spatial blocking by rows with systematic assignment
 sb2 <- spatialBlock(speciesData = pa_data,
                     species = "Species",
                     rasterLayer = awt,
