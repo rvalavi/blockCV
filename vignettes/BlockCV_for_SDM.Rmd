@@ -145,9 +145,9 @@ For *presence-absence* data, folds are created based on all records, both presen
 
 ```{r, warning=FALSE, message=FALSE}
 # buffering with presence-absence data
-bf1 <- buffering(speciesData= pa_data,
+bf1 <- buffering(speciesData = pa_data,
                  species = "Species", # to count the number of presences and absences
-                 theRange= 68000,
+                 theRange = 68000,
                  spDataType = "PA",
                  progress = T)
 ```
@@ -156,9 +156,9 @@ In the following buffering example, presence-background data are used. As explai
 
 ```{r}
 # buffering with presence-background data
-bf2 <- buffering(speciesData= pb_data, # presence-background data
-                 species= "Species",
-                 theRange= 68000,
+bf2 <- buffering(speciesData = pb_data, # presence-background data
+                 species = "Species",
+                 theRange = 68000,
                  spDataType = "PB",
                  addBG = TRUE, # add background data to testing folds
                  progress = T)
@@ -225,7 +225,9 @@ Package **blockCV** provides two major visualisation tools for graphical explora
 
 ```{r, eval=FALSE}
 # explore generated folds
-foldExplorer(sb, awt, pa_data)
+foldExplorer(blocks = sb, 
+             rasterLayer = awt, s
+             peciesData = pa_data)
 ```
 
 

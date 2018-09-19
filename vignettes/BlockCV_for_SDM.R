@@ -80,17 +80,17 @@ sb$plots + geom_point(data = as.data.frame(coordinates(pa_data)), aes(x=x, y=y),
 
 ## ---- warning=FALSE, message=FALSE---------------------------------------
 # buffering with presence-absence data
-bf1 <- buffering(speciesData= pa_data,
+bf1 <- buffering(speciesData = pa_data,
                  species = "Species", # to count the number of presences and absences
-                 theRange= 68000,
+                 theRange = 68000,
                  spDataType = "PA",
                  progress = T)
 
 ## ------------------------------------------------------------------------
 # buffering with presence-background data
-bf2 <- buffering(speciesData= pb_data, # presence-background data
-                 species= "Species",
-                 theRange= 68000,
+bf2 <- buffering(speciesData = pb_data, # presence-background data
+                 species = "Species",
+                 theRange = 68000,
                  spDataType = "PB",
                  addBG = TRUE, # add background data to testing folds
                  progress = T)
@@ -128,7 +128,9 @@ plot(sac$variograms[[1]])
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  # explore generated folds
-#  foldExplorer(sb, awt, pa_data)
+#  foldExplorer(blocks = sb,
+#               rasterLayer = awt, s
+#               peciesData = pa_data)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  # explore the block size
