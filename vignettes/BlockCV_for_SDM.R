@@ -129,8 +129,8 @@ plot(sac$variograms[[1]])
 ## ---- eval=FALSE---------------------------------------------------------
 #  # explore generated folds
 #  foldExplorer(blocks = sb,
-#               rasterLayer = awt, s
-#               peciesData = pa_data)
+#               rasterLayer = awt,
+#               speciesData = pa_data)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  # explore the block size

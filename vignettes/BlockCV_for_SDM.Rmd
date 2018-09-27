@@ -226,8 +226,8 @@ Package **blockCV** provides two major visualisation tools for graphical explora
 ```{r, eval=FALSE}
 # explore generated folds
 foldExplorer(blocks = sb, 
-             rasterLayer = awt, s
-             peciesData = pa_data)
+             rasterLayer = awt, 
+             speciesData = pa_data)
 ```
 
 
