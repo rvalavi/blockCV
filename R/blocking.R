@@ -346,6 +346,9 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
   if(methods::is(speciesData, "sf")){
     speciesData <- sf::as_Spatial(speciesData)
   }
+  if(methods::is(speciesData, "SpatialPoints") && !methods::is(speciesData, "SpatialPointsDataFrame")){
+    speciesData <- sp::SpatialPointsDataFrame(speciesData, data.frame(ID=1:length(speciesData)))
+  }
   if(methods::is(border, "sf")){
     border <- sf::as_Spatial(border)
   }
