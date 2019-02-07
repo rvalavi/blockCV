@@ -74,7 +74,7 @@ rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degr
   if(mask==TRUE){
     if(methods::is(x, 'Raster')){
       points <- raster::rasterToPoints(x[[1]], spatial=TRUE)
-      if(nrow(points) > 1000000){
+      if(nrow(points) > 750000){
         points2 <- points[sample(1:nrow(points), maxpixels, replace=FALSE), ]
         rasterNet <- raster::intersect(rasterNet, points2)
       } else  rasterNet <- raster::intersect(rasterNet, points)
