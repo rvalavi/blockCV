@@ -35,7 +35,7 @@ Imports:
   geosphere,
   progress,
   grid
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Suggests: knitr,
     rmarkdown,
     testthat,

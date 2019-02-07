@@ -8,8 +8,8 @@ spatialBlock(speciesData, species = NULL, blocks = NULL,
   rasterLayer = NULL, theRange = NULL, rows = NULL, cols = NULL,
   k = 5, selection = "random", iteration = 250, numLimit = NULL,
   maskBySpecies = TRUE, degMetre = 111325, border = NULL,
-  showBlocks = TRUE, biomod2Format = TRUE, xOffset = 0, yOffset = 0,
-  progress = TRUE)
+  showBlocks = TRUE, biomod2Format = TRUE, xOffset = 0,
+  yOffset = 0, progress = TRUE)
 }
 \arguments{
 \item{speciesData}{A SpatialPointsDataFrame, SpatialPoints or sf object containing species data.}

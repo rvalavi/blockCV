@@ -5,8 +5,8 @@
 \title{Use environmental clustering to separate train and test folds}
 \usage{
 envBlock(rasterLayer, speciesData, species = NULL, k = 5,
-  standardization = "normal", rasterBlock = TRUE, biomod2Format = TRUE,
-  numLimit = 0)
+  standardization = "normal", rasterBlock = TRUE,
+  biomod2Format = TRUE, numLimit = 0)
 }
 \arguments{
 \item{rasterLayer}{RasterLayer, RasterBrick or RasterStack of covariates to identify environmental groups.}
