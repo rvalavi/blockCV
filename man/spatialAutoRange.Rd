@@ -5,9 +5,9 @@
 \title{Measure spatial autocorrelation in the predictor raster files}
 \usage{
 spatialAutoRange(rasterLayer, sampleNumber = 5000, border = NULL,
-  doParallel = TRUE, nCores = NULL, showPlots = TRUE,
-  degMetre = 111325, maxpixels = 1e+05, plotVariograms = FALSE,
-  progress = TRUE)
+  speciesData = NULL, doParallel = TRUE, nCores = NULL,
+  showPlots = TRUE, degMetre = 111325, maxpixels = 1e+05,
+  plotVariograms = FALSE, progress = TRUE)
 }
 \arguments{
 \item{rasterLayer}{RasterLayer, RasterBrick or RasterStack of covariates to find spatial autocorrelation range.}
@@ -16,6 +16,9 @@ spatialAutoRange(rasterLayer, sampleNumber = 5000, border = NULL,
 however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).}
 
 \item{border}{A SpatialPolygons* or sf object for clipping output blocks. This increases the computation time slightly.}
+
+\item{speciesData}{A spatial or sf object. If provided, the \code{sampleNumber} is ignored and
+variograms are created based on species locations.}
 
 \item{doParallel}{Logical. Run in parallel when more than one raster layer is available. Given multiple CPU cores, it is
 recommended to set it to \code{TRUE} when there is a large number of rasters to process.}
@@ -73,6 +76,12 @@ for further information.
 
 # load the example raster data
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
+# import presence-absence species data
+PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
+# coordinate reference system
+Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
+# make a SpatialPointsDataFrame object from data.frame
+pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=CRS(Zone55s))
 
 # run the model in parallel
 range1 <- spatialAutoRange(rasterLayer = awt,
@@ -82,8 +91,12 @@ range1 <- spatialAutoRange(rasterLayer = awt,
                            plotVariograms = FALSE,
                            showPlots = TRUE)
 
-# run the model with no parallel
 range2 <- spatialAutoRange(rasterLayer = awt,
+                           speciesData = pa_data, # use species locations to create variogram(s)
+                           doParallel = TRUE)
+
+# run the model with no parallel
+range3 <- spatialAutoRange(rasterLayer = awt,
                            sampleNumber = 5000,
                            doParallel = FALSE,
                            showPlots = TRUE,

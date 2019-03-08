@@ -135,6 +135,8 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #' @param sampleNumber Integer. The number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 #' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
 #' @param border A SpatialPolygons* or sf object for clipping output blocks. This increases the computation time slightly.
+#' @param speciesData A spatial or sf object. If provided, the \code{sampleNumber} is ignored and
+#' variograms are created based on species locations.
 #' @param showPlots Logical. Show final plot of spatial blocks and autocorrelation ranges.
 #' @param maxpixels Number of random pixels to select the blocks over the study area.
 #' @param plotVariograms Logical. Plot fitted variograms. This can also be done after the analysis. Set to \code{FALSE} by default.
@@ -173,6 +175,12 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #'
 #' # load the example raster data
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
+#' # import presence-absence species data
+#' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
+#' # coordinate reference system
+#' Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
+#' # make a SpatialPointsDataFrame object from data.frame
+#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=CRS(Zone55s))
 #'
 #' # run the model in parallel
 #' range1 <- spatialAutoRange(rasterLayer = awt,
@@ -182,8 +190,12 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #'                            plotVariograms = FALSE,
 #'                            showPlots = TRUE)
 #'
-#' # run the model with no parallel
 #' range2 <- spatialAutoRange(rasterLayer = awt,
+#'                            speciesData = pa_data, # use species locations to create variogram(s)
+#'                            doParallel = TRUE)
+#'
+#' # run the model with no parallel
+#' range3 <- spatialAutoRange(rasterLayer = awt,
 #'                            sampleNumber = 5000,
 #'                            doParallel = FALSE,
 #'                            showPlots = TRUE,
@@ -192,9 +204,16 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #' # show the result
 #' summary(range1)
 #' }
-spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doParallel=TRUE, nCores=NULL,
-                             showPlots=TRUE, degMetre=111325, maxpixels=1e+05, plotVariograms=FALSE, progress=TRUE){
+spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, speciesData=NULL,
+                             doParallel=TRUE, nCores=NULL, showPlots=TRUE, degMetre=111325,
+                             maxpixels=1e+05, plotVariograms=FALSE, progress=TRUE){
+  if(!is.null(speciesData)){
+    if((methods::is(speciesData, "SpatialPoints") || methods::is(speciesData, "sf"))==FALSE){
+      stop("speciesData should be SpatialPoints* or sf object")
+    }
+  }
   if(methods::is(rasterLayer, 'Raster')){
+    if(any(is.factor(rasterLayer))){warning("rasterLayer should not include any factor layer")}
     numLayer <- raster::nlayers(rasterLayer)
     if(is.na(sp::proj4string(rasterLayer))){
       mapext <- raster::extent(rasterLayer)[1:4]
@@ -204,10 +223,15 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
       }
     }
     if(numLayer==1){
-      rasterPoints <- raster::rasterToPoints(rasterLayer, spatial=TRUE)
-      set.seed(2017)
-      points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
-      names(points) <- 'target'
+      if(is.null(speciesData)){
+        rasterPoints <- raster::rasterToPoints(rasterLayer, spatial=TRUE)
+        set.seed(2017)
+        points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
+        names(points) <- 'target'
+      } else{
+        points <- raster::extract(rasterLayer, speciesData, na.rm=TRUE, sp=TRUE)
+        names(points)[ncol(points)] <- "target"
+      }
       fittedVar = automap::autofitVariogram(target~1, points)
       theRange <- fittedVar$var_model[2,3]
       if(plotVariograms==TRUE){
@@ -224,10 +248,19 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
         cl <- parallel::makeCluster(nCores) # use snow clusters
         doParallel::registerDoParallel(cl) # set up a parallel backend for foreach package
         pp <- foreach::foreach(r = 1:numLayer, .inorder=TRUE, .packages=c('raster', 'automap')) %dopar% {
-          rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
-          set.seed(2017)
-          points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
-          names(points) <- 'target'
+          # rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
+          # set.seed(2017)
+          # points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
+          # names(points) <- 'target'
+          if(is.null(speciesData)){
+            rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
+            set.seed(2017)
+            points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
+            names(points) <- 'target'
+          } else{
+            points <- raster::extract(rasterLayer[[r]], speciesData, na.rm=TRUE, sp=TRUE)
+            names(points)[ncol(points)] <- "target"
+          }
           fittedVar <- automap::autofitVariogram(target~1, points)
         }
         for(v in 1:length(pp)){
@@ -245,10 +278,19 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
         }
         for(r in 1:numLayer){
           name <- names(rasterLayer[[r]])
-          rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
-          set.seed(2017)
-          points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
-          names(points) <- 'target'
+          # rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
+          # set.seed(2017)
+          # points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
+          # names(points) <- 'target'
+          if(is.null(speciesData)){
+            rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
+            set.seed(2017)
+            points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
+            names(points) <- 'target'
+          } else{
+            points <- raster::extract(rasterLayer[[r]], speciesData, na.rm=TRUE, sp=TRUE)
+            names(points)[ncol(points)] <- "target"
+          }
           fittedVar <- automap::autofitVariogram(target~1, points)
           variogramList[[r]] <- fittedVar
           df$range[r] <- fittedVar$var_model[2,3]
@@ -310,12 +352,17 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, doPara
     subBlocks <- raster::crop(net, border)
   }
   if(numLayer>1){
+    if(is.null(speciesData)){
+      ptnum <- sampleNumber
+    } else{
+      ptnum <- nrow(speciesData)
+    }
     p1 <- ggplot2::ggplot(data=modelInfo, aes(x=stats::reorder(factor(layers), range), y=range, fill=range))+
       geom_bar(stat="identity")+
       xlab("Layers") + ylab("Range (m)") +
-      theme(axis.text.x = element_text(angle=90, hjust=1)) +
+      theme(axis.text.x = element_text(angle=75, hjust=1)) +
       ggtitle('Autocorrelation range',
-              subtitle=paste('Based on', sampleNumber, 'sample points'))+
+              subtitle=paste('Based on', ptnum, 'sample points'))+
       guides(fill=FALSE)+
       geom_hline(yintercept=theRange2, color='red', size=0.9, linetype=2)+
       annotate("text", x=floor(nrow(modelInfo)/3), y= (theRange2 + (max(modelInfo$range)/20)),
