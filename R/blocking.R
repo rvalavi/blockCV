@@ -449,7 +449,7 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
     biomodTable <- data.frame(RUN1=rep(TRUE, length(speciesData)))
     for(p in 1:k){
       sp.over <- sp::over(speciesData, subBlocks[subBlocks$folds==p, ]) # overlay layers to specify the inside & oudside points
-      trainSet <- which(is.na(sp.over[,1])) # exclude all the data from the bufer area
+      trainSet <- which(is.na(sp.over[,1])) # exclude all the data from the buffer/block area
       testSet <- which(!is.na(sp.over[,1]))
       foldNum[testSet] <- p
       foldList[[p]] <- assign(paste0("fold", p), list(trainSet, testSet))
