@@ -1,4 +1,4 @@
-# blockCV
+# blockCV <img src="man/figures/logo.png" align="right" width="120" />
 
 [![CRAN version](https://www.r-pkg.org/badges/version/blockCV)](https://CRAN.R-project.org/package=blockCV)
 [![Build Status](https://travis-ci.org/rvalavi/blockCV.svg?branch=master)](https://travis-ci.org/rvalavi/blockCV)
