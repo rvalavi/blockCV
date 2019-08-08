@@ -18,7 +18,8 @@ however it can be increased by user to represent their region well (relevant to 
 \item{border}{A SpatialPolygons* or sf object for clipping output blocks. This increases the computation time slightly.}
 
 \item{speciesData}{A spatial or sf object. If provided, the \code{sampleNumber} is ignored and
-variograms are created based on species locations.}
+variograms are created based on species locations. This option is not recommended if the species data is not
+evenly distributed across the whole study area and/or the number of records is low.}
 
 \item{doParallel}{Logical. Run in parallel when more than one raster layer is available. Given multiple CPU cores, it is
 recommended to set it to \code{TRUE} when there is a large number of rasters to process.}

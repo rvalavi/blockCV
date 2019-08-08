@@ -136,7 +136,8 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
 #' @param border A SpatialPolygons* or sf object for clipping output blocks. This increases the computation time slightly.
 #' @param speciesData A spatial or sf object. If provided, the \code{sampleNumber} is ignored and
-#' variograms are created based on species locations.
+#' variograms are created based on species locations. This option is not recommended if the species data is not
+#' evenly distributed across the whole study area and/or the number of records is low.
 #' @param showPlots Logical. Show final plot of spatial blocks and autocorrelation ranges.
 #' @param maxpixels Number of random pixels to select the blocks over the study area.
 #' @param plotVariograms Logical. Plot fitted variograms. This can also be done after the analysis. Set to \code{FALSE} by default.
@@ -221,6 +222,12 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, specie
         raster::crs(rasterLayer) <- sp::CRS("+init=epsg:4326")
         warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have geographic coordinate system")
       }
+    }
+    # reduce the sampleNumber if the raster does not have enough cells
+    if(raster::ncell(rasterLayer) < 10 * sampleNumber){
+      rp <- raster::rasterToPoints(rasterLayer[[1]])
+      sampleNumber <- nrow(rp)
+      message("The sample number reduced to ", sampleNumber, ", the total number of available cells")
     }
     if(numLayer==1){
       if(is.null(speciesData)){
