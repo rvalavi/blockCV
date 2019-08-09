@@ -257,10 +257,6 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, specie
         cl <- parallel::makeCluster(nCores) # use snow clusters
         doParallel::registerDoParallel(cl) # set up a parallel backend for foreach package
         pp <- foreach::foreach(r = 1:numLayer, .inorder=TRUE, .packages=c('raster', 'automap')) %dopar% {
-          # rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
-          # set.seed(2017)
-          # points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
-          # names(points) <- 'target'
           if(is.null(speciesData)){
             rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
             set.seed(2017)
@@ -287,10 +283,6 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, specie
         }
         for(r in 1:numLayer){
           name <- names(rasterLayer[[r]])
-          # rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
-          # set.seed(2017)
-          # points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
-          # names(points) <- 'target'
           if(is.null(speciesData)){
             rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
             set.seed(2017)
