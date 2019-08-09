@@ -228,7 +228,7 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, specie
       rp <- raster::rasterToPoints(rasterLayer[[1]])
       if(nrow(rp) < sampleNumber){
         sampleNumber <- nrow(rp)
-        message("The sample number reduced to ", sampleNumber, ", the total number of available cells")
+        message("The sampleNumber reduced to ", sampleNumber, ", the total number of available cells")
       }
     }
     if(numLayer==1){
