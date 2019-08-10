@@ -82,14 +82,13 @@ buffering <- function(speciesData, species=NULL, theRange, spDataType="PA", addB
   if((methods::is(speciesData, "SpatialPoints") || methods::is(speciesData, "sf"))==FALSE){stop("speciesData should be SpatialPointsDataFrame, SpatialPoints or sf object")}
   if(methods::is(speciesData, "sf")){
     sfobj <- speciesData
+    speciesData <- sf::as_Spatial(speciesData)
   } else{
     sfobj <- sf::st_as_sf(speciesData)
   }
   speciesData$ID <- 1:length(speciesData)
-  if(is.null(sf::st_crs(sfobj))){
+  if(is.na(sf::st_crs(sfobj))){
     stop("The coordinate reference system of species data should be defined")
-  } else if(sp::is.projected(speciesData)){ # this is due to a recent change (Jan 2018) in the sf package that doesn't recognize the projected crs units. It will be fixed soon.
-    sf::st_crs(sfobj) <- NA
   }
   dmatrix <- sf::st_distance(sfobj)
   distuni <- dmatrix[1,1] # take the unit to avoid using units package
