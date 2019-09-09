@@ -34,7 +34,7 @@ spatialAutoRange(rasterLayer = awt, # raster file
 ```r
 # spatial blocking by specified range and random assignment
 sb <- spatialBlock(speciesData = pa_data,
-                   species = "Species", # the response columns
+                   species = "Species", # the response column
                    rasterLayer = awt,
                    theRange = 68000, # size of the blocks
                    k = 5,
