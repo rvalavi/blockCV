@@ -446,7 +446,8 @@ spatialBlock <- function(speciesData,
   maxSD <- Inf
   for(i in seq_len(iteration)){
     if(k > nrowBlocks){
-      stop("'k' is bigger than the number of spatial blocks")
+      stop("'k' is bigger than the number of spatial blocks\n",
+           "The number of spatial blocks is: ", nrowBlocks)
     } else if(k < 2){
       stop("'k' must be 2 or higher")
     }
