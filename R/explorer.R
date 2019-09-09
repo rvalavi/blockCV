@@ -67,55 +67,30 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
     stop("An object of SpatialBlock, EnvironmentalBlock or BufferedBlock is needed")
   }
   # select the default value
-  palpha <- 0.6
-  if(class(blocks) == "BufferedBlock"){
-    polyObj <- NULL
-    if(blocks$dataType == "PB"){
-      palpha <- 0.5
-    }
-  } else if(class(blocks) == "SpatialBlock"){
+  if(class(blocks) == "SpatialBlock"){
     polyObj <- blocks$blocks
-  } else if(class(blocks) == "EnvironmentalBlock"){
-    polyObj <- NULL
   } else{
-    stop("blocks must be an object of SpatialBlock, EnvironmentalBlock or BufferedBlock")
+    polyObj <- NULL
   }
   folds <- blocks$folds
   kmax <- length(folds)
   species <- blocks$species
   # set x and y coordinates
-  if(methods::is(speciesData, "sf")){
-    speciesData <- sf::as_Spatial(speciesData)
+  if(methods::is(speciesData, "SpatialPoints")){
+    speciesData <- sf::st_as_sf(speciesData)
+  } else if(!methods::is(speciesData, "sf")){
+    stop("speciesData should be a spatial or sf object")
   }
-  if(is.na(sp::proj4string(speciesData))){
-    mapext <- raster::extent(speciesData)[1:4]
-    if(mapext >= -180 && mapext <= 180){
-      xaxes <- "Longitude"
-      yaxes <- "Latitude"
-    } else {
-      xaxes <- "Easting"
-      yaxes <- "Northing"
-    }
-  } else{
-    if(sp::is.projected(speciesData)){
-      xaxes <- "Easting"
-      yaxes <- "Northing"
-    } else{
-      xaxes <- "Longitude"
-      yaxes <- "Latitude"
-    }
-  }
-  coor <- sp::coordinates(speciesData)
-  coor <- as.data.frame(coor)
-  speciesData@data <- cbind(speciesData@data, coor)
   # plot raster file in ggplot2
   samp <- raster::sampleRegular(rasterLayer[[1]], 5e+05, asRaster=TRUE)
-  map.df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
-  colnames(map.df) <- c("Easting", "Northing", "MAP")
-  mid <- stats::median(map.df$MAP)
-  basePlot <- ggplot2::ggplot(data=map.df, aes(y=Northing, x=Easting)) + geom_raster(aes(fill=MAP)) + coord_fixed() +
-    scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) + guides(fill=FALSE) +
-    xlab(xaxes) + ylab(yaxes)
+  map_df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
+  colnames(map_df) <- c("Easting", "Northing", "MAP")
+  mid <- stats::median(map_df$MAP)
+  basePlot <- ggplot2::ggplot() +
+    ggplot2::geom_raster(data=map_df, ggplot2::aes(y=Northing, x=Easting, fill=MAP)) +
+    ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
+    ggplot2::guides(fill = FALSE) +
+    ggplot2::theme_bw()
   # create UI for shniy app
   ui <- shinydashboard::dashboardPage(
     shinydashboard::dashboardHeader(title = "Fold Explorer"),
@@ -126,7 +101,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
           shiny::sidebarPanel(shiny::fluidRow(
             shiny::wellPanel(shiny::sliderInput(inputId = "num",
                                                 label = "Choose a fold to display",
-                                                value = 2, min = 1, max = kmax, step = 1)
+                                                value = 2, min = 1, max = kmax, step = 1L)
             )
           ),
           shiny::fluidRow("Record's Statistics"),
@@ -134,10 +109,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
             shiny::fluidRow(shiny::textOutput(outputId = "Tr"),
                             shiny::textOutput(outputId = "Ts"))
           } else{
-            shiny::fluidRow(shiny::textOutput(outputId = "TrP"),
-                            shiny::textOutput(outputId = "TrA"),
-                            shiny::textOutput(outputId = "TsP"),
-                            shiny::textOutput(outputId = "TsA"))
+            shiny::fluidRow(shiny::tableOutput(outputId = "Tb"))
           }
           ),
           shiny::mainPanel(shiny::plotOutput(outputId = "ggplot"))
@@ -151,136 +123,53 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
       trainSet <- unlist(folds[[input$num]][1])
       testSet <- unlist(folds[[input$num]][2])
       training <- speciesData[trainSet, ]
-      training2 <- sp::SpatialPoints(training, proj4string = crs(training))
       testing <- speciesData[testSet, ]
-      testing2 <- sp::SpatialPoints(testing, proj4string = crs(testing))
-      if(is.null(species)){
-        trdf <- data.frame(ID=1:length(training2))
-        training <- sp::SpatialPointsDataFrame(training2, trdf)
-        coor <- sp::coordinates(training)
-        coor <- as.data.frame(coor)
-        training@data <- cbind(training@data, coor)
-        names(training)[2:3] <- c("Easting", "Northing")
-        tsdf <- data.frame(ID=1:length(testing2))
-        testing <- sp::SpatialPointsDataFrame(testing2, tsdf)
-        coor <- sp::coordinates(testing)
-        coor <- as.data.frame(coor)
-        testing@data <- cbind(testing@data, coor)
-        names(testing)[2:3] <- c("Easting", "Northing")
-        rm(training2, testing2, trdf, tsdf, coor)
-      } else{
-        trdf <- data.frame(ID=1:length(training2))
-        trdf$Species <- training@data[,species]
-        training <- sp::SpatialPointsDataFrame(training2, trdf)
-        coor <- sp::coordinates(training)
-        coor <- as.data.frame(coor)
-        training@data <- cbind(training@data, coor)
-        names(training)[3:4] <- c("Easting", "Northing")
-        training$Species <- as.factor(training$Species)
-        tsdf <- data.frame(ID=1:length(testing2))
-        tsdf$Species <- testing@data[,species]
-        testing <- sp::SpatialPointsDataFrame(testing2, tsdf)
-        coor <- sp::coordinates(testing)
-        coor <- as.data.frame(coor)
-        testing@data <- cbind(testing@data, coor)
-        names(testing)[3:4] <- c("Easting", "Northing")
-        testing$Species <- as.factor(testing$Species)
-        rm(training2, testing2, trdf, tsdf, coor)
+      if(class(blocks) == "SpatialBlock"){
+        plotPoly <- polyObj[polyObj$folds==input$num, ]
+        plotPoly <- sf::st_as_sf(plotPoly)
       }
-      thePoly <- polyObj[polyObj$folds==input$num, ]
-      plotPoly <- ggplot2::fortify(thePoly)
       if(is.null(species)){
         if(class(blocks) == "SpatialBlock"){
-          ptr <- basePlot + geom_polygon(aes(x = long, y = lat, group=group), data = plotPoly,
-                                         color ="red", fill ="orangered4", alpha = 0.04, size = 0.2) +
-            geom_point(aes(x = Easting, y = Northing), data = training@data, alpha = 0.6, color="blue", size = 2) +
-            ggtitle('Training set')
+          ptr <- basePlot + ggplot2::geom_sf(data = plotPoly, color ="red", fill ="orangered4",
+                                             alpha = 0.04, size = 0.2) +
+            ggplot2::geom_sf(data = training, alpha = 0.6, color = "blue", size = 2) +
+            ggplot2::ggtitle('Training set')
           # ploting test data
-          pts <- basePlot + geom_polygon(aes(x = long, y = lat, group=group), data = plotPoly,
-                                         color ="red", fill ="orangered4", alpha = 0.04, size = 0.2) +
-            geom_point(aes(x = Easting, y = Northing), data = testing@data, alpha = 0.6, color="blue", size = 2) +
-            ggtitle('Testing set')
-        } else if(class(blocks) == "BufferedBlock" || class(blocks) == "EnvironmentalBlock"){
-          ptr <- basePlot + geom_point(aes(x = Easting, y = Northing), data = training@data, alpha = 0.6, color="blue", size = 2) +
-            ggtitle('Training set')
+          pts <- basePlot + ggplot2::geom_sf(data = plotPoly, color ="red", fill ="orangered4",
+                                             alpha = 0.04, size = 0.2) +
+            ggplot2::geom_sf(data = testing, alpha = 0.6, color = "blue", size = 2) +
+            ggplot2::ggtitle('Testing set')
+        } else{
+          ptr <- basePlot + ggplot2::geom_sf(data = training,  alpha = 0.6, color = "blue", size = 2) +
+            ggplot2::ggtitle('Training set')
           # ploting test data
-          pts <- basePlot + geom_point(aes(x = Easting, y = Northing), data = testing@data, alpha = 0.6, color="blue", size = 2) +
-            ggtitle('Testing set')
+          pts <- basePlot + ggplot2::geom_sf(data = testing,  alpha = 0.6, color = "blue", size = 2) +
+            ggplot2::ggtitle("Testing set")
         }
       } else{
         if(class(blocks) == "SpatialBlock"){
-          ptr <- basePlot + geom_polygon(aes(x = long, y = lat, group=group), data = plotPoly,
-                                         color ="red", fill ="orangered4", alpha = 0.04, size = 0.2) +
-            geom_point(aes(x = Easting, y = Northing, colour=Species), data = training@data, alpha = 0.6, size = 2) +
-            scale_colour_manual(values = c("blue", "red"),  labels = c("Absence/Background", "Presence")) +
-            ggtitle('Training set')
+          ptr <- basePlot + ggplot2::geom_sf(data = plotPoly, color ="red", fill ="orangered4",
+                                             alpha = 0.04, size = 0.2) +
+            ggplot2::geom_sf(data = training, ggplot2::aes(color = get(species)), show.legend = FALSE,
+                             alpha = 0.6, size = 2) +
+            ggplot2::ggtitle('Training set')
           # ploting test data
-          if(blocks$records[input$num,3] == 0){
-            pts <- basePlot + geom_polygon(aes(x = long, y = lat, group=group), data = plotPoly,
-                                           color ="red", fill ="orangered4", alpha = 0.04, size = 0.2) +
-              geom_point(aes(x = Easting, y = Northing, colour=Species), data = testing@data, alpha = 0.6, size = 2) +
-              scale_colour_manual(values = c("blue"),  labels = c("Absence/Background")) +
-              ggtitle('Testing set')
-          } else if(blocks$records[input$num,4] == 0){
-            pts <- basePlot + geom_polygon(aes(x = long, y = lat, group=group), data = plotPoly,
-                                           color ="red", fill ="orangered4", alpha = 0.04, size = 0.2) +
-              geom_point(aes(x = Easting, y = Northing, colour=Species), data = testing@data, alpha = 0.6, size = 2) +
-              scale_colour_manual(values = c("red"),  labels = c("Presence")) +
-              ggtitle('Testing set')
-          } else{
-            pts <- basePlot + geom_polygon(aes(x = long, y = lat, group=group), data = plotPoly,
-                                           color ="red", fill ="orangered4", alpha = 0.04, size = 0.2) +
-              geom_point(aes(x = Easting, y = Northing, colour=Species), data = testing@data, alpha = 0.6, size = 2) +
-              scale_colour_manual(values = c("blue", "red"),  labels = c("Absence/Background", "Presence")) +
-              ggtitle('Testing set')
-          }
-        } else if(class(blocks) == "EnvironmentalBlock"){
-          ptr <- basePlot + geom_point(aes(x = Easting, y = Northing, colour=Species), data = training@data, alpha = palpha, size = 2) +
-            scale_colour_manual(values = c("blue", "red"),  labels = c("Absence/Background", "Presence")) +
-            ggtitle('Training set')
+          pts <- basePlot + ggplot2::geom_sf(data = plotPoly, color ="red", fill ="orangered4",
+                                             alpha = 0.04, size = 0.2) +
+            ggplot2::geom_sf(data = testing, ggplot2::aes(color = get(species)), show.legend = "point",
+                             alpha = 0.6, size = 2) +
+            ggplot2::labs(color = species) +
+            ggplot2::ggtitle('Testing set')
+
+        } else{
+          ptr <- basePlot + ggplot2::geom_sf(data = training, ggplot2::aes(color = get(species)), show.legend = FALSE,
+                                             alpha = 0.6, size = 2) +
+            ggplot2::ggtitle('Training set')
           # ploting test data
-          if(blocks$records[input$num,3] == 0){
-            pts <- basePlot + geom_point(aes(x = Easting, y = Northing, colour=Species), data = testing@data, alpha = 0.6, size = 2) +
-              scale_colour_manual(values = c("blue"),  labels = c("Absence/Background")) +
-              ggtitle('Testing set')
-          } else if(blocks$records[input$num,4] == 0){
-            pts <- basePlot + geom_point(aes(x = Easting, y = Northing, colour=Species), data = testing@data, alpha = 0.6, size = 2) +
-              scale_colour_manual(values = c("red"),  labels = c("Presence")) +
-              ggtitle('Testing set')
-          } else{
-            pts <- basePlot + geom_point(aes(x = Easting, y = Northing, colour=Species), data = testing@data, alpha = 0.6, size = 2) +
-              scale_colour_manual(values = c("blue", "red"),  labels = c("Absence/Background", "Presence")) +
-              ggtitle('Testing set')
-          }
-        } else if(class(blocks) == "BufferedBlock"){
-          # ploting test data
-          if(blocks$dataType == "PA"){
-            ptr <- basePlot + geom_point(aes(x = Easting, y = Northing, colour=Species), data = training@data, alpha = palpha, size = 2) +
-              scale_colour_manual(values = c("blue", "red"),  labels = c("Absence", "Presence")) +
-              ggtitle('Training set')
-            if(blocks$records[input$num,3] == 0){
-              pts <- basePlot + geom_point(aes(x = Easting, y = Northing, colour=Species), data = testing@data, alpha = 0.6, size = 2) +
-                scale_colour_manual(values = c("blue"),  labels = c("Absence")) +
-                ggtitle('Testing set')
-            } else{
-              pts <- basePlot + geom_point(aes(x = Easting, y = Northing, colour=Species), data = testing@data, alpha = 0.6, size = 2) +
-                scale_colour_manual(values = c("red"),  labels = c("Presence")) +
-                ggtitle('Testing set')
-            }
-          } else if(blocks$dataType == "PB"){
-            ptr <- basePlot + geom_point(aes(x = Easting, y = Northing, colour=Species), data = training@data, alpha = palpha, size = 2) +
-              scale_colour_manual(values = c("blue", "red"),  labels = c("Background", "Presence")) +
-              ggtitle('Training set')
-            if(blocks$records[input$num,4] == 0){
-              pts <- basePlot + geom_point(aes(x = Easting, y = Northing, colour=Species), data = testing@data, alpha = 0.6, size = 2) +
-                scale_colour_manual(values = c("red"),  labels = c("Presence")) +
-                ggtitle('Testing set')
-            } else{
-              pts <- basePlot + geom_point(aes(x = Easting, y = Northing, colour=Species), data = testing@data, alpha = 0.6, size = 2) +
-                scale_colour_manual(values = c("blue", "red"),  labels = c("Background", "Presence")) +
-                ggtitle('Testing set')
-            }
-          }
+          pts <- basePlot + ggplot2::geom_sf(data = testing, ggplot2::aes(color = get(species)), show.legend = "point",
+                                             alpha = 0.6, size = 2) +
+            ggplot2::labs(color = species) +
+            ggplot2::ggtitle("Testing set")
         }
       }
       multiplot(ptr, pts)
@@ -289,24 +178,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
       output$Tr <- shiny::renderText({paste("No. training records: ", blocks$records[input$num,1])})
       output$Ts <- shiny::renderText({paste("No. testing records:   ", blocks$records[input$num,2])})
     } else{
-      if(class(blocks) == "BufferedBlock"){
-        if(blocks$dataType == "PB"){
-          output$TrP <- shiny::renderText({paste("No. training presence records:   ", blocks$records[input$num,1])})
-          output$TrA <- shiny::renderText({paste("No. training background records:", blocks$records[input$num,2])})
-          output$TsP <- shiny::renderText({paste("No. testing presence records:   ", blocks$records[input$num,3])})
-          output$TsA <- shiny::renderText({paste("No. testing background records:", blocks$records[input$num,4])})
-        } else{
-          output$TrP <- shiny::renderText({paste("No. training presence records:   ", blocks$records[input$num,1])})
-          output$TrA <- shiny::renderText({paste("No. training absence records:", blocks$records[input$num,2])})
-          output$TsP <- shiny::renderText({paste("No. testing presence records:   ", blocks$records[input$num,3])})
-          output$TsA <- shiny::renderText({paste("No. testing absence records:", blocks$records[input$num,4])})
-        }
-      } else{
-        output$TrP <- shiny::renderText({paste("No. training presence records:   ", blocks$records[input$num,1])})
-        output$TrA <- shiny::renderText({paste("No. training absence/background records:", blocks$records[input$num,2])})
-        output$TsP <- shiny::renderText({paste("No. testing presence records:   ", blocks$records[input$num,3])})
-        output$TsA <- shiny::renderText({paste("No. testing absence/background records:", blocks$records[input$num,4])})
-      }
+      output$Tb <- shiny::renderTable({blocks$records[input$num,]})
     }
   }
   # starting the shiny app
@@ -409,10 +281,10 @@ rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTabl
     }
   }
   samp <- raster::sampleRegular(rasterLayer[[1]], 5e+05, asRaster=TRUE)
-  map.df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
-  colnames(map.df) <- c("Easting", "Northing", "MAP")
-  mid <- mean(map.df$MAP)
-  basepl <- ggplot(data=map.df, aes(y=Northing, x=Easting)) + geom_raster(aes(fill=MAP)) + coord_fixed() +
+  map_df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
+  colnames(map_df) <- c("Easting", "Northing", "MAP")
+  mid <- mean(map_df$MAP)
+  basepl <- ggplot(data=map_df, aes(y=Northing, x=Easting)) + geom_raster(aes(fill=MAP)) + coord_fixed() +
     scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) + guides(fill=FALSE) +
     xlab(xaxes) + ylab(yaxes)
   if(!is.null(speciesData)){

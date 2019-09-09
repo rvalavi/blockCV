@@ -5,9 +5,12 @@
 # loading the package
 library(blockCV)
 
+
 ## ---- fig.height=5, fig.width=7.2, warning=FALSE, message=FALSE----------
 # loading raster library
 library(raster)
+library(sf)
+
 # import raster data
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 
@@ -16,21 +19,22 @@ awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 # import presence-absence species data
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 # make a SpatialPointsDataFrame object from data.frame
-pa_data <- SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
+pa_data <- st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
 # see the first few rows
-head(pa_data)
+pa_data
+
 # plot species data on the map
 plot(awt[[1]]) # plot raster data
-points(pa_data[which(pa_data$Species==1), ], col="red") # add presence points
-points(pa_data[which(pa_data$Species==0), ], col="blue") # add absence points
-legend(x=500000, y=8250000, legend=c("Presence","Absence"), col=c(2, 4), pch=c(1,1), bty="n")
+plot(pa_data[which(pa_data$Species==1), ], pch = 16, col="red", add=TRUE) # add presence points
+plot(pa_data[which(pa_data$Species==0), ], pch = 16, col="blue", add=TRUE) # add absence points
+legend(x=500000, y=8250000, legend=c("Presence","Absence"), col=c(2, 4), pch=c(16,16), bty="n")
 
 
 ## ------------------------------------------------------------------------
 # import presence-background species data
 PB <- read.csv(system.file("extdata", "PB.csv", package = "blockCV"))
 # make a SpatialPointsDataFrame object from data.frame
-pb_data <- SpatialPointsDataFrame(PB[,c("x", "y")], PB, proj4string=crs(awt))
+pb_data <- st_as_sf(PB, coords = c("x", "y"), crs = crs(awt))
 # number of presence and background records
 table(pb_data$Species)
 
@@ -43,7 +47,7 @@ sb <- spatialBlock(speciesData = pa_data,
                    theRange = 68000, # size of the blocks
                    k = 5,
                    selection = "random",
-                   iteration = 250, # find evenly dispersed folds
+                   iteration = 100, # find evenly dispersed folds
                    biomod2Format = TRUE,
                    xOffset = 0, # shift the blocks horizontally
                    yOffset = 0)
@@ -51,20 +55,18 @@ sb <- spatialBlock(speciesData = pa_data,
 
 ## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
 # spatial blocking by rows and columns with checkerboard assignment
-sb3 <- spatialBlock(speciesData = pa_data,
+sb2 <- spatialBlock(speciesData = pa_data,
                     species = "Species",
                     rasterLayer = awt,
                     rows = 5,
                     cols = 6,
-                    k = 5,
                     selection = "checkerboard",
-                    maskBySpecies = TRUE,
                     biomod2Format = TRUE)
 
 
 ## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
 # spatial blocking by rows with systematic assignment
-sb2 <- spatialBlock(speciesData = pa_data,
+sb3 <- spatialBlock(speciesData = pa_data,
                     species = "Species",
                     rasterLayer = awt,
                     rows = 6,
@@ -73,45 +75,44 @@ sb2 <- spatialBlock(speciesData = pa_data,
                     biomod2Format = TRUE)
 
 
-## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
+## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7-------------
 # adding points on saptialBlock plot
-sb$plots + geom_point(data = as.data.frame(coordinates(pa_data)), aes(x=x, y=y), alpha=0.6)
+sb$plots + geom_sf(data = pa_data, alpha=0.6)
 
 
-## ---- warning=FALSE, message=FALSE---------------------------------------
-# buffering with presence-absence data
-bf1 <- buffering(speciesData = pa_data,
-                 species = "Species", # to count the number of presences and absences
-                 theRange = 68000,
-                 spDataType = "PA",
-                 progress = T)
+## ----eval=FALSE, warning=FALSE, message=FALSE----------------------------
+#  # buffering with presence-absence data
+#  bf1 <- buffering(speciesData = pa_data,
+#                   theRange = 68000,
+#                   species = "Species", # to count the number of presences and absences/backgrounds
+#                   spDataType = "PA", # presence-absence  data type
+#                   progress = TRUE)
 
-## ------------------------------------------------------------------------
-# buffering with presence-background data
-bf2 <- buffering(speciesData = pb_data, # presence-background data
-                 species = "Species",
-                 theRange = 68000,
-                 spDataType = "PB",
-                 addBG = TRUE, # add background data to testing folds
-                 progress = T)
+## ----eval=FALSE----------------------------------------------------------
+#  # buffering with presence-background data
+#  bf2 <- buffering(speciesData = pb_data, # presence-background data
+#                   theRange = 68000,
+#                   species = "Species",
+#                   spDataType = "PB", # presence-background data type
+#                   addBG = TRUE, # add background data to testing folds
+#                   progress = TRUE)
+#  
 
-## ---- warning=FALSE, message=FALSE---------------------------------------
-# environmental clustering
-eb <- envBlock(rasterLayer = awt,
-               speciesData = pa_data,
-               species = "Species",
-               k = 5,
-               standardization = "standard", # rescale variables between 0 and 1
-               rasterBlock = FALSE,
-               numLimit = 50)
+## ----eval=FALSE, warning=FALSE, message=FALSE----------------------------
+#  # environmental clustering
+#  eb <- envBlock(rasterLayer = awt,
+#                 speciesData = pa_data,
+#                 species = "Species",
+#                 k = 5,
+#                 standardization = "standard", # rescale variables between 0 and 1
+#                 rasterBlock = FALSE,
+#                 numLimit = 50)
 
 ## ---- eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2----
 sac <- spatialAutoRange(rasterLayer = awt,
                         sampleNumber = 5000,
-                        border = NULL,
-                        showPlots = TRUE,
-                        plotVariograms = FALSE,
-                        doParallel = FALSE)
+                        doParallel = FALSE,
+                        showPlots = TRUE)
 
 
 ## ------------------------------------------------------------------------
@@ -149,23 +150,25 @@ plot(sac$variograms[[1]])
 library(maxnet)
 library(plotROC)
 # extract the raster values for the species points as a dataframe
-mydata <- extract(awt, pb_data, df=TRUE)
-# the extract function creates an ID column that should be excluded for the modelling
-# remove the extra column
-mydata <- mydata[,2:ncol(mydata)]
-# create a vector of 1 (for presence) and 0 (for background)
-pb <- pb_data$Species
+mydata <- raster::extract(awt, pa_data)
+mydata <- as.data.frame(mydata)
+# create a vector of 1 (for presence) and 0 (for absence)
+pb <- pa_data$Species
 
 # extract the folds in buffering object created in the previous section (with presence-background data)
-folds <- bf2$folds
+folds <- sb$folds
 # create an empty vector to store the AUC of each fold
-AUCs <- vector()
-for(k in 1:length(folds)){
+AUCs <- vector(mode = "numeric")
+for(k in seq_len(length(folds))){
   trainSet <- unlist(folds[[k]][1]) # extract the training set indices
   testSet <- unlist(folds[[k]][2]) # extract the testing set indices
   # fitting a maxent model using linear, quadratic and hinge features
-  mx <- maxnet(pb[trainSet], mydata[trainSet, ], maxnet.formula(pb[trainSet], mydata[trainSet, ], classes="lqh"))
-  testTable <- pb_data@data[testSet, ] # a table for testing predictions and reference data
+  mx <- maxnet(p = pb[trainSet], 
+               data = mydata[trainSet, ], 
+               maxnet.formula(p = pb[trainSet], 
+                              data = mydata[trainSet, ], 
+                              classes = "default"))
+  testTable <- pb_data[testSet, ] # a table for testing predictions and reference data
   testTable$pred <- predict(mx, mydata[testSet, ], type="cloglog") # predict the test set
   # calculate AUC using calc_auc function in plotROC package
   auc <- calc_auc(ggplot(testTable, aes(m=pred, d=Species)) + geom_roc(n.cuts = 0))[3]
@@ -174,24 +177,24 @@ for(k in 1:length(folds)){
 
 # print the mean and standard deviation of AUCs
 print(mean(AUCs))
-print(sd(AUCs))
 
 
 ## ---- warning=FALSE, message=FALSE, fig.height=3.7, fig.width=7----------
 # loading the libraries
 library(randomForest)
 library(plotROC)
+
 # extract the raster values for the species points as a dataframe
-mydata <- extract(awt, pa_data, df=TRUE)
+mydata <- raster::extract(awt, pa_data, df=TRUE)
 # adding species column to the dataframe
 mydata$Species <- as.factor(pa_data$Species)
 # remove extra column (ID)
-mydata <- mydata[,2:ncol(mydata)]
+mydata <- mydata[,-1]
 
 # extract the folds in BufferedBlock object created in the previous section
-folds <- bf1$folds
+folds <- sb$folds
 # create a data.frame to store the prediction of each fold (record)
-testTable <- pa_data@data
+testTable <- pa_data
 testTable$pred <- NA
 for(k in 1:length(folds)){
   trainSet <- unlist(folds[[k]][1]) # extract the training set indices
@@ -207,7 +210,7 @@ auc <- calc_auc(ggROC)[3]
 plot(ggROC + ggtitle('', subtitle=paste("AUC for testing dataset:", signif(auc, 4))))
 
 
-## ---- results="hide", warning=FALSE, message=FALSE, eval=FALSE-----------
+## ----warning=FALSE, message=FALSE, eval=FALSE----------------------------
 #  # loading the library
 #  library(biomod2)
 #  # species occurrences

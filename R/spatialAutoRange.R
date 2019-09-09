@@ -1,112 +1,3 @@
-rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degree=111325, xOffset=NULL, yOffset=NULL,
-                      checkerboard=FALSE, maxpixels=250000){
-  ext <- raster::extent(x)
-  extRef <- raster::extent(x)
-  if(is.na(sp::proj4string(x))){
-    mapext <- raster::extent(x)[1:4]
-    if(mapext >= -180 && mapext <= 180){
-      resolution <- resolution / degree
-      warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have an un-projected reference system")
-    } else {
-      resolution <- resolution
-      warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have a projected reference system")
-    }
-  } else{
-    if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=crs(x)))){
-      resolution <- resolution
-    } else{
-      resolution <- resolution / degree
-    }
-  }
-  if(!is.null(xbin) && is.null(ybin)){
-    rasterNet <- raster::raster(ext, nrow=1, ncol=xbin, crs=crs(x))
-  } else if(is.null(xbin) && !is.null(ybin)){
-    rasterNet <- raster::raster(ext, nrow=ybin, ncol=1, crs=crs(x))
-  } else if(!is.null(xbin) && !is.null(ybin)){
-    rasterNet <- raster::raster(ext, nrow=ybin, ncol=xbin, crs=crs(x))
-  } else if(is.null(xbin) && is.null(ybin) && !is.null(resolution)){
-    xrange <- raster::xmax(x) - raster::xmin(x) # number of columns
-    yrange <- raster::ymax(x) - raster::ymin(x) # number of rows
-    xPix <- ceiling(xrange / resolution)
-    yPix <- ceiling(yrange / resolution)
-    xdif <- ((xPix * resolution) - xrange) / 2 # the difference of extent divided by 2 to split on both sides
-    ydif <- ((yPix * resolution) - yrange) / 2
-    ext@xmin <- raster::xmin(x) - xdif
-    ext@xmax <- raster::xmax(x) + xdif
-    ext@ymin <- raster::ymin(x) - ydif
-    ext@ymax <- raster::ymax(x) + ydif
-    if(!is.null(xOffset)){
-      if(xOffset > 1 || xOffset < 0){stop("xOffset should be between 0 and 1")}
-      ext@xmin <- ext@xmin + (resolution * xOffset)
-      ext@xmax <- ext@xmax + (resolution * xOffset)
-    }
-    if(!is.null(yOffset)){
-      if(yOffset > 1 || yOffset < 0){stop("yOffset should be between 0 and 1")}
-      ext@ymin <- ext@ymin + (resolution * yOffset)
-      ext@ymax <- ext@ymax + (resolution * yOffset)
-    }
-    # adding cells if needed
-    if(ext@xmin > extRef@xmin){ # add one column by increasing the extent and number of bins
-      ext@xmin <- ext@xmin - resolution
-      xPix <- xPix + 1
-    }
-    if(ext@ymin > extRef@ymin){
-      ext@ymin <- ext@ymin - resolution
-      yPix <- yPix + 1
-    }
-    rasterNet <- raster::raster(ext, nrow=yPix, ncol=xPix, crs=crs(x))
-  } else stop("A value should be specified for the block size")
-  if(checkerboard == TRUE){
-    values(rasterNet) <- 1:ncell(rasterNet)
-    m <- as.matrix(rasterNet)
-    for(i in 1:ncol(rasterNet)){
-      if(i %% 2 == 0){
-        m[,i] <- rep(1:2, nrow(m))[1:nrow(m)]
-      } else{
-        m[,i] <- rep(2:1, nrow(m))[1:nrow(m)]
-      }
-    }
-    rasterNet[] <- m
-  } else{
-    values(rasterNet) <- 1:ncell(rasterNet)
-  }
-  rasterNet <- raster::rasterToPolygons(rasterNet)
-  if(mask==TRUE){
-    if(methods::is(x, 'Raster')){
-      points <- raster::rasterToPoints(x[[1]], spatial=TRUE)
-      if(nrow(points) > 750000){
-        points2 <- points[sample(1:nrow(points), maxpixels, replace=FALSE), ]
-        rasterNet <- raster::intersect(rasterNet, points2)
-      } else  rasterNet <- raster::intersect(rasterNet, points)
-    } else{
-      rasterNet <- raster::intersect(rasterNet, x)
-    }
-  }
-  return(rasterNet)
-}
-
-
-
-multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
-  plots <- c(list(...), plotlist)
-  numPlots = length(plots)
-  if (is.null(layout)) {
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                     ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-  if (numPlots==1) {
-    print(plots[[1]])
-  } else {
-    grid::grid.newpage()
-    grid::pushViewport(grid::viewport(layout = grid::grid.layout(nrow(layout), ncol(layout))))
-    for (i in 1:numPlots) {
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-      print(plots[[i]], vp = grid::viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col))
-    }
-  }
-}
-
 #' Measure spatial autocorrelation in the predictor raster files
 #'
 #' This function provides a quantitative basis for choosing block size. The spatial autocorrelation in all continuous
@@ -146,7 +37,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #' @param nCores Integer. Number of CPU cores to run in parallel. If \code{nCores = NULL} half of available cores in your
 #' machine will be used.
 #' @param progress Logical. Shows progress bar. It works only when \code{doParallel = FALSE}.
-#' @param degMetre Integer. The conversion rate of metres to degree. This is for constructing spatial
+#' @param degMetre Numeric. The conversion rate of metres to degree. This is for constructing spatial
 #' blocks for visualisation. When the input map is in geographic coordinate system (decimal degrees), the block size is
 #' calculated based on deviding the calculated \emph{range} by this value to convert to the input map's unit
 #' (by default 111325; the standard distance of a degree in metres, on the Equator).
@@ -176,38 +67,36 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
 #'
 #' # load the example raster data
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-#' # import presence-absence species data
-#' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-#' # coordinate reference system
-#' Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
-#' # make a SpatialPointsDataFrame object from data.frame
-#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=CRS(Zone55s))
 #'
 #' # run the model in parallel
 #' range1 <- spatialAutoRange(rasterLayer = awt,
 #'                            sampleNumber = 5000, # number of cells to be used
 #'                            doParallel = TRUE,
-#'                            nCores = NULL, # use half of the CPU cores
+#'                            nCores = 4, # if NULL, it uses half of the CPU cores
 #'                            plotVariograms = FALSE,
 #'                            showPlots = TRUE)
 #'
-#' range2 <- spatialAutoRange(rasterLayer = awt,
-#'                            speciesData = pa_data, # use species locations to create variogram(s)
-#'                            doParallel = TRUE)
 #'
 #' # run the model with no parallel
 #' range3 <- spatialAutoRange(rasterLayer = awt,
 #'                            sampleNumber = 5000,
 #'                            doParallel = FALSE,
-#'                            showPlots = TRUE,
 #'                            progress = TRUE)
 #'
 #' # show the result
 #' summary(range1)
 #' }
-spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, speciesData=NULL,
-                             doParallel=TRUE, nCores=NULL, showPlots=TRUE, degMetre=111325,
-                             maxpixels=1e+05, plotVariograms=FALSE, progress=TRUE){
+spatialAutoRange <- function(rasterLayer,
+                             sampleNumber=5000,
+                             border=NULL,
+                             speciesData=NULL,
+                             doParallel=TRUE,
+                             nCores=NULL,
+                             showPlots=TRUE,
+                             degMetre=111325,
+                             maxpixels=1e+05,
+                             plotVariograms=FALSE,
+                             progress=TRUE){
   if(!is.null(speciesData)){
     if((methods::is(speciesData, "SpatialPoints") || methods::is(speciesData, "sf"))==FALSE){
       stop("speciesData should be SpatialPoints* or sf object")
@@ -228,7 +117,7 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, specie
       rp <- raster::rasterToPoints(rasterLayer[[1]])
       if(nrow(rp) < sampleNumber){
         sampleNumber <- nrow(rp)
-        message("The sampleNumber reduced to ", sampleNumber, ", the total number of available cells")
+        cat("The sampleNumber reduced to ", sampleNumber, ", the total number of available cells\n")
       }
     }
     if(numLayer==1){
@@ -249,7 +138,7 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, specie
     } else if(numLayer>1){
       df <- data.frame(layers=1:numLayer, range=1:numLayer, sill=1:numLayer)
       variogramList <- list()
-      message(paste('There are', numLayer, 'raster layers'))
+      cat(paste('There are', numLayer, 'raster layers\n'))
       if(doParallel==TRUE){
         if(is.null(nCores)){
           nCores <- ceiling((parallel::detectCores()) / 2)
@@ -319,38 +208,28 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, specie
     mapext <- raster::extent(rasterLayer)[1:4]
     if(mapext >= -180 && mapext <= 180){
       theRange2 <- theRange * 1000
-      if(numLayer>1){
+      if(numLayer > 1){
         modelInfo$range <- modelInfo$range * 1000
       }
-      xaxes <- "Longitude"
-      yaxes <- "Latitude"
-    } else{
-      theRange2 <- theRange
-      xaxes <- "Easting"
-      yaxes <- "Northing"
     }
   } else{
     if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=raster::crs(rasterLayer)))){
       theRange2 <- theRange
-      xaxes <- "Easting"
-      yaxes <- "Northing"
     } else{
       theRange2 <- theRange * 1000
-      if(numLayer>1){
+      if(numLayer > 1){
         modelInfo$range <- modelInfo$range * 1000
       }
-      xaxes <- "Longitude"
-      yaxes <- "Latitude"
     }
   }
   if(is.null(border)){
     subBlocks <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre, mask=TRUE, maxpixels =maxpixels)
   } else{
     net <- rasterNet(rasterLayer[[1]], resolution=theRange2, degree=degMetre, mask=FALSE)
-    if(methods::is(border, "sf")){
-      border <- sf::as_Spatial(border)
+    if(!methods::is(border, "sf")){
+      border <- sf::st_as_sf(border)
     }
-    subBlocks <- raster::crop(net, border)
+    subBlocks <- raster::st_crop(net, border)
   }
   if(numLayer>1){
     if(is.null(speciesData)){
@@ -358,34 +237,36 @@ spatialAutoRange <- function(rasterLayer, sampleNumber=5000, border=NULL, specie
     } else{
       ptnum <- nrow(speciesData)
     }
-    p1 <- ggplot2::ggplot(data=modelInfo, aes(x=stats::reorder(factor(layers), range), y=range, fill=range))+
-      geom_bar(stat="identity")+
-      xlab("Layers") + ylab("Range (m)") +
-      theme(axis.text.x = element_text(angle=75, hjust=1)) +
-      ggtitle('Autocorrelation range',
-              subtitle=paste('Based on', ptnum, 'sample points'))+
-      guides(fill=FALSE)+
-      geom_hline(yintercept=theRange2, color='red', size=0.9, linetype=2)+
-      annotate("text", x=floor(nrow(modelInfo)/3), y= (theRange2 + (max(modelInfo$range)/20)),
-               label="Block size", color='red')
+    p1 <- ggplot2::ggplot()+
+      ggplot2::geom_bar(ggplot2::aes(x=stats::reorder(factor(layers), range), y=range, fill=range),
+                        stat="identity",data=modelInfo,) +
+      ggplot2::labs(x = "Layers", y = "Range (m)") +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle=75, hjust=1)) +
+      ggplot2::ggtitle("Autocorrelation range", subtitle=paste("Based on", ptnum, "sample points"))+
+      ggplot2::guides(fill=FALSE)+
+      ggplot2::geom_hline(yintercept=theRange2, color='red', size=0.9, linetype=2)+
+      ggplot2::annotate("text", x=floor(nrow(modelInfo)/3),
+                        y =  (theRange2 + (max(modelInfo$range)/20)),
+                        label="Block size", color='red')
   }
   # plot raster file in ggplot2
   samp <- raster::sampleRegular(rasterLayer[[1]], 5e+05, asRaster=TRUE)
-  map.df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
-  colnames(map.df) <- c("Easting", "Northing", "MAP")
-  mid <- mean(map.df$MAP)
-  p2 <- ggplot2::ggplot(data=map.df, aes(y=Northing, x=Easting)) +
-    geom_raster(aes(fill=MAP)) +
-    coord_fixed() +
-    scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
-    guides(fill=FALSE) +
-    ggtitle('Spatial blocks', subtitle=paste("Based on", round(theRange2), "metres distance")) +
-    geom_polygon(aes(x = long, y = lat, group=id),
-                 data = subBlocks, color ="red",
-                 fill ="orangered4",
-                 alpha = 0.04,
-                 size = 0.2) +
-    xlab(xaxes) + ylab(yaxes)
+  map_df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
+  colnames(map_df) <- c("Easting", "Northing", "MAP")
+  mid <- stats::median(map_df$MAP)
+  p2 <- ggplot2::ggplot() +
+    ggplot2::geom_raster(data = map_df, ggplot2::aes(y=Northing, x=Easting, fill=MAP)) +
+    ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
+    ggplot2::guides(fill = FALSE) +
+    ggplot2::geom_sf(data = subBlocks,
+                     color ="red",
+                     fill ="orangered4",
+                     alpha = 0.04,
+                     size = 0.2) +
+    ggplot2::labs(x = "", y = "") + # set the axes labes to NULL
+    ggplot2::ggtitle("Spatial blocks", subtitle = paste("Based on", round(theRange2), "metres distance")) +
+    ggplot2::theme_bw()
   if(showPlots==TRUE){
     if(numLayer>1){
       multiplot(p1, p2)
@@ -423,7 +304,7 @@ plot.SpatialAutoRange <- function(x, y, ...){
 
 #' @export
 summary.SpatialAutoRange <- function(object, ...){
-  print("Summary statistics of spatial autocorrelation ranges of all input layers")
+  cat("Summary statistics of spatial autocorrelation ranges of all input layers\n")
   print(summary(object$rangeTable$range))
   print(object$rangeTable[,1:2])
 }

@@ -29,7 +29,7 @@ machine will be used.}
 
 \item{showPlots}{Logical. Show final plot of spatial blocks and autocorrelation ranges.}
 
-\item{degMetre}{Integer. The conversion rate of metres to degree. This is for constructing spatial
+\item{degMetre}{Numeric. The conversion rate of metres to degree. This is for constructing spatial
 blocks for visualisation. When the input map is in geographic coordinate system (decimal degrees), the block size is
 calculated based on deviding the calculated \emph{range} by this value to convert to the input map's unit
 (by default 111325; the standard distance of a degree in metres, on the Equator).}
@@ -77,30 +77,20 @@ for further information.
 
 # load the example raster data
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-# import presence-absence species data
-PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-# coordinate reference system
-Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
-# make a SpatialPointsDataFrame object from data.frame
-pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=CRS(Zone55s))
 
 # run the model in parallel
 range1 <- spatialAutoRange(rasterLayer = awt,
                            sampleNumber = 5000, # number of cells to be used
                            doParallel = TRUE,
-                           nCores = NULL, # use half of the CPU cores
+                           nCores = 4, # if NULL, it uses half of the CPU cores
                            plotVariograms = FALSE,
                            showPlots = TRUE)
 
-range2 <- spatialAutoRange(rasterLayer = awt,
-                           speciesData = pa_data, # use species locations to create variogram(s)
-                           doParallel = TRUE)
 
 # run the model with no parallel
 range3 <- spatialAutoRange(rasterLayer = awt,
                            sampleNumber = 5000,
                            doParallel = FALSE,
-                           showPlots = TRUE,
                            progress = TRUE)
 
 # show the result

@@ -197,20 +197,6 @@ summary.BufferedBlock <- function(object, ...){
 }
 
 
-
-systematicNum <- function(layer, num=5){
-  n <- nrow(layer)
-  if(n %% num == 0){
-    a <- n/num
-    c <- rep(1:num, a)
-  } else {
-    a <- floor(n/num)
-    b <- n %% num
-    c <- c(rep(1:num, a), 1:b)
-  }
-  return(c)
-}
-
 #' Use spatial blocks to separate train and test folds
 #'
 #' This function creates spatially separated folds based on a pre-specified distance. It assigns blocks to the training and
@@ -253,8 +239,7 @@ systematicNum <- function(layer, num=5){
 #' and \emph{testing-absence}), as specified by \code{numLimit} value.
 #' @param numLimit Integer value. The minimum number of points in each category of data (see above - \code{iterration}).
 #' If \code{numLimit = NULL}, the most evenly dispersed number of records is chosen (given the number of iteration).
-#' @param maskBySpecies Logical. If raster layer is provided and \code{maskBySpecies = TRUE}, the blocks will be
-#' created based on the raster extent, but only those blocks covering species data is kept. The default is \code{TRUE}.
+#' @param maskBySpecies Since version 1.1, this option is always set to \code{TRUE}.
 #' @param degMetre Integer. The conversion rate of metres to degree. See the details section for more information.
 #' @param rasterLayer RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.
 #' @param border SpatialPolygons* or sf object to clip the block based on a border. This might increase the computation time.
@@ -301,11 +286,13 @@ systematicNum <- function(layer, num=5){
 #' \dontrun{
 #'
 #' # load package data
+#' library(sf)
+#'
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 #' # import presence-absence species data
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-#' # make a SpatialPointsDataFrame object from data.frame
-#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
+#' # make a sf object from data.frame
+#' pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 #'
 #' # spatial blocking by specified range and random assignment
 #' sb1 <- spatialBlock(speciesData = pa_data,
@@ -327,154 +314,193 @@ systematicNum <- function(layer, num=5){
 #'                     cols = 8,
 #'                     k = 5,
 #'                     selection = 'systematic',
-#'                     maskBySpecies = TRUE,
 #'                     biomod2Format = TRUE)
 #'
 #' }
-spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NULL, theRange=NULL, rows=NULL, cols=NULL, k=5,
-                         selection='random', iteration=250, numLimit=NULL, maskBySpecies=TRUE, degMetre=111325, border=NULL,
-                         showBlocks=TRUE, biomod2Format=TRUE, xOffset=0, yOffset=0, progress=TRUE){
-  if(selection != 'systematic' && selection != 'random' && selection != 'checkerboard'){stop("The selection argument must be 'systematic', 'random' or 'checkerboard'")}
+spatialBlock <- function(speciesData,
+                         species=NULL,
+                         blocks=NULL,
+                         rasterLayer=NULL,
+                         theRange=NULL,
+                         rows=NULL,
+                         cols=NULL,
+                         k=5L,
+                         selection="random",
+                         iteration=100L,
+                         numLimit=NULL,
+                         maskBySpecies=TRUE,
+                         degMetre=111325,
+                         border=NULL,
+                         showBlocks=TRUE,
+                         biomod2Format=TRUE,
+                         xOffset=0,
+                         yOffset=0,
+                         progress=TRUE){
+  if(!is.element(selection, c("systematic", "random", "checkerboard"))){
+    stop("The selection argument must be 'systematic', 'random' or 'checkerboard'")
+  }
   chpattern <- FALSE
-  if(selection == 'checkerboard'){
+  if(selection == "checkerboard"){
     chpattern <- TRUE
-    if(k != 2){
-      k <- 2
-      message("k has been set to 2 because of checkerboard fold selection")
+    k <- 2
+  }
+  ## change the sp objects to sf
+  if(methods::is(speciesData, "SpatialPoints")){
+    speciesData <- sf::st_as_sf(speciesData)
+  } else if(!methods::is(speciesData, "sf")){
+    stop("speciesData should be a spatial or sf object")
+  }
+  if(!is.null(blocks)){
+    if(methods::is(blocks, "SpatialPolygons")){
+      blocks <- sf::st_as_sf(blocks)
+    } else if(!methods::is(blocks, "sf")){
+      stop("blocks, should be a spatial or sf object")
     }
   }
-  if(methods::is(speciesData, "sf")){
-    speciesData <- sf::as_Spatial(speciesData)
+  if(!is.null(border)){
+    if(methods::is(border, "SpatialPolygons")){
+      border <- sf::st_as_sf(border)
+    } else if(!methods::is(border, "sf")){
+      stop("blocks, should be a spatial or sf object")
+    }
   }
-  if(methods::is(speciesData, "SpatialPoints") && !methods::is(speciesData, "SpatialPointsDataFrame")){
-    speciesData <- sp::SpatialPointsDataFrame(speciesData, data.frame(ID=1:length(speciesData)))
+  if(maskBySpecies==FALSE){
+    cat("Since version 1.1, this option is always set to TRUE\n")
   }
-  if(methods::is(border, "sf")){
-    border <- sf::as_Spatial(border)
+  ## check if species is a col in speciesData
+  if(!is.null(species)){
+    if(species %in% colnames(speciesData) == FALSE){
+      warning("There is no match between the columns name in 'speciesData' and 'species' argument (response)")
+      species <- NULL
+    }
   }
   if(is.null(blocks)){
     if(is.null(rasterLayer)){
-      net <- rasterNet(speciesData, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset, checkerboard=chpattern)
+      net <- rasterNet(speciesData,
+                       resolution = theRange,
+                       xbin = cols,
+                       ybin = rows,
+                       degree = degMetre,
+                       xOffset = xOffset,
+                       yOffset = yOffset,
+                       checkerboard = chpattern)
       if(is.null(border)){
-        subBlocks <- raster::intersect(net, speciesData)
+        subBlocks <- net[speciesData,] # subset the blocks
       } else{
-        subBlocks <- crop(net, border)
+        subBlocks <- sf::st_crop(net, border)
       }
     } else{
       if(is.null(border)){
-        if(maskBySpecies==FALSE){
-          subBlocks <- rasterNet(rasterLayer[[1]], mask=TRUE, resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset, checkerboard=chpattern)
-        } else{
-          net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset, checkerboard=chpattern)
-          subBlocks <- raster::intersect(net, speciesData)
-        }
+        net <- rasterNet(rasterLayer[[1]],
+                         resolution = theRange,
+                         xbin = cols,
+                         ybin = rows,
+                         degree = degMetre,
+                         xOffset = xOffset,
+                         yOffset = yOffset,
+                         checkerboard = chpattern)
+        subBlocks <- net[speciesData,]
       } else{ # having a border
-        net <- rasterNet(rasterLayer[[1]], resolution=theRange, xbin=cols, ybin=rows, degree=degMetre, xOffset=xOffset, yOffset=yOffset, checkerboard=chpattern)
-        subBlocks <- crop(net, border)
+        net <- rasterNet(rasterLayer[[1]],
+                         resolution = theRange,
+                         xbin = cols,
+                         ybin = rows,
+                         degree = degMetre,
+                         xOffset = xOffset,
+                         yOffset = yOffset,
+                         checkerboard = chpattern)
+        subBlocks <- sf::st_crop(net, border)
       }
     }
   } else{
-    if(methods::is(blocks, "SpatialPolygonsDataFrame")){
-      subBlocks <- raster::intersect(blocks, speciesData)
-    } else if(methods::is(blocks, "SpatialPolygons")){
-      df <- data.frame(ID=1:length(blocks))
-      blocks <- sp::SpatialPolygonsDataFrame(blocks, df, match.ID=FALSE)
-      subBlocks <- raster::intersect(blocks, speciesData)
-      if(!is.null(species)){
-        species <- NULL
-        message("The species argument has been set to NULL since there is no table associated with SpatialPoints object")
-      }
-    } else if(methods::is(blocks, "sf")){
-      blocks <- sf::as_Spatial(blocks)
-      subBlocks <- raster::intersect(blocks, speciesData)
-    } else{
-      stop("The input blocks should be a SpatialPolygons* object")
-    }
-    if(selection == 'checkerboard'){
-      selection <- 'systematic'
-      message("'checkerboard' fold selection does not work with user defined blocks. 'systematic' will be used instead.")
+    subBlocks <- blocks[speciesData,]
+    if(selection == "checkerboard"){
+      selection <- "systematic"
+      cat("'checkerboard' fold selection does not work with user defined blocks. 'systematic' will be used instead.\n")
     }
   }
-  # given a wrong iteration, ensure the process will be run at least once
-  if(iteration < 1 || is.numeric(iteration)==FALSE){
-    iteration=1
-    message("The interation has been set to 1! \n", "Iteration must be a numeric value, equal or higher than one.")
+  iteration <- as.integer(iteration)
+  if(iteration < 1 || !is.numeric(iteration)){
+    iteration <- 1L
+    cat("The interation has been set to 1! \n", "Iteration must be a positive numeric value.\n")
   } else if(is.numeric(iteration) && iteration >= 10000){
-    message("Due to the large number of iterations, the process might take a while")
+    cat("The process might take a while, due to the large number of iterations.\n")
   }
   if(progress==TRUE && is.null(numLimit)){
     pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
                                      total=iteration, clear=FALSE, width=75) # add progress bar
   }
+  ## do the intersection once and outside of the loop
+  subBlocksDF <- sf:::as.data.frame.sgbp(sf::st_intersects(speciesData, subBlocks))
+  names(subBlocksDF) <- c("records", "blocks")
+  # randomly remove the repeated records occurred on the edges of blocks
+  if(nrow(subBlocksDF) > nrow(speciesData)){
+    subBlocksDF <- subBlocksDF[sample(nrow(subBlocksDF)), ]
+    subBlocksDF <- subBlocksDF[!duplicated(subBlocksDF$records), ]
+  } else if(nrow(subBlocksDF) < nrow(speciesData) || anyNA(subBlocksDF)){
+    nonoverlap <- nrow(speciesData) - nrow(subBlocksDF)
+    warning("At least ", nonoverlap, " of the points are not on the defined spatial blocks")
+  }
+  nrowBlocks <- length(unique(subBlocksDF$blocks))
   maxNumRecord <- 0
   maxSD <- Inf
-  for(i in 1:iteration){
-    nrowBlocks <- length(subBlocks)
+  for(i in seq_len(iteration)){
     if(k > nrowBlocks){
-      stop("'k' is bigger than the number of the blocks")
-    } else if(k < 2){stop("'k' must be 2 or higher")}
-    if(selection=='systematic'){
-      subBlocks$folds <- systematicNum(subBlocks, k)
-    } else if(selection=='checkerboard'){
-      subBlocks$folds <- subBlocks$layer
-    } else if(selection=='random'){
-      # create random folds
-      subBlocks$folds <- 0
-      nrowBlocks <- length(subBlocks)
-      if(k==2){
-        subBlocks$folds[sample(nrowBlocks, nrowBlocks/2, replace=FALSE)] <- 1
-        unfold <- which(subBlocks$folds==0)
-        subBlocks$folds[unfold] <- 2
-      } else {
-        num <- floor(nrowBlocks / k)
-        for(kk in 1:num){ # while
-          unfold <- which(subBlocks$folds==0)
-          subBlocks$folds[sample(unfold, k, replace=FALSE)]=1:k
-        }
-        if(nrowBlocks %% k != 0){
-          rest <- nrowBlocks %% k
-          unfold <- which(subBlocks$folds==0)
-          subBlocks$folds[unfold]=1:rest
-        }
-      }
+      stop("'k' is bigger than the number of spatial blocks")
+    } else if(k < 2){
+      stop("'k' must be 2 or higher")
     }
-    if(!is.null(species)){
-      presences <- speciesData[speciesData@data[,species]==1,] # creating a layer of presence data
-      trainTestTable <- base::data.frame(trainPr=rep(0, k), trainAb=0, testPr=0, testAb=0)
-    } else{
+    if(selection=='systematic'){
+      foldDF <- data.frame(blocks = seq_len(nrowBlocks), folds = systematicNum(subBlocks, k))
+      subBlocksDF <- merge(x = subBlocksDF, y = foldDF, by = "blocks", all.x = TRUE)
+    } else if(selection=='checkerboard'){
+      foldDF <- data.frame(blocks = seq_len(nrowBlocks), folds = subBlocks$layer)
+      subBlocksDF <- merge(x = subBlocksDF, y = foldDF, by = "blocks", all.x = TRUE)
+    } else if(selection=='random'){
+      subBlocksDF <- subBlocksDF[, c("records", "blocks")] # to avoid repetition in iterations
+      foldDF <- data.frame(blocks = seq_len(nrowBlocks), folds = 0)
+      # create random folds
+      num <- floor(nrowBlocks / k)
+      foldDF$folds[seq_len(num * k)] <- sample(rep(seq_len(k), num), num * k)
+      if(nrowBlocks %% k != 0){
+        rest <- nrowBlocks %% k
+        unfold <- which(foldDF$folds==0)
+        foldDF$folds[unfold] <- sample(seq_len(k), rest, replace = FALSE)
+      }
+      subBlocksDF <- merge(x = subBlocksDF, y = foldDF, by = "blocks", all.x = TRUE)
+    }
+    if(is.null(species)){
       trainTestTable <- base::data.frame(train=rep(0, k), test=0)
+    } else{
+      cl <- sort(unique(speciesData[, species, drop = TRUE]))
+      clen <- length(cl)
+      trainTestTable <- as.data.frame(matrix(0, nrow = k, ncol = length(cl) * 2))
+      names(trainTestTable) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
     }
     foldList <- list()
-    foldNum <- rep(NA, nrow(speciesData))
-    biomodTable <- data.frame(RUN1=rep(TRUE, length(speciesData)))
-    for(p in 1:k){
-      sp.over <- sp::over(speciesData, subBlocks[subBlocks$folds==p, ]) # overlay layers to specify the inside & oudside points
-      trainSet <- which(is.na(sp.over[,1])) # exclude all the data from the buffer/block area
-      testSet <- which(!is.na(sp.over[,1]))
+    foldNum <- rep(NA, nrow(subBlocksDF))
+    biomodTable <- data.frame(RUN1=rep(TRUE, nrow(subBlocksDF)))
+    for(p in seq_len(k)){
+      trainSet <- subBlocksDF$records[which(subBlocksDF$folds != p)]
+      testSet <- subBlocksDF$records[which(subBlocksDF$folds == p)]
       foldNum[testSet] <- p
       foldList[[p]] <- assign(paste0("fold", p), list(trainSet, testSet))
-      if(!is.null(species)){
-        lnPrsences <- length(presences)
-        lnAbsences <- length(speciesData) - lnPrsences
-        trainPoints <- speciesData[which(is.na(sp.over[,1])),]
-        trainTestTable$trainPr[p] <- length(trainPoints[trainPoints@data[,species]==1,])
-        trainTestTable$trainAb[p] <- length(trainPoints[trainPoints@data[,species]!=1,])
-        trainTestTable$testPr[p] <- lnPrsences - trainTestTable$trainPr[p]
-        trainTestTable$testAb[p] <- lnAbsences - trainTestTable$trainAb[p]
-      } else{
+      if(is.null(species)){
         trainTestTable$train[p] <- length(trainSet)
         trainTestTable$test[p] <- length(testSet)
+      } else{
+        countrain <- table(speciesData[trainSet ,species, drop = TRUE])
+        countest <- table(speciesData[testSet ,species, drop = TRUE])
+        trainTestTable[p, which(cl %in% names(countrain))] <- countrain
+        trainTestTable[p, clen + which(cl %in% names(countest))] <- countest
       }
       if(biomod2Format==TRUE){ # creating a biomod2 DataSplitTable for validation
         colm <- paste0("RUN", p)
         biomodTable[,colm] <- FALSE
-        biomodTable[,colm][trainSet] <- TRUE # biomodTable[trainSet,colm] <- TRUE # #### Change this!
+        biomodTable[trainSet, colm] <- TRUE
       }
     }
-    if(selection=='systematic' || selection == 'checkerboard'){
-      # if(iteration > 1){message('Iteration has been set to 1 due to systematic selection')}
-      break
-    } else{ # do the rest if the selection is random
+    if(selection == "random"){
       if(is.numeric(numLimit) && numLimit >= 0){
         if(any(trainTestTable < numLimit)==FALSE){ # exit the loop if meet the limit number
           break
@@ -484,86 +510,96 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
           trainTestTable2 <- trainTestTable
           maxNumRecord <- min(trainTestTable2)
           maxSD <- stats::sd(unlist(trainTestTable))
-          subBlocks2 <- subBlocks
+          subBlocksDF2 <- subBlocksDF
           foldList2 <- foldList
           foldNum2 <- foldNum
           biomodTable2 <- biomodTable
           iter <- i
         }
-      } else (stop("numLimit argument should be a numeric value equal or hagher than 0 or be NULL"))
+      } else stop("numLimit argument should be a numeric value equal or hagher than 0 or be NULL")
       if(progress==TRUE && is.null(numLimit)){
         pb$tick() # update progress bar
       }
+    } else{
+      break
     }
   }
   if(is.null(numLimit) && selection=='random'){ # return the optimum bloks, table etc.
-    subBlocks <- subBlocks2
+    subBlocksDF <- subBlocksDF2
     trainTestTable <- trainTestTable2
     foldList <- foldList2
     foldNum <- foldNum2
     biomodTable <- biomodTable2
-    print(paste0("The best fold was in iteration ", iter, ":"))
-    # print(trainTestTable)
+    cat(paste0("The best folds was in iteration ", iter, ":\n"))
   }
   if(!is.null(numLimit) && any(trainTestTable < numLimit)==TRUE){ # show a message if criteria is not met
     if(numLimit==0){
-      message(paste("There are one or more folds with", numLimit, "records"))
+      cat(paste("There are one or more folds with", numLimit, "records\n"))
     } else{
-      message(paste("There are one or more folds with less than", numLimit, "records"))
+      cat(paste("There are one or more folds with less than", numLimit, "records\n"))
     }
   }
   print(trainTestTable)
-  centroids <- as.data.frame(sp::coordinates(subBlocks)); names(centroids) <- c("Easting", "Northing") # take the centroids
-  subBlocks@data <- cbind(subBlocks@data, centroids) # add the centeroids to blocks
-  polyObj <- ggplot2::fortify(subBlocks)
-  if(is.na(sp::proj4string(speciesData))){
-    mapext <- raster::extent(speciesData)[1:4]
-    if(mapext >= -180 && mapext <= 180){
-      xaxes <- "Longitude"
-      yaxes <- "Latitude"
-    } else {
-      xaxes <- "Easting"
-      yaxes <- "Northing"
-    }
-  } else{
-    if(sp::is.projected(speciesData)){
-      xaxes <- "Easting"
-      yaxes <- "Northing"
-    } else{
-      xaxes <- "Longitude"
-      yaxes <- "Latitude"
-    }
+  if(any(trainTestTable == 0)){
+    warning("At least one of the folds has a class with zero records")
   }
+  # add the folds number to the blocks
+  fold_of_block <- subBlocksDF[, c("blocks", "folds")]
+  fold_of_block <- fold_of_block[!duplicated(fold_of_block), ]
+  fold_of_block <- fold_of_block[order(fold_of_block$blocks), ]
+  subBlocks$folds <- fold_of_block$folds
+  # if(is.na(sp::proj4string(speciesData))){ # sf::st_bbox(speciesData)
+  #   mapext <- raster::extent(speciesData)[1:4]
+  #   if(mapext >= -180 && mapext <= 180){
+  #     xaxes <- "Longitude"
+  #     yaxes <- "Latitude"
+  #   } else {
+  #     xaxes <- "Easting"
+  #     yaxes <- "Northing"
+  #   }
+  # } else{
+  #   if(sp::is.projected(speciesData)){ # sf::st_is_longlat(speciesData)
+  #     xaxes <- "Easting"
+  #     yaxes <- "Northing"
+  #   } else{
+  #     xaxes <- "Longitude"
+  #     yaxes <- "Latitude"
+  #   }
+  # }
   if(is.null(rasterLayer)){
-    p2 <- ggplot() +
-      geom_polygon(aes(x = long, y = lat, group=group),
-                   data = polyObj, color ="red",
-                   fill ="orangered4",
-                   alpha = 0.04,
-                   size = 0.2) +
-      geom_text(aes(label=folds, x=Easting, y=Northing), data=subBlocks@data) +
-      xlab(xaxes) + ylab(yaxes) +
-      coord_fixed() +
-      ggtitle('Spatial blocks', subtitle=paste("The", selection, 'fold assignment by', i, 'iteration'))
+    p2 <- ggplot2::ggplot() +
+      ggplot2::geom_sf(data = subBlocks,
+                       color ="red",
+                       fill ="orangered4",
+                       alpha = 0.04,
+                       size = 0.2) +
+      ggplot2::geom_sf_text(ggplot2::aes(label = folds),
+                            data = subBlocks) +
+      ggplot2::labs(x = "", y = "") + # or set the axes labes to NULL
+      ggplot2::ggtitle("Spatial blocks",
+                       subtitle=paste("The", selection, "fold assignment")) +
+      ggplot2::theme_bw()
   } else{
-    if(methods::is(rasterLayer, 'Raster')){
+    if(methods::is(rasterLayer, "Raster")){
       samp <- raster::sampleRegular(rasterLayer[[1]], 5e+05, asRaster=TRUE)
-      map.df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
-      colnames(map.df) <- c("Easting", "Northing", "MAP")
-      mid <- mean(map.df$MAP)
-      p2 <- ggplot(data=map.df, aes(y=Northing, x=Easting)) +
-        geom_raster(aes(fill=MAP)) +
-        coord_fixed() +
-        scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
-        guides(fill=FALSE) +
-        ggtitle('Spatial blocks', subtitle=paste("The", selection, 'fold assignment by', i, 'iteration')) +
-        geom_polygon(aes(x = long, y = lat, group=group),
-                     data = polyObj, color ="red",
-                     fill ="orangered4",
-                     alpha = 0.04,
-                     size = 0.2) +
-        xlab(xaxes) + ylab(yaxes) +
-        geom_text(aes(label=folds, x=Easting, y=Northing), data=subBlocks@data) # lable blocks
+      map_df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
+      colnames(map_df) <- c("Easting", "Northing", "MAP")
+      mid <- stats::median(map_df$MAP)
+      p2 <- ggplot2::ggplot() +
+        ggplot2::geom_raster(data = map_df, ggplot2::aes(y=Northing, x=Easting, fill=MAP)) +
+        ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
+        ggplot2::guides(fill = FALSE) +
+        ggplot2::geom_sf(data = subBlocks,
+                         color ="red",
+                         fill ="orangered4",
+                         alpha = 0.04,
+                         size = 0.2) +
+        ggplot2::geom_sf_text(ggplot2::aes(label = folds),
+                              data = subBlocks) +
+        ggplot2::labs(x = "", y = "") + # set the axes labes to NULL
+        ggplot2::ggtitle("Spatial blocks",
+                         subtitle=paste("The", selection, "fold assignment")) +
+        ggplot2::theme_bw()
     }
   }
   if(showBlocks==TRUE){
@@ -572,11 +608,13 @@ spatialBlock <- function(speciesData, species=NULL, blocks=NULL, rasterLayer=NUL
   # save the objects
   if(biomod2Format==TRUE){
     biomodTable <- as.matrix(biomodTable)
-    theList <- list(folds=foldList, foldID=foldNum, biomodTable=biomodTable, k=k, blocks=subBlocks, species=species,
-                    range=theRange, plots=p2, records=trainTestTable)
+    theList <- list(folds=foldList, foldID=foldNum, biomodTable=biomodTable,
+                    k=k, blocks=sf::as_Spatial(subBlocks), species=species, range=theRange,
+                    plots=p2, records=trainTestTable)
   } else{
-    theList <- list(folds=foldList, foldID=foldNum, biomodTable=NULL, k=k, blocks=subBlocks, species=species,
-                    range=theRange, plots=p2, records=trainTestTable)
+    theList <- list(folds=foldList, foldID=foldNum, biomodTable=NULL,
+                    k=k, blocks=sf::as_Spatial(subBlocks), species=species, range=theRange,
+                    plots=p2, records=trainTestTable)
   }
   class(theList) <- c("SpatialBlock")
   return(theList)

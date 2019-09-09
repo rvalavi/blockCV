@@ -6,7 +6,7 @@
 \usage{
 spatialBlock(speciesData, species = NULL, blocks = NULL,
   rasterLayer = NULL, theRange = NULL, rows = NULL, cols = NULL,
-  k = 5, selection = "random", iteration = 250, numLimit = NULL,
+  k = 5L, selection = "random", iteration = 100L, numLimit = NULL,
   maskBySpecies = TRUE, degMetre = 111325, border = NULL,
   showBlocks = TRUE, biomod2Format = TRUE, xOffset = 0,
   yOffset = 0, progress = TRUE)
@@ -40,8 +40,7 @@ and \emph{testing-absence}), as specified by \code{numLimit} value.}
 \item{numLimit}{Integer value. The minimum number of points in each category of data (see above - \code{iterration}).
 If \code{numLimit = NULL}, the most evenly dispersed number of records is chosen (given the number of iteration).}
 
-\item{maskBySpecies}{Logical. If raster layer is provided and \code{maskBySpecies = TRUE}, the blocks will be
-created based on the raster extent, but only those blocks covering species data is kept. The default is \code{TRUE}.}
+\item{maskBySpecies}{Since version 1.1, this option is always set to \code{TRUE}.}
 
 \item{degMetre}{Integer. The conversion rate of metres to degree. See the details section for more information.}
 
@@ -106,11 +105,13 @@ not separated spatially. Blocking with a buffering strategy overcomes this issue
 \dontrun{
 
 # load package data
+library(sf)
+
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 # import presence-absence species data
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-# make a SpatialPointsDataFrame object from data.frame
-pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
+# make a sf object from data.frame
+pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 
 # spatial blocking by specified range and random assignment
 sb1 <- spatialBlock(speciesData = pa_data,
@@ -132,7 +133,6 @@ sb2 <- spatialBlock(speciesData = pa_data,
                     cols = 8,
                     k = 5,
                     selection = 'systematic',
-                    maskBySpecies = TRUE,
                     biomod2Format = TRUE)
 
 }

@@ -62,7 +62,7 @@ The vignette is also available via this [link](http://htmlpreview.github.io/?htt
 ### Features
 Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
 
-* The assignment of the spatial blocks to cross-validation folds can be done in two different ways.
+* The assignment of the spatial blocks to cross-validation folds can be done in three different ways.
 * The position of the spatial blocks can be modified. 
 * The buffering function can account for presence-absence and presence-background data types.
 * The variables are standardized to avoid wide range variables to dominate the environmental blocks
