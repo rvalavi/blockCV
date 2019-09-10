@@ -228,7 +228,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 #' # import presence-absence species data
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-#' # make a SpatialPointsDataFrame object from data.frame
+#' # make a sf object from data.frame
 #' pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 #'
 #' rangeExplorer(rasterLayer = awt) # the only mandatory input
@@ -370,7 +370,7 @@ rangeExplorer <- function(rasterLayer,
       p2 <- basePlot + ggplot2::geom_sf(data = subBlocks, color ="red",
                                         fill ="orangered4", alpha = 0.04, size = 0.2) +
         ggplot2::ggtitle("Spatial blocks", subtitle=paste("Using", input$num, "(m) block size")) +
-        ggplot2::labs(x = "", y = "")
+        ggplot2::labs(x = "", y = "", color = species)
       # plot ggplot
       plot(p2)
     })

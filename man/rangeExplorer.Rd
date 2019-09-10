@@ -46,7 +46,7 @@ of block sizes by using the \code{minRange} and \code{maxRanege} arguments.
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 # import presence-absence species data
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-# make a SpatialPointsDataFrame object from data.frame
+# make a sf object from data.frame
 pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 
 rangeExplorer(rasterLayer = awt) # the only mandatory input
