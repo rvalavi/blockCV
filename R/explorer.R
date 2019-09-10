@@ -1,6 +1,7 @@
 #' Explore the generated folds
 #'
-#' A function for visualising the generated folds on a map, and allowing interactive exploration of the data in the folds, using the RStudio Shiny app.
+#' A function for visualising the generated folds on a map, and allowing interactive exploration of the data in the folds,
+#' using the RStudio Shiny app.
 #'
 #' @param blocks An SpatialBlock, EnvironmentalBlock or BufferedBlock object.
 #' @param rasterLayer A RasterLayer, RasterBrick or RasterStack object as background map for visualisation.
@@ -22,26 +23,24 @@
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 #' # import presence-absence species data
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-#' # make a SpatialPointsDataFrame object from data.frame
-#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
+#' # make a sf object from data.frame
+#' pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 #'
 #' # spatial blocking by specified range and random assignment
 #' sb <- spatialBlock(speciesData = pa_data,
 #'                    species = "Species",
 #'                    rasterLayer = awt,
-#'                    theRange = 66000,
+#'                    theRange = 70000,
 #'                    k = 5,
-#'                    selection = 'random',
-#'                    iteration = 250,
-#'                    numLimit = NULL,
-#'                    biomod2Format = TRUE)
+#'                    selection = "random",
+#'                    iteration = 100)
 #'
 #' foldExplorer(sb, awt, pa_data)
 #'
 #' # buffering with presence-absence data
 #' bf <- buffering(speciesData= pa_data,
 #'                 species= "Species", # to count the number of presences and absences
-#'                 theRange= 66500,
+#'                 theRange= 70000,
 #'                 spDataType = "PA",
 #'                 progress = T)
 #'
@@ -132,18 +131,18 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
         if(class(blocks) == "SpatialBlock"){
           ptr <- basePlot + ggplot2::geom_sf(data = plotPoly, color ="red", fill ="orangered4",
                                              alpha = 0.04, size = 0.2) +
-            ggplot2::geom_sf(data = training, alpha = 0.6, color = "blue", size = 2) +
+            ggplot2::geom_sf(data = training, alpha = 0.7, color = "blue", size = 2) +
             ggplot2::ggtitle('Training set')
           # ploting test data
           pts <- basePlot + ggplot2::geom_sf(data = plotPoly, color ="red", fill ="orangered4",
                                              alpha = 0.04, size = 0.2) +
-            ggplot2::geom_sf(data = testing, alpha = 0.6, color = "blue", size = 2) +
+            ggplot2::geom_sf(data = testing, alpha = 0.7, color = "blue", size = 2) +
             ggplot2::ggtitle('Testing set')
         } else{
-          ptr <- basePlot + ggplot2::geom_sf(data = training,  alpha = 0.6, color = "blue", size = 2) +
+          ptr <- basePlot + ggplot2::geom_sf(data = training,  alpha = 0.7, color = "blue", size = 2) +
             ggplot2::ggtitle('Training set')
           # ploting test data
-          pts <- basePlot + ggplot2::geom_sf(data = testing,  alpha = 0.6, color = "blue", size = 2) +
+          pts <- basePlot + ggplot2::geom_sf(data = testing,  alpha = 0.7, color = "blue", size = 2) +
             ggplot2::ggtitle("Testing set")
         }
       } else{
@@ -151,23 +150,23 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
           ptr <- basePlot + ggplot2::geom_sf(data = plotPoly, color ="red", fill ="orangered4",
                                              alpha = 0.04, size = 0.2) +
             ggplot2::geom_sf(data = training, ggplot2::aes(color = get(species)), show.legend = FALSE,
-                             alpha = 0.6, size = 2) +
+                             alpha = 0.7, size = 2) +
             ggplot2::ggtitle('Training set')
           # ploting test data
           pts <- basePlot + ggplot2::geom_sf(data = plotPoly, color ="red", fill ="orangered4",
                                              alpha = 0.04, size = 0.2) +
             ggplot2::geom_sf(data = testing, ggplot2::aes(color = get(species)), show.legend = "point",
-                             alpha = 0.6, size = 2) +
+                             alpha = 0.7, size = 2) +
             ggplot2::labs(color = species) +
             ggplot2::ggtitle('Testing set')
 
         } else{
           ptr <- basePlot + ggplot2::geom_sf(data = training, ggplot2::aes(color = get(species)), show.legend = FALSE,
-                                             alpha = 0.6, size = 2) +
+                                             alpha = 0.7, size = 2) +
             ggplot2::ggtitle('Training set')
           # ploting test data
           pts <- basePlot + ggplot2::geom_sf(data = testing, ggplot2::aes(color = get(species)), show.legend = "point",
-                                             alpha = 0.6, size = 2) +
+                                             alpha = 0.7, size = 2) +
             ggplot2::labs(color = species) +
             ggplot2::ggtitle("Testing set")
         }
@@ -175,8 +174,8 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
       multiplot(ptr, pts)
     })
     if(is.null(species)){
-      output$Tr <- shiny::renderText({paste("No. training records: ", blocks$records[input$num,1])})
-      output$Ts <- shiny::renderText({paste("No. testing records:   ", blocks$records[input$num,2])})
+      output$Tr <- shiny::renderText({paste("Number of training records: ", blocks$records[input$num,1])})
+      output$Ts <- shiny::renderText({paste("Number of testing records:   ", blocks$records[input$num,2])})
     } else{
       output$Tb <- shiny::renderTable({blocks$records[input$num,]})
     }
@@ -201,11 +200,13 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #'
 #' @inheritParams foldExplorer
 #' @param speciesData A SpatialPoints* object containing species data. If provided, the species data will be shown on the map.
-#' @param species Character value indicating the name of the field in which the species presence-absence/backgrouns data (0s and 1s) are stored.
+#' @param species Character value indicating the name of the field in which the species data (response data e.g. 0s and 1s) are stored.
 #' If provided, species presence and absence data will be shown in different colours.
 #' @param rangeTable A data.frame created by \code{spatialAutoRange} function containing spatial autocorrelation parameters of all covariates.
-#' @param minRange A numeric value to set the minimum possible range for creating spatial blocks. It is used to limit the searching domain of spatial block size.
-#' @param maxRange A numeric value to set the maximum possible range for creating spatial blocks. It is used to limit the searching domain of spatial block size.
+#' @param minRange A numeric value to set the minimum possible range for creating spatial blocks. It is used to limit the searching domain of
+#' spatial block size.
+#' @param maxRange A numeric value to set the maximum possible range for creating spatial blocks. It is used to limit the searching
+#' domain of spatial block size.
 #'
 #' @import ggplot2
 #' @import shiny
@@ -213,8 +214,8 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #'
 #' @seealso \code{\link{spatialBlock}}; \code{\link{spatialAutoRange}} for the \code{rangeTable}
 #'
-#' @return An interactive map with blocks (and optionally species data) superimposed. Note that this can also be opened in a web browser
-#' window. When you return to the R console, press “Esc” to return to the prompt.
+#' @return An interactive map with blocks (and optionally species data) superimposed. Note that this can also be opened in a
+#' web browser window. When you return to the R console, press “Esc” to return to the prompt.
 #' @export
 #'
 #' @examples
@@ -225,7 +226,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' # import presence-absence species data
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 #' # make a SpatialPointsDataFrame object from data.frame
-#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
+#' pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 #'
 #' rangeExplorer(rasterLayer = awt) # the only mandatory input
 #'
@@ -238,7 +239,19 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #'               maxRange = 100000)
 #'
 #' }
-rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTable=NULL, minRange=NULL, maxRange=NULL){
+rangeExplorer <- function(rasterLayer,
+                          speciesData=NULL,
+                          species=NULL,
+                          rangeTable=NULL,
+                          minRange=NULL,
+                          maxRange=NULL){
+  if(!is.null(speciesData)){
+    if(methods::is(speciesData, "SpatialPoints")){
+      speciesData <- sf::st_as_sf(speciesData)
+    } else if(!methods::is(speciesData, "sf")){
+      stop("speciesData should be a spatial or sf object")
+    }
+  }
   # plot raster file in ggplot2
   Xmx <- raster::xmax(rasterLayer)
   Xmn <- raster::xmin(rasterLayer)
@@ -254,7 +267,7 @@ rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTabl
       resol <- raster::res(rasterLayer) * 111000
       xaxes <- "Longitude"
       yaxes <- "Latitude"
-      warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have an un-projected reference system")
+      cat("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have an un-projected reference system.\n")
     } else {
       xrange <- Xmx - Xmn
       yrange <- Ymx - Ymn
@@ -283,40 +296,18 @@ rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTabl
   samp <- raster::sampleRegular(rasterLayer[[1]], 5e+05, asRaster=TRUE)
   map_df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
   colnames(map_df) <- c("Easting", "Northing", "MAP")
-  mid <- mean(map_df$MAP)
-  basepl <- ggplot(data=map_df, aes(y=Northing, x=Easting)) + geom_raster(aes(fill=MAP)) + coord_fixed() +
-    scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) + guides(fill=FALSE) +
-    xlab(xaxes) + ylab(yaxes)
-  if(!is.null(speciesData)){
-    if(methods::is(speciesData, "sf")){
-      speciesData <- sf::as_Spatial(speciesData)
-    }
-    coor <- sp::coordinates(speciesData)
-    coor <- as.data.frame(coor)
-    speciesData@data <- cbind(speciesData@data, coor)
-  }
+  mid <- stats::median(map_df$MAP)
+  basepl <- ggplot2::ggplot() +
+    ggplot2::geom_raster(data=map_df, ggplot2::aes(y=Northing, x=Easting, fill=MAP)) +
+    ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
+    ggplot2::guides(fill=FALSE) +
+    ggplot2::theme_bw()
   # set the base plot
   if(!is.null(speciesData) && is.null(species)){
-    speciesXY <- sp::SpatialPoints(speciesData)
-    speciesXY <- as.data.frame(speciesXY)
-    names(speciesXY) <- c("Easting", "Northing")
-    basePlot <- basepl + geom_point(aes(x = Easting, y = Northing),
-                                    data = speciesXY, alpha = 0.6, color="blue", size = 2)
+    basePlot <- basepl + ggplot2::geom_sf(data = speciesData, alpha = 0.6, color="blue", size = 2)
   } else if(!is.null(speciesData) && !is.null(species)){
-    plotData2 <- sp::SpatialPoints(speciesData, proj4string = crs(speciesData))
-    spdf <- data.frame(ID=1:length(plotData2))
-    spdf$Species <- speciesData@data[,species]
-    plotData <- sp::SpatialPointsDataFrame(plotData2, spdf)
-    coor <- sp::coordinates(plotData)
-    coor <- as.data.frame(coor)
-    plotData@data <- cbind(plotData@data, coor)
-    names(plotData)[3:4] <- c("Easting", "Northing")
-    plotData$Species <- as.factor(plotData$Species)
-    basePlot <- basepl + geom_point(aes(x = Easting, y = Northing, colour=Species), data = plotData@data, alpha = 0.6, size = 2) +
-      scale_colour_manual(values = c("blue", "red"),  labels = c("Absence/Background", "Presence"))
-  } else if(is.null(speciesData) && is.null(species)){
-    basePlot <- basepl
-  } else if(is.null(speciesData) && !is.null(species)){
+    basePlot <- basepl + ggplot2::geom_sf(data = speciesData, ggplot2::aes(color = get(species)), alpha = 0.6, size = 2)
+  } else if(is.null(speciesData)){
     basePlot <- basepl
   }
   # define min and max range based on the parameters
@@ -342,7 +333,7 @@ rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTabl
     val <- mean(c(xrange, yrange)) / 10
   }
   if(maxR > maxy){ # limit the maximum range to the maximum extent of the map
-    message("Selected range was bigger than the extent of base map. It has been set to the biggest extent (X or Y")
+    cat("Selected range is bigger than the extent of the base map. The range is set to the biggest extent (X or Y).\n")
     maxR <- maxy
   }
   minR <- round(minR)
@@ -373,12 +364,10 @@ rangeExplorer <- function(rasterLayer, speciesData=NULL, species=NULL, rangeTabl
   server <- function(input, output){
     output$ggplot <- shiny::renderPlot({
       subBlocks <- rasterNet(rasterLayer[[1]], resolution=input$num, mask=TRUE, maxpixels=150000)
-      p2 <- basePlot + ggtitle('Spatial blocks', subtitle=paste('Based on', input$num, '(m) distance')) +
-        geom_polygon(aes(x = long, y = lat, group=id),
-                     data = subBlocks, color ="red",
-                     fill ="orangered4",
-                     alpha = 0.04,
-                     size = 0.2)
+      p2 <- basePlot + ggplot2::geom_sf(data = subBlocks, color ="red",
+                                        fill ="orangered4", alpha = 0.04, size = 0.2) +
+        ggplot2::ggtitle('Spatial blocks', subtitle=paste('Based on', input$num, '(m) block size')) +
+        ggplot2::labs(x = "", y = "")
       # plot ggplot
       plot(p2)
     })

@@ -12,18 +12,20 @@ rangeExplorer(rasterLayer, speciesData = NULL, species = NULL,
 
 \item{speciesData}{A SpatialPoints* object containing species data. If provided, the species data will be shown on the map.}
 
-\item{species}{Character value indicating the name of the field in which the species presence-absence/backgrouns data (0s and 1s) are stored.
+\item{species}{Character value indicating the name of the field in which the species data (response data e.g. 0s and 1s) are stored.
 If provided, species presence and absence data will be shown in different colours.}
 
 \item{rangeTable}{A data.frame created by \code{spatialAutoRange} function containing spatial autocorrelation parameters of all covariates.}
 
-\item{minRange}{A numeric value to set the minimum possible range for creating spatial blocks. It is used to limit the searching domain of spatial block size.}
+\item{minRange}{A numeric value to set the minimum possible range for creating spatial blocks. It is used to limit the searching domain of
+spatial block size.}
 
-\item{maxRange}{A numeric value to set the maximum possible range for creating spatial blocks. It is used to limit the searching domain of spatial block size.}
+\item{maxRange}{A numeric value to set the maximum possible range for creating spatial blocks. It is used to limit the searching
+domain of spatial block size.}
 }
 \value{
-An interactive map with blocks (and optionally species data) superimposed. Note that this can also be opened in a web browser
-window. When you return to the R console, press “Esc” to return to the prompt.
+An interactive map with blocks (and optionally species data) superimposed. Note that this can also be opened in a
+web browser window. When you return to the R console, press “Esc” to return to the prompt.
 }
 \description{
 This function assists selection of block size. It allows the user to visualise the blocks interactively,
@@ -45,7 +47,7 @@ awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 # import presence-absence species data
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 # make a SpatialPointsDataFrame object from data.frame
-pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
+pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 
 rangeExplorer(rasterLayer = awt) # the only mandatory input
 

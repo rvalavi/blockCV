@@ -18,7 +18,8 @@ An interactive map showing folds and the species data, that can be used  to expl
 be opened in a web browser window. When you return to the R console, press “Esc” to return to the prompt.
 }
 \description{
-A function for visualising the generated folds on a map, and allowing interactive exploration of the data in the folds, using the RStudio Shiny app.
+A function for visualising the generated folds on a map, and allowing interactive exploration of the data in the folds,
+using the RStudio Shiny app.
 }
 \examples{
 \dontrun{
@@ -27,26 +28,24 @@ A function for visualising the generated folds on a map, and allowing interactiv
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 # import presence-absence species data
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-# make a SpatialPointsDataFrame object from data.frame
-pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
+# make a sf object from data.frame
+pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 
 # spatial blocking by specified range and random assignment
 sb <- spatialBlock(speciesData = pa_data,
                    species = "Species",
                    rasterLayer = awt,
-                   theRange = 66000,
+                   theRange = 70000,
                    k = 5,
-                   selection = 'random',
-                   iteration = 250,
-                   numLimit = NULL,
-                   biomod2Format = TRUE)
+                   selection = "random",
+                   iteration = 100)
 
 foldExplorer(sb, awt, pa_data)
 
 # buffering with presence-absence data
 bf <- buffering(speciesData= pa_data,
                 species= "Species", # to count the number of presences and absences
-                theRange= 66500,
+                theRange= 70000,
                 spDataType = "PA",
                 progress = T)
 

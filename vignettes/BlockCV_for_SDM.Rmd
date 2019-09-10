@@ -95,7 +95,7 @@ The `xOffset` and `yOffset` can be used to shift the spatial position of the blo
 sb <- spatialBlock(speciesData = pa_data,
                    species = "Species",
                    rasterLayer = awt,
-                   theRange = 68000, # size of the blocks
+                   theRange = 70000, # size of the blocks
                    k = 5,
                    selection = "random",
                    iteration = 100, # find evenly dispersed folds
@@ -151,7 +151,7 @@ For **presence-absence** data, folds are created based on all records, both pres
 ```{r eval=FALSE, warning=FALSE, message=FALSE}
 # buffering with presence-absence data
 bf1 <- buffering(speciesData = pa_data,
-                 theRange = 68000,
+                 theRange = 70000,
                  species = "Species", # to count the number of presences and absences/backgrounds
                  spDataType = "PA", # presence-absence  data type
                  progress = TRUE)
@@ -162,7 +162,7 @@ In the following buffering example, presence-background data are used. As explai
 ```{r eval=FALSE}
 # buffering with presence-background data
 bf2 <- buffering(speciesData = pb_data, # presence-background data
-                 theRange = 68000,
+                 theRange = 70000,
                  species = "Species",
                  spDataType = "PB", # presence-background data type
                  addBG = TRUE, # add background data to testing folds

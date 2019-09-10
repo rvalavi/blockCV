@@ -44,7 +44,7 @@ table(pb_data$Species)
 sb <- spatialBlock(speciesData = pa_data,
                    species = "Species",
                    rasterLayer = awt,
-                   theRange = 68000, # size of the blocks
+                   theRange = 70000, # size of the blocks
                    k = 5,
                    selection = "random",
                    iteration = 100, # find evenly dispersed folds
@@ -83,7 +83,7 @@ sb$plots + geom_sf(data = pa_data, alpha=0.6)
 ## ----eval=FALSE, warning=FALSE, message=FALSE----------------------------
 #  # buffering with presence-absence data
 #  bf1 <- buffering(speciesData = pa_data,
-#                   theRange = 68000,
+#                   theRange = 70000,
 #                   species = "Species", # to count the number of presences and absences/backgrounds
 #                   spDataType = "PA", # presence-absence  data type
 #                   progress = TRUE)
@@ -91,7 +91,7 @@ sb$plots + geom_sf(data = pa_data, alpha=0.6)
 ## ----eval=FALSE----------------------------------------------------------
 #  # buffering with presence-background data
 #  bf2 <- buffering(speciesData = pb_data, # presence-background data
-#                   theRange = 68000,
+#                   theRange = 70000,
 #                   species = "Species",
 #                   spDataType = "PB", # presence-background data type
 #                   addBG = TRUE, # add background data to testing folds

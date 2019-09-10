@@ -34,9 +34,9 @@ spatialAutoRange(rasterLayer = awt, # raster file
 ```r
 # spatial blocking by specified range and random assignment
 sb <- spatialBlock(speciesData = pa_data,
-                   species = "Species", # the response column
+                   species = "Species", # the response column (binomial or multi-class)
                    rasterLayer = awt,
-                   theRange = 68000, # size of the blocks
+                   theRange = 70000, # size of the blocks
                    k = 5,
                    selection = "random",
                    iteration = 100, # find evenly dispersed folds
