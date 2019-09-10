@@ -11,7 +11,7 @@ foldExplorer(blocks, rasterLayer, speciesData)
 
 \item{rasterLayer}{A RasterLayer, RasterBrick or RasterStack object as background map for visualisation.}
 
-\item{speciesData}{A SpatialPointsDataFrame, SpatialPoints or sf object containing species data.}
+\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data.}
 }
 \value{
 An interactive map showing folds and the species data, that can be used  to explore folds. Note that this can also

@@ -17,7 +17,7 @@
 #' not give an accurate result (especially over large latitudinal extents). For unprojected rasters, the great circle
 #' distance (rather than Euclidian distance) is used to calculate the spatial distances between pairs of points. To
 #' enable more accurate estimate, it is recommended to transform unprojected maps (geographic coordinate
-#' system / latitude-longitude) to a projected metric reference system (e.g. UTM, Lambert) where it is possible.
+#' system / latitude-longitude) to a projected metric reference system (e.g. UTM or Lambert) where it is possible.
 #' See \code{\link[automap]{autofitVariogram}} from \pkg{automap} and \code{\link[gstat]{variogram}} from \pkg{gstat} packages
 #' for further information.
 #'
@@ -25,13 +25,14 @@
 #' @param rasterLayer RasterLayer, RasterBrick or RasterStack of covariates to find spatial autocorrelation range.
 #' @param sampleNumber Integer. The number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 #' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
-#' @param border A SpatialPolygons* or sf object for clipping output blocks. This increases the computation time slightly.
+#' @inheritParams spatialBlock
 #' @param speciesData A spatial or sf object. If provided, the \code{sampleNumber} is ignored and
 #' variograms are created based on species locations. This option is not recommended if the species data is not
 #' evenly distributed across the whole study area and/or the number of records is low.
 #' @param showPlots Logical. Show final plot of spatial blocks and autocorrelation ranges.
 #' @param maxpixels Number of random pixels to select the blocks over the study area.
-#' @param plotVariograms Logical. Plot fitted variograms. This can also be done after the analysis. Set to \code{FALSE} by default.
+#' @param plotVariograms Logical. Plot fitted variograms. This can also be done after the analysis.
+#' It is \code{FALSE} by default.
 #' @param doParallel Logical. Run in parallel when more than one raster layer is available. Given multiple CPU cores, it is
 #' recommended to set it to \code{TRUE} when there is a large number of rasters to process.
 #' @param nCores Integer. Number of CPU cores to run in parallel. If \code{nCores = NULL} half of available cores in your
@@ -72,7 +73,7 @@
 #' range1 <- spatialAutoRange(rasterLayer = awt,
 #'                            sampleNumber = 5000, # number of cells to be used
 #'                            doParallel = TRUE,
-#'                            nCores = 4, # if NULL, it uses half of the CPU cores
+#'                            nCores = 8, # if NULL, it uses half of the CPU cores
 #'                            plotVariograms = FALSE,
 #'                            showPlots = TRUE)
 #'
@@ -87,19 +88,19 @@
 #' summary(range1)
 #' }
 spatialAutoRange <- function(rasterLayer,
-                             sampleNumber=5000,
-                             border=NULL,
-                             speciesData=NULL,
-                             doParallel=TRUE,
-                             nCores=NULL,
-                             showPlots=TRUE,
-                             degMetre=111325,
-                             maxpixels=1e+05,
-                             plotVariograms=FALSE,
-                             progress=TRUE){
+                             sampleNumber = 5000,
+                             border = NULL,
+                             speciesData = NULL,
+                             doParallel = TRUE,
+                             nCores = NULL,
+                             showPlots = TRUE,
+                             degMetre = 111325,
+                             maxpixels = 1e+05,
+                             plotVariograms = FALSE,
+                             progress = TRUE){
   if(!is.null(speciesData)){
     if((methods::is(speciesData, "SpatialPoints") || methods::is(speciesData, "sf"))==FALSE){
-      stop("speciesData should be SpatialPoints* or sf object")
+      stop("speciesData should be a sf or SpatialPoints object")
     }
   }
   if(methods::is(rasterLayer, 'Raster')){
@@ -117,14 +118,14 @@ spatialAutoRange <- function(rasterLayer,
       rp <- raster::rasterToPoints(rasterLayer[[1]])
       if(nrow(rp) < sampleNumber){
         sampleNumber <- nrow(rp)
-        cat("The sampleNumber reduced to ", sampleNumber, ", the total number of available cells\n")
+        cat("The sampleNumber reduced to", sampleNumber, "; the total number of available cells\n")
       }
     }
     if(numLayer==1){
       if(is.null(speciesData)){
         rasterPoints <- raster::rasterToPoints(rasterLayer, spatial=TRUE)
         set.seed(2017)
-        points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
+        points <- rasterPoints[sample(seq_len(nrow(rasterPoints)), sampleNumber, replace=FALSE), ]
         names(points) <- 'target'
       } else{
         points <- raster::extract(rasterLayer, speciesData, na.rm=TRUE, sp=TRUE)
@@ -136,7 +137,7 @@ spatialAutoRange <- function(rasterLayer,
         plot(fittedVar)
       }
     } else if(numLayer>1){
-      df <- data.frame(layers=1:numLayer, range=1:numLayer, sill=1:numLayer)
+      df <- data.frame(layers = seq_len(numLayer), range = 1, sill = 1)
       variogramList <- list()
       cat(paste('There are', numLayer, 'raster layers\n'))
       if(doParallel==TRUE){
@@ -145,11 +146,11 @@ spatialAutoRange <- function(rasterLayer,
         }
         cl <- parallel::makeCluster(nCores) # use snow clusters
         doParallel::registerDoParallel(cl) # set up a parallel backend for foreach package
-        pp <- foreach::foreach(r = 1:numLayer, .inorder=TRUE, .packages=c('raster', 'automap')) %dopar% {
+        pp <- foreach::foreach(r = seq_len(numLayer), .inorder=TRUE, .packages=c('raster', 'automap', 'sf')) %dopar% {
           if(is.null(speciesData)){
             rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
             set.seed(2017)
-            points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
+            points <- rasterPoints[sample(seq_len(nrow(rasterPoints)), sampleNumber, replace=FALSE), ]
             names(points) <- 'target'
           } else{
             points <- raster::extract(rasterLayer[[r]], speciesData, na.rm=TRUE, sp=TRUE)
@@ -170,13 +171,13 @@ spatialAutoRange <- function(rasterLayer,
           pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
                                  total=numLayer, clear=FALSE, width=75) # add progress bar
         }
-        for(r in 1:numLayer){
+        for(r in seq_len(numLayer)){
           name <- names(rasterLayer[[r]])
           if(is.null(speciesData)){
             rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
             set.seed(2017)
-            points <- rasterPoints[sample(1:nrow(rasterPoints), sampleNumber, replace=FALSE), ]
-            names(points) <- 'target'
+            points <- rasterPoints[sample(seq_len(nrow(rasterPoints)), sampleNumber, replace=FALSE), ]
+            names(points) <- "target"
           } else{
             points <- raster::extract(rasterLayer[[r]], speciesData, na.rm=TRUE, sp=TRUE)
             names(points)[ncol(points)] <- "target"
@@ -196,14 +197,13 @@ spatialAutoRange <- function(rasterLayer,
       theRange <- stats::median(df$range)
       modelInfo <- df[order(df$range),] # save range and sill of all layers
       if(plotVariograms==TRUE){
-        for(v in 1:numLayer){
+        for(v in seq_len(numLayer)){
           plot(variogramList[[v]])
         }
       }
-    } else stop('The raster layer is empty!')
-  } else stop('The input file is not a valid R raster file')
+    } else stop("The raster layer is empty!")
+  } else stop("The input file is not a valid raster object")
   # creating the blocks based on calculated autocorrelation range
-  # check the spatial reference sytem for specifiying block size
   if(is.na(sp::proj4string(rasterLayer))){
     mapext <- raster::extent(rasterLayer)[1:4]
     if(mapext >= -180 && mapext <= 180){
@@ -231,7 +231,7 @@ spatialAutoRange <- function(rasterLayer,
     }
     subBlocks <- raster::st_crop(net, border)
   }
-  if(numLayer>1){
+  if(numLayer > 1){
     if(is.null(speciesData)){
       ptnum <- sampleNumber
     } else{
@@ -265,10 +265,10 @@ spatialAutoRange <- function(rasterLayer,
                      alpha = 0.04,
                      size = 0.2) +
     ggplot2::labs(x = "", y = "") + # set the axes labes to NULL
-    ggplot2::ggtitle("Spatial blocks", subtitle = paste("Based on", round(theRange2), "metres distance")) +
+    ggplot2::ggtitle("Spatial blocks", subtitle = paste("Using", round(theRange2), "metres block size")) +
     ggplot2::theme_bw()
   if(showPlots==TRUE){
-    if(numLayer>1){
+    if(numLayer > 1){
       multiplot(p1, p2)
     } else{
       plot(p2)

@@ -15,7 +15,7 @@ spatialAutoRange(rasterLayer, sampleNumber = 5000, border = NULL,
 \item{sampleNumber}{Integer. The number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).}
 
-\item{border}{A SpatialPolygons* or sf object for clipping output blocks. This increases the computation time slightly.}
+\item{border}{A sf or SpatialPolygons object to clip the block based on it.}
 
 \item{speciesData}{A spatial or sf object. If provided, the \code{sampleNumber} is ignored and
 variograms are created based on species locations. This option is not recommended if the species data is not
@@ -36,7 +36,8 @@ calculated based on deviding the calculated \emph{range} by this value to conver
 
 \item{maxpixels}{Number of random pixels to select the blocks over the study area.}
 
-\item{plotVariograms}{Logical. Plot fitted variograms. This can also be done after the analysis. Set to \code{FALSE} by default.}
+\item{plotVariograms}{Logical. Plot fitted variograms. This can also be done after the analysis.
+It is \code{FALSE} by default.}
 
 \item{progress}{Logical. Shows progress bar. It works only when \code{doParallel = FALSE}.}
 }
@@ -68,7 +69,7 @@ Variograms are calculated based on the distances between pairs of points, so unp
 not give an accurate result (especially over large latitudinal extents). For unprojected rasters, the great circle
 distance (rather than Euclidian distance) is used to calculate the spatial distances between pairs of points. To
 enable more accurate estimate, it is recommended to transform unprojected maps (geographic coordinate
-system / latitude-longitude) to a projected metric reference system (e.g. UTM, Lambert) where it is possible.
+system / latitude-longitude) to a projected metric reference system (e.g. UTM or Lambert) where it is possible.
 See \code{\link[automap]{autofitVariogram}} from \pkg{automap} and \code{\link[gstat]{variogram}} from \pkg{gstat} packages
 for further information.
 }
@@ -82,7 +83,7 @@ awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 range1 <- spatialAutoRange(rasterLayer = awt,
                            sampleNumber = 5000, # number of cells to be used
                            doParallel = TRUE,
-                           nCores = 4, # if NULL, it uses half of the CPU cores
+                           nCores = 8, # if NULL, it uses half of the CPU cores
                            plotVariograms = FALSE,
                            showPlots = TRUE)
 

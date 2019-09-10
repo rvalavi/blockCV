@@ -78,7 +78,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
   if(methods::is(speciesData, "SpatialPoints")){
     speciesData <- sf::st_as_sf(speciesData)
   } else if(!methods::is(speciesData, "sf")){
-    stop("speciesData should be a spatial or sf object")
+    stop("speciesData should be a sf or SpatialPoints object")
   }
   # plot raster file in ggplot2
   samp <- raster::sampleRegular(rasterLayer[[1]], 5e+05, asRaster=TRUE)
@@ -89,7 +89,8 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
     ggplot2::geom_raster(data=map_df, ggplot2::aes(y=Northing, x=Easting, fill=MAP)) +
     ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
     ggplot2::guides(fill = FALSE) +
-    ggplot2::theme_bw()
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = "", y = "")
   # create UI for shniy app
   ui <- shinydashboard::dashboardPage(
     shinydashboard::dashboardHeader(title = "Fold Explorer"),
@@ -149,8 +150,9 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
         if(class(blocks) == "SpatialBlock"){
           ptr <- basePlot + ggplot2::geom_sf(data = plotPoly, color ="red", fill ="orangered4",
                                              alpha = 0.04, size = 0.2) +
-            ggplot2::geom_sf(data = training, ggplot2::aes(color = get(species)), show.legend = FALSE,
+            ggplot2::geom_sf(data = training, ggplot2::aes(color = get(species)), show.legend = "point",
                              alpha = 0.7, size = 2) +
+            ggplot2::labs(color = species) +
             ggplot2::ggtitle('Training set')
           # ploting test data
           pts <- basePlot + ggplot2::geom_sf(data = plotPoly, color ="red", fill ="orangered4",
@@ -161,8 +163,9 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
             ggplot2::ggtitle('Testing set')
 
         } else{
-          ptr <- basePlot + ggplot2::geom_sf(data = training, ggplot2::aes(color = get(species)), show.legend = FALSE,
+          ptr <- basePlot + ggplot2::geom_sf(data = training, ggplot2::aes(color = get(species)), show.legend = "point",
                                              alpha = 0.7, size = 2) +
+            ggplot2::labs(color = species) +
             ggplot2::ggtitle('Training set')
           # ploting test data
           pts <- basePlot + ggplot2::geom_sf(data = testing, ggplot2::aes(color = get(species)), show.legend = "point",
@@ -200,7 +203,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #'
 #' @inheritParams foldExplorer
 #' @param speciesData A SpatialPoints* object containing species data. If provided, the species data will be shown on the map.
-#' @param species Character value indicating the name of the field in which the species data (response data e.g. 0s and 1s) are stored.
+#' @param species Character value indicating the name of the field in which the species data (response variable e.g. 0s and 1s) are stored.
 #' If provided, species presence and absence data will be shown in different colours.
 #' @param rangeTable A data.frame created by \code{spatialAutoRange} function containing spatial autocorrelation parameters of all covariates.
 #' @param minRange A numeric value to set the minimum possible range for creating spatial blocks. It is used to limit the searching domain of
@@ -249,7 +252,7 @@ rangeExplorer <- function(rasterLayer,
     if(methods::is(speciesData, "SpatialPoints")){
       speciesData <- sf::st_as_sf(speciesData)
     } else if(!methods::is(speciesData, "sf")){
-      stop("speciesData should be a spatial or sf object")
+      stop("speciesData should be a sf or SpatialPoints object")
     }
   }
   # plot raster file in ggplot2
@@ -366,7 +369,7 @@ rangeExplorer <- function(rasterLayer,
       subBlocks <- rasterNet(rasterLayer[[1]], resolution=input$num, mask=TRUE, maxpixels=150000)
       p2 <- basePlot + ggplot2::geom_sf(data = subBlocks, color ="red",
                                         fill ="orangered4", alpha = 0.04, size = 0.2) +
-        ggplot2::ggtitle('Spatial blocks', subtitle=paste('Based on', input$num, '(m) block size')) +
+        ggplot2::ggtitle("Spatial blocks", subtitle=paste("Using", input$num, "(m) block size")) +
         ggplot2::labs(x = "", y = "")
       # plot ggplot
       plot(p2)

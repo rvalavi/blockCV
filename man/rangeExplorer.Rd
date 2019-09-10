@@ -12,7 +12,7 @@ rangeExplorer(rasterLayer, speciesData = NULL, species = NULL,
 
 \item{speciesData}{A SpatialPoints* object containing species data. If provided, the species data will be shown on the map.}
 
-\item{species}{Character value indicating the name of the field in which the species data (response data e.g. 0s and 1s) are stored.
+\item{species}{Character value indicating the name of the field in which the species data (response variable e.g. 0s and 1s) are stored.
 If provided, species presence and absence data will be shown in different colours.}
 
 \item{rangeTable}{A data.frame created by \code{spatialAutoRange} function containing spatial autocorrelation parameters of all covariates.}

@@ -8,16 +8,18 @@ buffering(speciesData, species = NULL, theRange, spDataType = "PA",
   addBG = TRUE, progress = TRUE)
 }
 \arguments{
-\item{speciesData}{A SpatialPointsDataFrame, SpatialPoints or sf object containing species data.}
+\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data.}
 
-\item{species}{Character. Indicating the name of the field in which species presence/absence data (0s and 1s) are stored. If \code{speceis = NULL}
-the presence and absence data will be treated the same and only training and testing records will be counted.}
+\item{species}{Character. Indicating the name of the field in which species data (binary response i.e. 0 and 1) is stored. If \code{speceis = NULL}
+the presence and absence data (response variable) will be treated the same and only training and testing records will be counted. This can be used for multi-class responses
+such as land cover classes for remote sensing image classification, but it is not necessary. \emph{Do not use this argument when the response variable is
+continuous or count}.}
 
 \item{theRange}{Numeric value of the specified range by which the training and testing datasets are separated (See \code{\link{spatialAutoRange}}).
 This distance should be in \strong{\emph{metres}}. The range can  be explored by \code{spatialAutoRange}.}
 
-\item{spDataType}{Character input indicating the type of data. It can take two values, \strong{PA} for \emph{presence-absence} data and \strong{PB} for
-\emph{presence-background} data, when \code{species} is not \code{NULL}. See the details section for more information on these two approaches.}
+\item{spDataType}{Character input indicating the type of species data. It can take two values, \strong{PA} for \emph{presence-absence} data and \strong{PB} for
+\emph{presence-background} data, when \code{species} argument is not \code{NULL}. See the details section for more information on these two approaches.}
 
 \item{addBG}{Logical. Add background points to the test set when \code{spDataType = "PB"}.}
 
@@ -59,33 +61,33 @@ records is stored and returned in the \code{records} table. If \code{species = N
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 # coordinate reference system
 Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
-# make a SpatialPointsDataFrame object from data.frame
-pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=CRS(Zone55s))
+# make a sf object from data.frame
+pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = Zone55s)
 
 # buffering with presence-absence data
 bf1 <- buffering(speciesData= pa_data,
-                 species= "Species", # to count the number of presences and absences
-                 theRange= 68000,
+                 species= "Species",
+                 theRange= 70000,
                  spDataType = "PA",
                  progress = T)
 
 
 # import presence-background species data
 PB <- read.csv(system.file("extdata", "PB.csv", package = "blockCV"))
-# make a SpatialPointsDataFrame object from data.frame
-pb_data <- sp::SpatialPointsDataFrame(PB[,c("x", "y")], PB, proj4string=CRS(Zone55s))
+# make a sf object from data.frame
+pb_data <- sf::st_as_sf(PB, coords = c("x", "y"), crs = Zone55s)
 
 # buffering with presence-background data
 bf2 <- buffering(speciesData= pb_data,
                  species= "Species",
-                 theRange= 68000,
+                 theRange= 70000,
                  spDataType = "PB",
                  addBG = TRUE, # add background data to testing folds
                  progress = T)
 
 # buffering with no species attribute
-bf3 <- buffering(speciesData= pa_data,
-                 theRange= 63300)
+bf3 <- buffering(speciesData = pa_data,
+                 theRange = 70000)
 
 }
 }

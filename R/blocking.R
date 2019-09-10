@@ -17,13 +17,15 @@
 #' records is stored and returned in the \code{records} table. If \code{species = NULL} (no column with 0s and 1s are defined), the procedure is like presence-absence data.
 #'
 #'
-#' @param speciesData A SpatialPointsDataFrame, SpatialPoints or sf object containing species data.
-#' @param species Character. Indicating the name of the field in which species presence/absence data (0s and 1s) are stored. If \code{speceis = NULL}
-#' the presence and absence data will be treated the same and only training and testing records will be counted.
+#' @param speciesData A simple features (sf) or SpatialPoints object containing species data.
+#' @param species Character. Indicating the name of the field in which species data (binary response i.e. 0 and 1) is stored. If \code{speceis = NULL}
+#' the presence and absence data (response variable) will be treated the same and only training and testing records will be counted. This can be used for multi-class responses
+#' such as land cover classes for remote sensing image classification, but it is not necessary. \emph{Do not use this argument when the response variable is
+#' continuous or count}.
 #' @param theRange Numeric value of the specified range by which the training and testing datasets are separated (See \code{\link{spatialAutoRange}}).
 #' This distance should be in \strong{\emph{metres}}. The range can  be explored by \code{spatialAutoRange}.
-#' @param spDataType Character input indicating the type of data. It can take two values, \strong{PA} for \emph{presence-absence} data and \strong{PB} for
-#' \emph{presence-background} data, when \code{species} is not \code{NULL}. See the details section for more information on these two approaches.
+#' @param spDataType Character input indicating the type of species data. It can take two values, \strong{PA} for \emph{presence-absence} data and \strong{PB} for
+#' \emph{presence-background} data, when \code{species} argument is not \code{NULL}. See the details section for more information on these two approaches.
 #' @param addBG Logical. Add background points to the test set when \code{spDataType = "PB"}.
 #' @param progress Logical. If TRUE a progress bar will be shown.
 #'
@@ -49,58 +51,74 @@
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 #' # coordinate reference system
 #' Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
-#' # make a SpatialPointsDataFrame object from data.frame
-#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=CRS(Zone55s))
+#' # make a sf object from data.frame
+#' pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = Zone55s)
 #'
 #' # buffering with presence-absence data
 #' bf1 <- buffering(speciesData= pa_data,
-#'                  species= "Species", # to count the number of presences and absences
-#'                  theRange= 68000,
+#'                  species= "Species",
+#'                  theRange= 70000,
 #'                  spDataType = "PA",
 #'                  progress = T)
 #'
 #'
 #' # import presence-background species data
 #' PB <- read.csv(system.file("extdata", "PB.csv", package = "blockCV"))
-#' # make a SpatialPointsDataFrame object from data.frame
-#' pb_data <- sp::SpatialPointsDataFrame(PB[,c("x", "y")], PB, proj4string=CRS(Zone55s))
+#' # make a sf object from data.frame
+#' pb_data <- sf::st_as_sf(PB, coords = c("x", "y"), crs = Zone55s)
 #'
 #' # buffering with presence-background data
 #' bf2 <- buffering(speciesData= pb_data,
 #'                  species= "Species",
-#'                  theRange= 68000,
+#'                  theRange= 70000,
 #'                  spDataType = "PB",
 #'                  addBG = TRUE, # add background data to testing folds
 #'                  progress = T)
 #'
 #' # buffering with no species attribute
-#' bf3 <- buffering(speciesData= pa_data,
-#'                  theRange= 63300)
+#' bf3 <- buffering(speciesData = pa_data,
+#'                  theRange = 70000)
 #'
 #' }
-buffering <- function(speciesData, species=NULL, theRange, spDataType="PA", addBG=TRUE, progress=TRUE){
-  if((methods::is(speciesData, "SpatialPoints") || methods::is(speciesData, "sf"))==FALSE){stop("speciesData should be SpatialPointsDataFrame, SpatialPoints or sf object")}
-  if(methods::is(speciesData, "sf")){
-    sfobj <- speciesData
-  } else{
-    sfobj <- sf::st_as_sf(speciesData)
+buffering <- function(speciesData,
+                      species = NULL,
+                      theRange,
+                      spDataType = "PA",
+                      addBG = TRUE,
+                      progress = TRUE){
+  ## change the sp objects to sf
+  if(methods::is(speciesData, "SpatialPoints")){
+    speciesData <- sf::st_as_sf(speciesData)
+  } else if(!methods::is(speciesData, "sf")){
+    stop("speciesData should be a sf or SpatialPoints object")
   }
-  speciesData$ID <- 1:length(speciesData)
-  if(is.null(sf::st_crs(sfobj))){
-    stop("The coordinate reference system of species data should be defined")
-  } else if(sp::is.projected(speciesData)){ # this is due to a recent change (Jan 2018) in the sf package that doesn't recognize the projected crs units. It will be fixed soon.
-    sf::st_crs(sfobj) <- NA
+  ## the crs must be defined
+  if(is.na(sf::st_crs(speciesData))){
+    stop("The coordinate reference system of speciesData must be defined.")
   }
-  dmatrix <- sf::st_distance(sfobj)
+  ## check if species is a col in speciesData
+  if(!is.null(species)){
+    if(species %in% colnames(speciesData) == FALSE){
+      cat("There is no match between the columns name in 'speciesData' and 'species' argument (response variable).\n")
+      species <- NULL
+    }
+  }
+  dmatrix <- sf::st_distance(speciesData)
   distuni <- dmatrix[1,1] # take the unit to avoid using units package
   distuni[1] <- theRange
   foldList <- list()
   if(!is.null(species)){
-    presences <- speciesData[speciesData@data[,species]==1,] # creating a layer of presence data
     if(spDataType=="PB"){
-      prI <- which(speciesData@data[,species] == 1) # presence indices to loop through
+      unqsp <- unique(speciesData[, species, drop = TRUE])
+      if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
+        stop("Presence-background (PB) type is only for species data with 0s (backgrounds) and 1s (presences).\n", "The data should be numeric.\n")
+      }
+      prI <- which(speciesData[, species, drop = TRUE] == 1) # presence indices to loop through
       n <- length(prI)
-      trainTestTable <- base::data.frame(trainPr=rep(0, n), trainAb=0, testPr=0, testAb=0)
+      cl <- sort(unique(speciesData[, species, drop = TRUE]))
+      clen <- length(cl)
+      trainTestTable <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
+      names(trainTestTable) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
       if(progress==TRUE){
         pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
                                          total=n, clear=FALSE, width=75) # add progress bar
@@ -112,63 +130,51 @@ buffering <- function(speciesData, species=NULL, theRange, spDataType="PA", addB
         if(addBG==TRUE){
           test <- which(dmatrix[i, ] <= distuni)
           inside <- speciesData[test, ]
-          testSet <- inside[inside@data[,species]==0,]$ID # creating IDs of bg data
+          testSet <- test[which(inside[, species, drop = TRUE] == 0)]
           testSet[length(testSet) + 1] <- i
         } else{
           testSet <- i
         }
         foldList[[j]] <- assign(paste0("fold", j), list(trainSet, testSet))
-        lnPrsences <- length(presences)
-        lnBackground <- length(speciesData) - lnPrsences
-        trainPoints <- speciesData[trainSet, ]
-        trainTestTable$trainPr[j] <- length(trainPoints[trainPoints@data[,species]==1,])
-        trainTestTable$trainAb[j] <- length(trainPoints[trainPoints@data[,species]!=1,])
-        trainTestTable$testPr[j] <- 1
-        if(addBG==TRUE){
-          trainTestTable$testAb[j] <- lnBackground - trainTestTable$trainAb[j]
-        } else{
-          trainTestTable$testAb[j] <- 0
-        }
+        countrain <- table(speciesData[trainSet ,species, drop = TRUE])
+        countest <- table(speciesData[testSet ,species, drop = TRUE])
+        trainTestTable[j, which(cl %in% names(countrain))] <- countrain
+        trainTestTable[j, clen + which(cl %in% names(countest))] <- countest
         if(progress==TRUE){
           pb$tick() # update progress bar
         }
       }
     } else if(spDataType=="PA"){
-      n <- length(speciesData)
-      trainTestTable <- base::data.frame(trainPr=rep(0, n), trainAb=0, testPr=0, testAb=0)
+      n <- nrow(speciesData)
+      cl <- sort(unique(speciesData[, species, drop = TRUE]))
+      clen <- length(cl)
+      trainTestTable <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
+      names(trainTestTable) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
       if(progress==TRUE){
         pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
                                          total=n, clear=FALSE, width=75) # add progress bar
       }
-      for(i in 1:n){
+      for(i in seq_len(n)){
         trainSet <- which(dmatrix[i, ] > distuni)
         testSet <- i
         foldList[[i]] <- assign(paste0("fold", i), list(trainSet, testSet))
-        lnPrsences <- length(presences)
-        # lnAbsence <- length(speciesData) - lnPrsences
-        trainPoints <- speciesData[trainSet, ]
-        trainTestTable$trainPr[i] <- length(trainPoints[trainPoints@data[,species]==1,])
-        trainTestTable$trainAb[i] <- length(trainPoints[trainPoints@data[,species]!=1,])
-        if(speciesData@data[testSet, species] == 1){
-          trainTestTable$testPr[i] <- 1
-          trainTestTable$testAb[i] <- 0
-        } else{
-          trainTestTable$testPr[i] <- 0
-          trainTestTable$testAb[i] <- 1
-        }
+        countrain <- table(speciesData[trainSet ,species, drop = TRUE])
+        countest <- table(speciesData[testSet ,species, drop = TRUE])
+        trainTestTable[i, which(cl %in% names(countrain))] <- countrain
+        trainTestTable[i, clen + which(cl %in% names(countest))] <- countest
         if(progress==TRUE){
           pb$tick() # update progress bar
         }
       }
     }
   } else{ # data with no species column
-    n <- length(speciesData)
+    n <- nrow(speciesData)
     trainTestTable <- base::data.frame(train=rep(0, n), test=0)
     if(progress==TRUE){
       pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
                                        total=n, clear=FALSE, width=75) # add progress bar
     }
-    for(i in 1:n){
+    for(i in seq_len(n)){
       trainSet <- which(dmatrix[i, ] > distuni)
       testSet <- i
       foldList[[i]] <- assign(paste0("fold", i), list(trainSet, testSet))
@@ -200,13 +206,13 @@ summary.BufferedBlock <- function(object, ...){
 #' Use spatial blocks to separate train and test folds
 #'
 #' This function creates spatially separated folds based on a pre-specified distance. It assigns blocks to the training and
-#' testing folds randomly, systematically or in a checkerboard pattern. The distance (\code{theRange}) should be in \strong{metres},
-#' regardless of the unit of the reference system of the input data (for more information see the details section). By default,
+#' testing folds  \strong{randomly},  \strong{systematically} or in a  \strong{checkerboard pattern}. The distance (\code{theRange})
+#' should be in \strong{metres}, regardless of the unit of the reference system of
+#' the input data (for more information see the details section). By default,
 #' the function creates blocks according to the extent and shape of the study area, assuming that the user has considered the
-#' landscape for the given species and case study.
-#' Alternatively, blocks can be created based on species spatial data. This is especially useful when the
-#' species data is not evenly dispersed in the whole region. Blocks can also be offset so the origin is not at the outer
-#' corner of the rasters. Instead of providing a distance, the blocks can also be created by specifying a number of rows and
+#' landscape for the given species and case study. Alternatively, blocks can solely be created based on species spatial data.
+#' Blocks can also be offset so the origin is not at the outer
+#' corner of the rasters. Instead of providing a distance, the blocks can also be created by specifying a number of rows and/or
 #' columns and divide the study area into vertical or horizontal bins, as presented in Wenger & Olden (2012) and Bahn & McGill (2012).
 #' Finally, the blocks can be specified by a user-defined spatial polygon layer.
 #'
@@ -228,12 +234,18 @@ summary.BufferedBlock <- function(object, ...){
 #'
 #'
 #' @inheritParams buffering
-#' @param blocks A SpatialPolygons* or sf object to be used as the blocks. This can be a user defined polygon and it must cover all
+#' @param species Character (optional). Indicating the name of the field in which species data (response variable e.g. 0s and 1s) is stored.
+#' This argument is used \emph{to make folds with evenly distributed records}. \strong{This option only works in random fold selection and with binary or
+#' multi-class variables} e.g. species presence-absence/background or land cover classes for remote sensing image classification.
+#' If \code{speceis = NULL} the response classes will be treated the same and only training and testing records
+#' will be counted and balanced.
+#' @param blocks A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
 #' the species points.
 #' @param theRange Numeric value of the specified range by which blocks are created and training/testing data are separated.
 #' This distance should be in \strong{metres}. The range could be explored by \code{spatialAutoRange()} and \code{rangeExplorer()} functions.
 #' @param k Integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.
-#' @param selection Type of assignment of blocks into  folds. Can be \strong{random} (default), \strong{systematic} or \strong{checkerboard} pattern (not working with user-defined blocks).
+#' @param selection Type of assignment of blocks into  folds. Can be \strong{random} (default), \strong{systematic} or \strong{checkerboard}.
+#' The checkerboard does not work with user-defined spatial blocks.
 #' @param iteration Integer value. The number of attempts to create folds that fulfil the set requirement for minimum number
 #' of points in each category (\emph{training-presence}, \emph{training-absence}, \emph{testing-presence}
 #' and \emph{testing-absence}), as specified by \code{numLimit} value.
@@ -242,7 +254,7 @@ summary.BufferedBlock <- function(object, ...){
 #' @param maskBySpecies Since version 1.1, this option is always set to \code{TRUE}.
 #' @param degMetre Integer. The conversion rate of metres to degree. See the details section for more information.
 #' @param rasterLayer RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.
-#' @param border SpatialPolygons* or sf object to clip the block based on a border. This might increase the computation time.
+#' @param border A sf or SpatialPolygons object to clip the block based on it.
 #' @param showBlocks Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer could be specified
 #' in \code{rasterlayer} argument to be as background.
 #' @param biomod2Format Logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
@@ -318,24 +330,24 @@ summary.BufferedBlock <- function(object, ...){
 #'
 #' }
 spatialBlock <- function(speciesData,
-                         species=NULL,
-                         blocks=NULL,
-                         rasterLayer=NULL,
-                         theRange=NULL,
-                         rows=NULL,
-                         cols=NULL,
-                         k=5L,
-                         selection="random",
-                         iteration=100L,
-                         numLimit=NULL,
-                         maskBySpecies=TRUE,
-                         degMetre=111325,
-                         border=NULL,
-                         showBlocks=TRUE,
-                         biomod2Format=TRUE,
-                         xOffset=0,
-                         yOffset=0,
-                         progress=TRUE){
+                         species = NULL,
+                         blocks = NULL,
+                         rasterLayer = NULL,
+                         theRange = NULL,
+                         rows = NULL,
+                         cols = NULL,
+                         k = 5L,
+                         selection = "random",
+                         iteration = 100L,
+                         numLimit = NULL,
+                         maskBySpecies = TRUE,
+                         degMetre = 111325,
+                         border = NULL,
+                         showBlocks = TRUE,
+                         biomod2Format = TRUE,
+                         xOffset = 0,
+                         yOffset = 0,
+                         progress = TRUE){
   if(!is.element(selection, c("systematic", "random", "checkerboard"))){
     stop("The selection argument must be 'systematic', 'random' or 'checkerboard'")
   }
@@ -348,7 +360,7 @@ spatialBlock <- function(speciesData,
   if(methods::is(speciesData, "SpatialPoints")){
     speciesData <- sf::st_as_sf(speciesData)
   } else if(!methods::is(speciesData, "sf")){
-    stop("speciesData should be a spatial or sf object")
+    stop("speciesData should be a sf or SpatialPoints object")
   }
   if(!is.null(blocks)){
     if(methods::is(blocks, "SpatialPolygons")){
@@ -370,7 +382,7 @@ spatialBlock <- function(speciesData,
   ## check if species is a col in speciesData
   if(!is.null(species)){
     if(species %in% colnames(speciesData) == FALSE){
-      warning("There is no match between the columns name in 'speciesData' and 'species' argument (response)")
+      warning("There is no match between the columns name in 'speciesData' and 'species' argument (response variable)")
       species <- NULL
     }
   }
@@ -475,7 +487,7 @@ spatialBlock <- function(speciesData,
     } else{
       cl <- sort(unique(speciesData[, species, drop = TRUE]))
       clen <- length(cl)
-      trainTestTable <- as.data.frame(matrix(0, nrow = k, ncol = length(cl) * 2))
+      trainTestTable <- as.data.frame(matrix(0, nrow = k, ncol = clen * 2))
       names(trainTestTable) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
     }
     foldList <- list()
@@ -549,24 +561,6 @@ spatialBlock <- function(speciesData,
   fold_of_block <- fold_of_block[!duplicated(fold_of_block), ]
   fold_of_block <- fold_of_block[order(fold_of_block$blocks), ]
   subBlocks$folds <- fold_of_block$folds
-  # if(is.na(sp::proj4string(speciesData))){ # sf::st_bbox(speciesData)
-  #   mapext <- raster::extent(speciesData)[1:4]
-  #   if(mapext >= -180 && mapext <= 180){
-  #     xaxes <- "Longitude"
-  #     yaxes <- "Latitude"
-  #   } else {
-  #     xaxes <- "Easting"
-  #     yaxes <- "Northing"
-  #   }
-  # } else{
-  #   if(sp::is.projected(speciesData)){ # sf::st_is_longlat(speciesData)
-  #     xaxes <- "Easting"
-  #     yaxes <- "Northing"
-  #   } else{
-  #     xaxes <- "Longitude"
-  #     yaxes <- "Latitude"
-  #   }
-  # }
   if(is.null(rasterLayer)){
     p2 <- ggplot2::ggplot() +
       ggplot2::geom_sf(data = subBlocks,

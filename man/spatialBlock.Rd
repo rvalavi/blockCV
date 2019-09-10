@@ -12,12 +12,15 @@ spatialBlock(speciesData, species = NULL, blocks = NULL,
   yOffset = 0, progress = TRUE)
 }
 \arguments{
-\item{speciesData}{A SpatialPointsDataFrame, SpatialPoints or sf object containing species data.}
+\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data.}
 
-\item{species}{Character. Indicating the name of the field in which species presence/absence data (0s and 1s) are stored. If \code{speceis = NULL}
-the presence and absence data will be treated the same and only training and testing records will be counted.}
+\item{species}{Character (optional). Indicating the name of the field in which species data (response variable e.g. 0s and 1s) is stored.
+This argument is used \emph{to make folds with evenly distributed records}. \strong{This option only works in random fold selection and with binary or
+multi-class variables} e.g. species presence-absence/background or land cover classes for remote sensing image classification.
+If \code{speceis = NULL} the response classes will be treated the same and only training and testing records
+will be counted and balanced.}
 
-\item{blocks}{A SpatialPolygons* or sf object to be used as the blocks. This can be a user defined polygon and it must cover all
+\item{blocks}{A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
 the species points.}
 
 \item{rasterLayer}{RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.}
@@ -31,7 +34,8 @@ This distance should be in \strong{metres}. The range could be explored by \code
 
 \item{k}{Integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.}
 
-\item{selection}{Type of assignment of blocks into  folds. Can be \strong{random} (default), \strong{systematic} or \strong{checkerboard} pattern (not working with user-defined blocks).}
+\item{selection}{Type of assignment of blocks into  folds. Can be \strong{random} (default), \strong{systematic} or \strong{checkerboard}.
+The checkerboard does not work with user-defined spatial blocks.}
 
 \item{iteration}{Integer value. The number of attempts to create folds that fulfil the set requirement for minimum number
 of points in each category (\emph{training-presence}, \emph{training-absence}, \emph{testing-presence}
@@ -44,7 +48,7 @@ If \code{numLimit = NULL}, the most evenly dispersed number of records is chosen
 
 \item{degMetre}{Integer. The conversion rate of metres to degree. See the details section for more information.}
 
-\item{border}{SpatialPolygons* or sf object to clip the block based on a border. This might increase the computation time.}
+\item{border}{A sf or SpatialPolygons object to clip the block based on it.}
 
 \item{showBlocks}{Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer could be specified
 in \code{rasterlayer} argument to be as background.}
@@ -75,13 +79,13 @@ An object of class S3. A list of objects including:
 }
 \description{
 This function creates spatially separated folds based on a pre-specified distance. It assigns blocks to the training and
-testing folds randomly, systematically or in a checkerboard pattern. The distance (\code{theRange}) should be in \strong{metres},
-regardless of the unit of the reference system of the input data (for more information see the details section). By default,
+testing folds  \strong{randomly},  \strong{systematically} or in a  \strong{checkerboard pattern}. The distance (\code{theRange})
+should be in \strong{metres}, regardless of the unit of the reference system of
+the input data (for more information see the details section). By default,
 the function creates blocks according to the extent and shape of the study area, assuming that the user has considered the
-landscape for the given species and case study.
-Alternatively, blocks can be created based on species spatial data. This is especially useful when the
-species data is not evenly dispersed in the whole region. Blocks can also be offset so the origin is not at the outer
-corner of the rasters. Instead of providing a distance, the blocks can also be created by specifying a number of rows and
+landscape for the given species and case study. Alternatively, blocks can solely be created based on species spatial data.
+Blocks can also be offset so the origin is not at the outer
+corner of the rasters. Instead of providing a distance, the blocks can also be created by specifying a number of rows and/or
 columns and divide the study area into vertical or horizontal bins, as presented in Wenger & Olden (2012) and Bahn & McGill (2012).
 Finally, the blocks can be specified by a user-defined spatial polygon layer.
 }
