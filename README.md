@@ -16,6 +16,18 @@ To install the package from GitHub use:
 devtools::install_github("rvalavi/blockCV")
 ```
 
+
+### Features
+Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
+
+* The assignment of the spatial blocks to cross-validation folds can be done in *three different ways* 
+* The spatial blocks can be assigned to coss-validation folds to have **evenly distributed records** for **binary** (e.g. species presence-absence/background) or **multi-class** responses (e.g. land cover classes for remote sensing image classification) 
+* The position of the spatial blocks can be modified 
+* The buffering function can account for *presence-absence* and *presence-background* data types 
+* The variables are standardized to avoid wide range variables to dominate the environmental blocks 
+* Using geostatistical techniques to inform the choice of a suitable distance band by which to separate the data sets 
+
+
 ### Bsic usage
 The following is an example of using spatial block cross-validation for evaluation of species distribution modelling. You can find a comprehensive tutorial in the vignette of the package.
 
@@ -67,16 +79,6 @@ browseVignettes("blockCV")
 ```
 The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
 
-
-### Features
-Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
-
-* The assignment of the spatial blocks to cross-validation folds can be done in *three different ways* 
-* The spatial blocks can be assigned to coss-validation folds to have **evenly distributed records** for **binary** (e.g. species presence-absence/background) or **multi-class** responses (e.g. land cover classes for remote sensing image classification) 
-* The position of the spatial blocks can be modified 
-* The buffering function can account for *presence-absence* and *presence-background* data types 
-* The variables are standardized to avoid wide range variables to dominate the environmental blocks 
-* Using geostatistical techniques to inform the choice of a suitable distance band by which to separate the data sets 
 
 
 ### Citation
