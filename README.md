@@ -23,33 +23,41 @@ The following is an example of using spatial block cross-validation for evaluati
 # loading the package
 library(blockCV)
 
-# investigate spatial autocorrelation in raster covariates
-spatialAutoRange(rasterLayer = awt, # raster file
-                 sampleNumber = 5000, # number of cells to be used
-                 doParallel = TRUE,
-                 showPlots = TRUE)
-```
-![](https://image.ibb.co/eQGJZ8/spatial_Auto.jpg)
-
-```r
 # spatial blocking by specified range and random assignment
-sb <- spatialBlock(speciesData = pa_data,
+sb <- spatialBlock(speciesData = pa_data, # sf or SpatialPoints
                    species = "Species", # the response column (binomial or multi-class)
-                   rasterLayer = awt,
+                   rasterLayer = myrasters, # a raster for backgoround (optional)
                    theRange = 70000, # size of the blocks
-                   k = 5,
+                   k = 5, # the number of folds
                    selection = "random",
                    iteration = 100, # find evenly dispersed folds
                    biomod2Format = TRUE)
 
 ```
-![](https://image.ibb.co/dpDMnT/Rplot01.jpg)
+![](https://i.ibb.co/k9wkZGk/Rplot06.jpg)
 
 ```r
-# explor the generated folds
-foldExplorer(sb, awt, pa_data)
+# investigate spatial autocorrelation in raster covariates
+# this helps to choose a suitable size for spatial blocks
+spatialAutoRange(rasterLayer = myrasters, # raster file
+                 sampleNumber = 5000, # number of cells to be used
+                 doParallel = TRUE,
+                 showPlots = TRUE)
+```
+![](https://i.ibb.co/JCvYdWq/Rplot.jpg)
+
+
+```r
+# alternatively, you can manually choose the size of spatial blocks 
+rangeExplorer(rasterLayer = myrasters,
+              speciesData = pa_data, # response data (optional)
+              species = "Species" # the responcse column (optional)
+              minRange = 30000, # limit the search domain
+              maxRange = 100000)
 
 ```
+![](https://i.ibb.co/Vtz1vVz/ezgif-com-gif-maker.gif)
+
 
 ### Vignette
 To see the vignette of the package use:
@@ -59,13 +67,14 @@ browseVignettes("blockCV")
 ```
 The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
 
+
 ### Features
 Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
 
-* The assignment of the spatial blocks to cross-validation folds can be done in three different ways 
-* The spatial blocks can be assigned to coss-validation folds to have *evenly distributed records* for *binary* (e.g. species presence-absence/background) or *multi-class* responses (e.g. land cover classes for remote sensing image classification) 
+* The assignment of the spatial blocks to cross-validation folds can be done in *three different ways* 
+* The spatial blocks can be assigned to coss-validation folds to have **evenly distributed records** for **binary** (e.g. species presence-absence/background) or **multi-class** responses (e.g. land cover classes for remote sensing image classification) 
 * The position of the spatial blocks can be modified 
-* The buffering function can account for presence-absence and presence-background data types 
+* The buffering function can account for *presence-absence* and *presence-background* data types 
 * The variables are standardized to avoid wide range variables to dominate the environmental blocks 
 * Using geostatistical techniques to inform the choice of a suitable distance band by which to separate the data sets 
 
@@ -73,5 +82,5 @@ Compared to other available packages, **blockCV** provides more strategies and c
 ### Citation
 To cite package **blockCV** in publications use:
 
-Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. **blockCV: An r package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models**. *Methods Ecol Evol*. 2019; 10:225–232. [https://doi.org/10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
+Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. **blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models**. *Methods Ecol Evol*. 2019; 10:225–232. [https://doi.org/10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
 

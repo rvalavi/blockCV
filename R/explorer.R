@@ -309,7 +309,7 @@ rangeExplorer <- function(rasterLayer,
   if(!is.null(speciesData) && is.null(species)){
     basePlot <- basepl + ggplot2::geom_sf(data = speciesData, alpha = 0.6, color="blue", size = 2)
   } else if(!is.null(speciesData) && !is.null(species)){
-    basePlot <- basepl + ggplot2::geom_sf(data = speciesData, ggplot2::aes(color = get(species)), alpha = 0.6, size = 2)
+    basePlot <- basepl + ggplot2::geom_sf(data = speciesData, ggplot2::aes(color = get(species)), show.legend = "point", alpha = 0.6, size = 2)
   } else if(is.null(speciesData)){
     basePlot <- basepl
   }
