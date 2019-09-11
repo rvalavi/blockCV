@@ -6,9 +6,12 @@
 [![DOI](https://zenodo.org/badge/116337503.svg)](https://zenodo.org/badge/latestdoi/116337503)
 [![CRAN version](https://www.r-pkg.org/badges/version/blockCV)](https://CRAN.R-project.org/package=blockCV)
 
-In a nutshell, package **blockCV** provides functions to build train and test data sets using three general strategies: *buffers*, *spatial* and *environmental* blocks. It offers several options for how those blocks are constructed and how blocks are allocated to cross-validation folds. It includes a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the chosen predictor variables to inform the choice of block and buffer size. In addition, visualization tools further aid selection of block size and provide understanding of the spread of species data across generated folds. 
 
-### Installation
+### Spatial and environmental blocking for k-fold cross-validation   
+   
+In a nutshell, package **blockCV** provides functions to build train and test data sets using three general strategies: *buffers*, *spatial* and *environmental* blocks. It offers several options for how those blocks are constructed and how blocks are allocated to cross-validation folds. It includes a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the chosen predictor variables to inform the choice of the block and buffer size. In addition, visualization tools further aid the selection of block size and provide an understanding of the spread of species data across generated folds. 
+
+## Installation
 To install the package from GitHub use:
 
 ```r
@@ -17,18 +20,18 @@ devtools::install_github("rvalavi/blockCV")
 ```
 
 
-### Features
+## Features
 Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
 
 * The assignment of the spatial blocks to cross-validation folds can be done in *three different ways* 
-* The spatial blocks can be assigned to coss-validation folds to have **evenly distributed records** for **binary** (e.g. species presence-absence/background) or **multi-class** responses (e.g. land cover classes for remote sensing image classification) 
+* The spatial blocks can be assigned to cross-validation folds to have **evenly distributed records** for **binary** (e.g. species presence-absence/background) or **multi-class** responses (e.g. land cover classes for remote sensing image classification) 
 * The position of the spatial blocks can be modified 
 * The buffering function can account for *presence-absence* and *presence-background* data types 
 * The variables are standardized to avoid wide range variables to dominate the environmental blocks 
 * Using geostatistical techniques to inform the choice of a suitable distance band by which to separate the data sets 
 
 
-### Bsic usage
+## Basic usage
 The following is an example of using spatial block cross-validation for evaluation of species distribution modelling. You can find a comprehensive tutorial in the vignette of the package.
 
 ```r
@@ -71,7 +74,7 @@ rangeExplorer(rasterLayer = myrasters,
 ![](https://i.ibb.co/Vtz1vVz/ezgif-com-gif-maker.gif)
 
 
-### Vignette
+## Vignette
 To see the vignette of the package use:
 
 ```r
@@ -81,7 +84,7 @@ The vignette is also available via this [link](http://htmlpreview.github.io/?htt
 
 
 
-### Citation
+## Citation
 To cite package **blockCV** in publications use:
 
 Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. **blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models**. *Methods Ecol Evol*. 2019; 10:225–232. [https://doi.org/10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
