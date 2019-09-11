@@ -11,10 +11,12 @@ envBlock(rasterLayer, speciesData, species = NULL, k = 5,
 \arguments{
 \item{rasterLayer}{RasterLayer, RasterBrick or RasterStack of covariates to identify environmental groups.}
 
-\item{speciesData}{A SpatialPointsDataFrame, SpatialPoints or sf object containing species data.}
+\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data.}
 
-\item{species}{Character. Indicating the name of the field in which species presence/absence data (0s and 1s) are stored. If \code{speceis = NULL}
-the presence and absence data will be treated the same and only training and testing records will be counted.}
+\item{species}{Character. Indicating the name of the field in which species data (binary response i.e. 0 and 1) is stored. If \code{speceis = NULL}
+the presence and absence data (response variable) will be treated the same and only training and testing records will be counted. This can be used for multi-class responses
+such as land cover classes for remote sensing image classification, but it is not necessary. \emph{Do not use this argument when the response variable is
+continuous or count}.}
 
 \item{k}{Integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.}
 
@@ -72,8 +74,8 @@ value should be deleted prior to the analysis or another raster layer would be p
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 # import presence-absence species data
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-# make a SpatialPointsDataFrame object from data.frame
-pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
+# make a sf object from data.frame
+pa_data <- sf::st_as_sf(PA coords = c("x", "y"), crs = raster::crs(awt))
 
 # environmental clustering
 eb <- envBlock(rasterLayer = awt,

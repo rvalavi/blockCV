@@ -1,21 +1,3 @@
-standardize <- function(x){
-  stzRaster <- raster::stack()
-  for(i in 1:raster::nlayers(x)){
-    stzRaster <- raster::stack(stzRaster, (x[[i]] - raster::minValue(x[[i]])) / (raster::maxValue(x[[i]]) - raster::minValue(x[[i]])))
-  }
-  return(stzRaster)
-}
-
-normalize <- function(x){
-  stzRaster <- raster::stack()
-  for(i in 1:raster::nlayers(x)){
-    meanR <- mean(raster::values(x[[i]]), na.rm=TRUE)
-    sdR <- sd(raster::values(x[[i]]), na.rm=TRUE)
-    stzRaster <- raster::stack(stzRaster, ((x[[i]] - meanR) / sdR))
-  }
-  return(stzRaster)
-}
-
 #' Use environmental clustering to separate train and test folds
 #'
 #' Environmental blocking for cross-validation. This function uses clustering methods to specify sets of similar environmental
@@ -79,8 +61,8 @@ normalize <- function(x){
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 #' # import presence-absence species data
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-#' # make a SpatialPointsDataFrame object from data.frame
-#' pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=raster::crs(awt))
+#' # make a sf object from data.frame
+#' pa_data <- sf::st_as_sf(PA coords = c("x", "y"), crs = raster::crs(awt))
 #'
 #' # environmental clustering
 #' eb <- envBlock(rasterLayer = awt,
@@ -92,20 +74,24 @@ normalize <- function(x){
 #'                numLimit = 50)
 #' }
 #'
-envBlock <- function(rasterLayer, speciesData, species=NULL, k=5, standardization="normal", rasterBlock=TRUE, biomod2Format=TRUE, numLimit=0){
-  if(methods::is(speciesData, "sf")){
-    speciesData <- sf::as_Spatial(speciesData)
+envBlock <- function(rasterLayer,
+                     speciesData,
+                     species = NULL,
+                     k = 5,
+                     standardization = "normal",
+                     rasterBlock = TRUE,
+                     biomod2Format = TRUE,
+                     numLimit = 0){
+  ## change the sp objects to sf
+  if(methods::is(speciesData, "SpatialPoints")){
+    speciesData <- sf::st_as_sf(speciesData)
+  } else if(!methods::is(speciesData, "sf")){
+    stop("speciesData should be a sf or SpatialPoints object")
   }
   if(methods::is(rasterLayer, 'Raster')){
     if(raster::nlayers(rasterLayer) >= 1){
       foldList <- list()
       foldNum <- rep(NA, nrow(speciesData))
-      if(!is.null(species)){
-        presences <- speciesData[speciesData@data[,species]==1,] # creating a layer of presence data
-        trainTestTable <- base::data.frame(trainPr=rep(0, k), trainAb=0, testPr=0, testAb=0)
-      } else{
-        trainTestTable <- base::data.frame(train=rep(0, k), test=0)
-      }
       biomodTable <- data.frame(RUN1=rep(TRUE, nrow(speciesData)))
       if(standardization=="standard"){
         rasterLayer <- standardize(rasterLayer)
@@ -115,36 +101,41 @@ envBlock <- function(rasterLayer, speciesData, species=NULL, k=5, standardizatio
         rasterLayer <- rasterLayer
       }
       if(rasterBlock==TRUE){
-        unsClass <- RStoolbox::unsuperClass(rasterLayer, nSamples = 10000, nClasses = k, nIter = 500)
+        unsClass <- RStoolbox::unsuperClass(rasterLayer, nSamples = 10000, nClasses = k, nIter = 500) # more samples or a new argument?!
         unsMap <- unsClass$map
-        speciesData@data$fold <- raster::extract(unsMap, speciesData)
-        if(any(is.na(speciesData@data$fold))){
+        speciesData$fold <- raster::extract(unsMap, speciesData)
+        if(anyNA(speciesData$fold)){
           stop("The input raster layer does not cover all the species points.")
         }
       } else{
         ext <- raster::extract(rasterLayer, speciesData)
-        if(any(is.na(ext))){
+        if(anyNA(ext)){
           stop("The input raster layer does not cover all the species points.")
         }
-        kms <- stats::kmeans(ext, centers=k, iter.max = 500, nstart = 25)
+        kms <- stats::kmeans(ext, centers = k, iter.max = 500, nstart = 25)
         speciesData$fold <- kms$cluster
       }
-      for(i in 1:k){
-        testSet <- which(speciesData@data$fold == i)
-        trainSet <- which(speciesData@data$fold != i)
+      if(is.null(species)){
+        trainTestTable <- base::data.frame(train = rep(0, k), test = 0)
+      } else{
+        cl <- sort(unique(speciesData[, species, drop = TRUE]))
+        clen <- length(cl)
+        trainTestTable <- as.data.frame(matrix(0, nrow = k, ncol = clen * 2))
+        names(trainTestTable) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
+      }
+      for(i in seq_len(k)){
+        testSet <- which(speciesData$fold == i)
+        trainSet <- which(speciesData$fold != i)
         foldNum[testSet] <- i
         foldList[[i]] <- assign(paste0("fold", i), list(trainSet, testSet))
-        if(!is.null(species)){
-          lnPrsences <- length(presences)
-          lnAbsences <- length(speciesData) - lnPrsences
-          trainPoints <- speciesData[trainSet, ]
-          trainTestTable$trainPr[i] <- length(trainPoints[trainPoints@data[,species]==1,])
-          trainTestTable$trainAb[i] <- length(trainPoints[trainPoints@data[,species]!=1,])
-          trainTestTable$testPr[i] <- lnPrsences - trainTestTable$trainPr[i]
-          trainTestTable$testAb[i] <- lnAbsences - trainTestTable$trainAb[i]
-        } else{
+        if(is.null(species)){
           trainTestTable$train[i] <- length(trainSet)
           trainTestTable$test[i] <- length(testSet)
+        } else{
+          countrain <- table(speciesData[trainSet ,species, drop = TRUE])
+          countest <- table(speciesData[testSet ,species, drop = TRUE])
+          trainTestTable[i, which(cl %in% names(countrain))] <- countrain
+          trainTestTable[i, clen + which(cl %in% names(countest))] <- countest
         }
         if(biomod2Format==TRUE){ # creating a biomod2 DataSplitTable for validation
           colm <- paste0("RUN", i)
@@ -152,35 +143,12 @@ envBlock <- function(rasterLayer, speciesData, species=NULL, k=5, standardizatio
           biomodTable[trainSet, colm] <- TRUE
         }
       }
-      if(!is.null(species)){
-        for(j in 1:ncol(trainTestTable)){
-          minNUm <- min(trainTestTable[,j])
-          if(minNUm <= numLimit){
-            colm <- names(trainTestTable)[j]
-            if(colm == "trainPr"){
-              colLimit <- "traning presences"
-            } else if(colm == "trainAb"){
-              colLimit <- "training absences"
-            } else if(colm == "testPr"){
-              colLimit <- "testing presences"
-            } else if(colm == "testAb"){
-              colLimit <- "testing absences"
-            }
-            message(paste("The number of records in", colLimit, "is less than or equal", numLimit))
-          }
-        }
-      } else{
-        for(j in 1:2){
-          minNUm <- min(trainTestTable[,j])
-          if(minNUm <= numLimit){
-            colm <- names(trainTestTable)[j]
-            if(colm == "train"){
-              colLimit <- "traning folds"
-            } else if(colm == "test"){
-              colLimit <- "testing folds"
-            }
-            message(paste("The number of records in", colLimit, "is less than or equal", numLimit))
-          }
+      if(any(trainTestTable <= numLimit)){
+        zerofolds <- which(apply(trainTestTable, 1, function(x) any(x <= numLimit)))
+        if(length(zerofolds) > 1){
+          warning("The folds ", paste(zerofolds, collapse = ", "), " have class(es) with ", numLimit, " or less records")
+        } else{
+          warning("The fold ", zerofolds, " has class(es) with ", numLimit, " or less records")
         }
       }
       if(biomod2Format==TRUE){

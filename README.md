@@ -46,7 +46,7 @@ sb <- spatialBlock(speciesData = pa_data, # sf or SpatialPoints
                    biomod2Format = TRUE)
 
 ```
-![](https://i.ibb.co/k9wkZGk/Rplot06.jpg)
+![](https://i.ibb.co/F84b7W8/spatial-block.jpg)
 
 ```r
 # investigate spatial autocorrelation in raster covariates
@@ -56,7 +56,7 @@ spatialAutoRange(rasterLayer = myrasters, # raster file
                  doParallel = TRUE,
                  showPlots = TRUE)
 ```
-![](https://i.ibb.co/JCvYdWq/Rplot.jpg)
+![](https://i.ibb.co/XXMkBSx/spatial-Auto-Range.jpg)
 
 
 ```r

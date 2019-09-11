@@ -123,3 +123,20 @@ systematicNum <- function(layer, num=5){
   return(c)
 }
 
+standardize <- function(x){
+  stzRaster <- raster::stack()
+  for(i in 1:raster::nlayers(x)){
+    stzRaster <- raster::stack(stzRaster, (x[[i]] - raster::minValue(x[[i]])) / (raster::maxValue(x[[i]]) - raster::minValue(x[[i]])))
+  }
+  return(stzRaster)
+}
+
+normalize <- function(x){
+  stzRaster <- raster::stack()
+  for(i in 1:raster::nlayers(x)){
+    meanR <- mean(raster::values(x[[i]]), na.rm=TRUE)
+    sdR <- sd(raster::values(x[[i]]), na.rm=TRUE)
+    stzRaster <- raster::stack(stzRaster, ((x[[i]] - meanR) / sdR))
+  }
+  return(stzRaster)
+}

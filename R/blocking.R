@@ -554,7 +554,12 @@ spatialBlock <- function(speciesData,
   }
   print(trainTestTable)
   if(any(trainTestTable == 0)){
-    warning("At least one of the folds has a class with zero records")
+    zerofolds <- which(apply(trainTestTable, 1, function(x) any(x == 0)))
+    if(length(zerofolds) > 1){
+      warning("The folds ", paste(zerofolds, collapse = ", "), " have class(es) with zero records")
+    } else{
+      warning("The fold ", zerofolds, " has class(es) with zero records")
+    }
   }
   # add the folds number to the blocks
   fold_of_block <- subBlocksDF[, c("blocks", "folds")]
