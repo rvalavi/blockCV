@@ -211,6 +211,8 @@ spatialAutoRange <- function(rasterLayer,
       if(numLayer > 1){
         modelInfo$range <- modelInfo$range * 1000
       }
+    } else{
+      theRange2 <- theRange
     }
   } else{
     if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=raster::crs(rasterLayer)))){

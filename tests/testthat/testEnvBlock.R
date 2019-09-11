@@ -3,6 +3,7 @@ library(blockCV)
 context("envBlock function")
 
 expect_names <- c("folds",
+                  "foldID",
                   "biomodTable",
                   "k",
                   "species",

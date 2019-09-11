@@ -3,6 +3,7 @@ library(blockCV)
 context("spatialBlock function")
 
 expect_names <- c("folds",
+                  "foldID",
                   "biomodTable",
                   "k",
                   "blocks",
