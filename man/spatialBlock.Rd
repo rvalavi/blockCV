@@ -6,7 +6,7 @@
 \usage{
 spatialBlock(speciesData, species = NULL, blocks = NULL,
   rasterLayer = NULL, theRange = NULL, rows = NULL, cols = NULL,
-  k = 5L, selection = "random", iteration = 100L, numLimit = NULL,
+  k = 5L, selection = "random", iteration = 100L, numLimit = 0L,
   maskBySpecies = TRUE, degMetre = 111325, border = NULL,
   showBlocks = TRUE, biomod2Format = TRUE, xOffset = 0,
   yOffset = 0, progress = TRUE)

@@ -134,7 +134,7 @@ spatialBlock <- function(speciesData,
                          k = 5L,
                          selection = "random",
                          iteration = 100L,
-                         numLimit = NULL,
+                         numLimit = 0L,
                          maskBySpecies = TRUE,
                          degMetre = 111325,
                          border = NULL,
@@ -172,7 +172,7 @@ spatialBlock <- function(speciesData,
     }
   }
   if(maskBySpecies==FALSE){
-    cat("Since version 1.1, this option is always set to TRUE\n")
+    cat("Since version 1.1, this option is always set to TRUE.\n")
   }
   ## check if species is a col in speciesData
   if(!is.null(species)){
@@ -191,32 +191,22 @@ spatialBlock <- function(speciesData,
                        xOffset = xOffset,
                        yOffset = yOffset,
                        checkerboard = chpattern)
-      if(is.null(border)){
-        subBlocks <- net[speciesData,] # subset the blocks
-      } else{
-        subBlocks <- sf::st_crop(net, border)
+      subBlocks <- net[speciesData,] # subset the blocks
+      if(!is.null(border)){
+        subBlocks <- sf::st_crop(subBlocks, border)
       }
     } else{
-      if(is.null(border)){
-        net <- rasterNet(rasterLayer[[1]],
-                         resolution = theRange,
-                         xbin = cols,
-                         ybin = rows,
-                         degree = degMetre,
-                         xOffset = xOffset,
-                         yOffset = yOffset,
-                         checkerboard = chpattern)
-        subBlocks <- net[speciesData,]
-      } else{ # having a border
-        net <- rasterNet(rasterLayer[[1]],
-                         resolution = theRange,
-                         xbin = cols,
-                         ybin = rows,
-                         degree = degMetre,
-                         xOffset = xOffset,
-                         yOffset = yOffset,
-                         checkerboard = chpattern)
-        subBlocks <- sf::st_crop(net, border)
+      net <- rasterNet(rasterLayer[[1]],
+                       resolution = theRange,
+                       xbin = cols,
+                       ybin = rows,
+                       degree = degMetre,
+                       xOffset = xOffset,
+                       yOffset = yOffset,
+                       checkerboard = chpattern)
+      subBlocks <- net[speciesData,]
+      if(!is.null(border)){
+        subBlocks <- sf::st_crop(subBlocks, border)
       }
     }
   } else{
@@ -340,27 +330,15 @@ spatialBlock <- function(speciesData,
     biomodTable <- biomodTable2
     cat(paste0("The best folds was in iteration ", iter, ":\n"))
   }
-
-
-  if(!is.null(numLimit) && any(trainTestTable < numLimit)==TRUE){ # show a message if criteria is not met
-    if(numLimit==0){
-      cat(paste("There are one or more folds with", numLimit, "records\n"))
-    } else{
-      cat(paste("There are one or more folds with less than", numLimit, "records\n"))
-    }
-  }
   print(trainTestTable)
-  if(any(trainTestTable == 0)){
-    zerofolds <- which(apply(trainTestTable, 1, function(x) any(x == 0)))
+  if(any(trainTestTable <= numLimit)){
+    zerofolds <- which(apply(trainTestTable, 1, function(x) any(x == numLimit)))
     if(length(zerofolds) > 1){
-      warning("The folds ", paste(zerofolds, collapse = ", "), " have class(es) with zero records")
+      warning("The folds ", paste(zerofolds, collapse = ", "), " have class(es) with ", numLimit, " (or less) records")
     } else{
-      warning("The fold ", zerofolds, " has class(es) with zero records")
+      warning("The fold ", zerofolds, " has class(es) with ", numLimit, " (or less) records")
     }
   }
-
-
-
   # add the folds number to the blocks
   fold_of_block <- subBlocksDF[, c("blocks", "folds")]
   fold_of_block <- fold_of_block[!duplicated(fold_of_block), ]

@@ -14,24 +14,31 @@ expect_names <- c("folds",
 
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
+pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
+
+r <- awt[[1]]
+r[r>0] <- 1
+bound <- raster::rasterToPolygons(r, dissolve = TRUE)
 
 test_that("test spatiaBlock function with random assingment and raster file", {
 
-  sb1 <- spatialBlock(speciesData = pa_data,
-                      species = "Species",
-                      rasterLayer = awt,
-                      rows = 5,
-                      cols = 8,
-                      k = 5,
-                      selection = 'random',
-                      iteration = 25,
-                      numLimit = NULL,
-                      biomod2Format = TRUE,
-                      xOffset = 0.3,
-                      yOffset = 0,
-                      showBlocks = FALSE,
-                      progress = TRUE)
+  set.seed(1000)
+  expect_warning(
+    sb1 <- spatialBlock(speciesData = pa_data,
+                        species = "Species",
+                        rasterLayer = awt,
+                        theRange = 70000,
+                        k = 5,
+                        selection = "random",
+                        border = bound,
+                        iteration = 25,
+                        numLimit = 0,
+                        biomod2Format = TRUE,
+                        xOffset = 0.3,
+                        yOffset = 0.2,
+                        showBlocks = FALSE,
+                        progress = TRUE)
+  )
 
   expect_true(exists("sb1"))
   expect_is(sb1, "SpatialBlock")
@@ -43,7 +50,7 @@ test_that("test spatiaBlock function with random assingment and raster file", {
   expect_equal(sb1$k, 5)
   expect_is(sb1$blocks, "SpatialPolygonsDataFrame")
   expect_is(sb1$species, "character")
-  expect_null(sb1$range)
+  expect_is(sb1$range, "numeric")
   expect_is(sb1$plots, "ggplot")
   expect_equal(dim(sb1$records), c(5, 4))
   expect_true(
@@ -55,10 +62,11 @@ test_that("test spatiaBlock function with random assingment and raster file", {
 test_that("test spatiaBlock function with systematic assingment and no raster file", {
 
   sb2 <- spatialBlock(speciesData = sf::as_Spatial(pa_data),
-                      theRange = 70000,
+                      rows = 5,
+                      cols = 8,
+                      # border = bound,
                       k = 5,
                       selection = 'systematic',
-                      numLimit = 1,
                       biomod2Format = FALSE,
                       showBlocks = TRUE)
 
@@ -67,12 +75,11 @@ test_that("test spatiaBlock function with systematic assingment and no raster fi
   expect_equal(names(sb2), expect_names)
   expect_equal(length(sb2$folds), 5)
   expect_is(sb2$folds, "list")
-  expect_is(sb2$biomodTable, "matrix")
-  expect_equal(dim(sb2$biomodTable), c(nrow(pa_data), 5))
+  expect_null(sb2$biomodTable, "matrix")
   expect_equal(sb2$k, 5)
   expect_is(sb2$blocks, "SpatialPolygonsDataFrame")
   expect_null(sb2$species)
-  expect_is(sb2$range, "numeric")
+  expect_null(sb2$range)
   expect_is(sb2$plots, "ggplot")
   expect_equal(dim(sb2$records), c(5, 2))
   expect_true(
@@ -86,8 +93,89 @@ test_that("test spatiaBlock function with systematic assingment and no raster fi
 })
 
 
+test_that("test spatiaBlock with checkerboard assingment and only row blocks", {
+
+  sb3 <- spatialBlock(speciesData = sf::as_Spatial(pa_data),
+                      rows = 5,
+                      selection = "checkerboard",
+                      biomod2Format = FALSE,
+                      showBlocks = TRUE)
+
+  expect_true(exists("sb3"))
+  expect_is(sb3, "SpatialBlock")
+  expect_equal(names(sb3), expect_names)
+  expect_equal(length(sb3$folds), 2)
+  expect_is(sb3$folds, "list")
+  expect_null(sb3$biomodTable)
+  expect_equal(sb3$k, 2)
+  expect_is(sb3$blocks, "SpatialPolygonsDataFrame")
+  expect_null(sb3$species)
+  expect_null(sb3$range)
+  expect_is(sb3$plots, "ggplot")
+  expect_equal(dim(sb3$records), c(2, 2))
+  expect_true(
+    !all(sb3$records == 0)
+  )
+
+  expect_equal(print.SpatialBlock(sb3), "SpatialBlock")
+  expect_message(plot.SpatialBlock(sb3))
+  expect_output(summary.SpatialBlock(sb3))
+
+})
 
 
+test_that("test spatiaBlock with user-defined blocks", {
+
+  sb <- spatialBlock(speciesData = pa_data,
+                     theRange = 70000,
+                     selection = "random",
+                     iteration = "1",
+                     biomod2Format = FALSE,
+                     showBlocks = FALSE)
+
+  sb4 <- spatialBlock(speciesData = pa_data,
+                      blocks = sb$blocks[,-2],
+                      selection = "random",
+                      iteration = 5,
+                      biomod2Format = FALSE,
+                      showBlocks = FALSE)
+
+  expect_true(exists("sb4"))
+  expect_is(sb4, "SpatialBlock")
+  expect_equal(names(sb4), expect_names)
+  expect_equal(length(sb4$folds), 5)
+  expect_is(sb4$folds, "list")
+  expect_null(sb4$biomodTable)
+  expect_equal(sb4$k, 5)
+  expect_is(sb4$blocks, "SpatialPolygonsDataFrame")
+  expect_null(sb4$species)
+  expect_null(sb4$range)
+  expect_is(sb4$plots, "ggplot")
+  expect_equal(dim(sb4$records), c(5, 2))
+  expect_true(
+    !all(sb4$records == 0)
+  )
+
+  expect_equal(print.SpatialBlock(sb4), "SpatialBlock")
+  expect_message(plot.SpatialBlock(sb4))
+  expect_output(summary.SpatialBlock(sb4))
+
+})
+
+
+test_that("test spatialBlock failur: number of blocks, wrong selection", {
+
+  expect_error(spatialBlock(speciesData = sf::as_Spatial(pa_data),
+                            cols = 5,
+                            k = 15,
+                            selection = "random"))
+
+  expect_error(spatialBlock(speciesData = sf::as_Spatial(pa_data),
+                            cols = 5,
+                            k = 15,
+                            selection = "rand"))
+
+})
 
 
 
