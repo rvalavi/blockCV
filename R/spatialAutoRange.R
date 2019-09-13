@@ -231,7 +231,7 @@ spatialAutoRange <- function(rasterLayer,
     if(!methods::is(border, "sf")){
       border <- sf::st_as_sf(border)
     }
-    subBlocks <- raster::st_crop(net, border)
+    subBlocks <- sf::st_crop(net, border)
   }
   if(numLayer > 1){
     if(is.null(speciesData)){
@@ -239,7 +239,7 @@ spatialAutoRange <- function(rasterLayer,
     } else{
       ptnum <- nrow(speciesData)
     }
-    p1 <- ggplot2::ggplot()+
+    p1 <- ggplot2::ggplot() +
       ggplot2::geom_bar(ggplot2::aes(x=stats::reorder(factor(layers), range), y=range, fill=range),
                         stat="identity",data=modelInfo,) +
       ggplot2::labs(x = "Layers", y = "Range (m)") +

@@ -12,11 +12,11 @@ expect_names <- c("folds",
                   "plots",
                   "records")
 
-test_that("test spatiaBlock function with random assingment and raster file", {
+awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
+PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
+pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
 
-  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-  PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-  pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
+test_that("test spatiaBlock function with random assingment and raster file", {
 
   sb1 <- spatialBlock(speciesData = pa_data,
                       species = "Species",
@@ -54,17 +54,12 @@ test_that("test spatiaBlock function with random assingment and raster file", {
 
 test_that("test spatiaBlock function with systematic assingment and no raster file", {
 
-  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-  PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-  pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
-
-  sb2 <- spatialBlock(speciesData = pa_data,
-                      rasterLayer = awt,
-                      theRange = 68000,
+  sb2 <- spatialBlock(speciesData = sf::as_Spatial(pa_data),
+                      theRange = 70000,
                       k = 5,
                       selection = 'systematic',
                       numLimit = 1,
-                      biomod2Format = TRUE,
+                      biomod2Format = FALSE,
                       showBlocks = TRUE)
 
   expect_true(exists("sb2"))
@@ -89,3 +84,34 @@ test_that("test spatiaBlock function with systematic assingment and no raster fi
   expect_output(summary.SpatialBlock(sb2))
 
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
