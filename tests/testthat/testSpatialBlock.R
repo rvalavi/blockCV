@@ -93,6 +93,39 @@ test_that("test spatiaBlock function with systematic assingment and no raster fi
 })
 
 
+test_that("test spatiaBlock function with systematic assingment and no raster file", {
+
+  sb2 <- spatialBlock(speciesData = pa_data,
+                      rows = 5,
+                      cols = 8,
+                      k = 5,
+                      selection = 'random',
+                      numLimit = 2,
+                      biomod2Format = FALSE,
+                      showBlocks = TRUE)
+
+  expect_true(exists("sb2"))
+  expect_is(sb2, "SpatialBlock")
+  expect_equal(names(sb2), expect_names)
+  expect_equal(length(sb2$folds), 5)
+  expect_is(sb2$folds, "list")
+  expect_null(sb2$biomodTable, "matrix")
+  expect_equal(sb2$k, 5)
+  expect_is(sb2$blocks, "SpatialPolygonsDataFrame")
+  expect_null(sb2$species)
+  expect_null(sb2$range)
+  expect_is(sb2$plots, "ggplot")
+  expect_equal(dim(sb2$records), c(5, 2))
+  expect_true(
+    !all(sb2$records == 0)
+  )
+
+  expect_equal(print.SpatialBlock(sb2), "SpatialBlock")
+  expect_message(plot.SpatialBlock(sb2))
+  expect_output(summary.SpatialBlock(sb2))
+
+})
+
 test_that("test spatiaBlock with checkerboard assingment and only row blocks", {
 
   sb3 <- spatialBlock(speciesData = sf::as_Spatial(pa_data),
