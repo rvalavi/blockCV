@@ -198,15 +198,21 @@ test_that("test spatiaBlock with user-defined blocks", {
 
 test_that("test spatialBlock failur: number of blocks, wrong selection", {
 
-  expect_error(spatialBlock(speciesData = sf::as_Spatial(pa_data),
+  expect_error(spatialBlock(speciesData = pa_data,
                             cols = 5,
                             k = 15,
                             selection = "random"))
 
-  expect_error(spatialBlock(speciesData = sf::as_Spatial(pa_data),
+  expect_error(spatialBlock(speciesData = pa_data,
                             cols = 5,
-                            k = 15,
+                            k = 5,
                             selection = "rand"))
+
+  expect_error(spatialBlock(speciesData = pa_data,
+                            cols = 5,
+                            rows = 8,
+                            k = 1,
+                            selection = "random"))
 
 })
 

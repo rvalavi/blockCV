@@ -103,8 +103,10 @@ spatialAutoRange <- function(rasterLayer,
       stop("speciesData should be a sf or SpatialPoints object")
     }
   }
-  if(methods::is(rasterLayer, 'Raster')){
-    if(any(is.factor(rasterLayer))){warning("rasterLayer should not include any factor layer")}
+  if(methods::is(rasterLayer, "Raster")){
+    if(any(raster::is.factor(rasterLayer))){
+      stop("rasterLayer should not include any factor layer")
+    }
     numLayer <- raster::nlayers(rasterLayer)
     if(is.na(sp::proj4string(rasterLayer))){
       mapext <- raster::extent(rasterLayer)[1:4]

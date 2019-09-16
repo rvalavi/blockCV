@@ -9,11 +9,12 @@ expect_names <- c("folds",
                   "species",
                   "records")
 
-test_that("test that environmental blocking function with rasterBlock, standard and species column", {
+awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
+awt <- awt[[1:3]]
+PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
+pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
 
-  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-  PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-  pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
+test_that("test that environmental blocking function with rasterBlock, standard and species column", {
 
   # environmental clustering
   eb <- envBlock(rasterLayer = awt,
@@ -39,13 +40,9 @@ test_that("test that environmental blocking function with rasterBlock, standard 
 
 test_that("test that environmental blocking function with no rasterBlock, normalize and no species column", {
 
-  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-  PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-  pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=crs(awt))
-
   # environmental clustering
   eb2 <- envBlock(rasterLayer = awt,
-                  speciesData = pa_data,
+                  speciesData = sf::as_Spatial(pa_data),
                   k = 5,
                   standardization = "normal",
                   rasterBlock = FALSE)
@@ -66,3 +63,69 @@ test_that("test that environmental blocking function with no rasterBlock, normal
   expect_output(summary.EnvironmentalBlock(eb2))
 
 })
+
+test_that("test environmental blocking with no spatial or sf object", {
+
+  expect_error(
+    envBlock(rasterLayer = awt,
+             speciesData = awt, # no spatial or sf object
+             k = 5,
+             standardization = "normal",
+             rasterBlock = FALSE)
+
+  )
+
+})
+
+test_that("test environmental blocking with no raster data", {
+  expect_error(
+    envBlock(rasterLayer = pa_data, # no raster data
+             speciesData = pa_data,
+             k = 5,
+             standardization = "normal",
+             rasterBlock = FALSE)
+
+  )
+
+})
+
+test_that("test environmental blocking with in-complete raster - NA extraction", {
+
+  ext <- c(xmin = 206961.5,
+           xmax = 481078.8,
+           ymin = 8038112,
+           ymax = 8308669 )
+  awt2 <- raster::crop(awt, ext)
+  expect_error(
+    envBlock(rasterLayer = awt2, # in-complete raster - NA extraction
+             speciesData = pa_data,
+             k = 5,
+             standardization = "normal",
+             rasterBlock = FALSE)
+
+  )
+
+})
+
+test_that("test environmental blocking with too many folds", {
+
+  expect_warning(
+    envBlock(rasterLayer = awt,
+             speciesData = pa_data[sample(nrow(pa_data), 50),],
+             k = 15,
+             standardization = "normal",
+             numLimit = 10,
+             rasterBlock = FALSE)
+  )
+
+})
+
+
+
+
+
+
+
+
+
+

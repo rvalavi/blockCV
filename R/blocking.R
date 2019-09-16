@@ -386,14 +386,13 @@ spatialBlock <- function(speciesData,
   # save the objects
   if(biomod2Format==TRUE){
     biomodTable <- as.matrix(biomodTable)
-    theList <- list(folds=foldList, foldID=foldNum, biomodTable=biomodTable,
-                    k=k, blocks=sf::as_Spatial(subBlocks), species=species, range=theRange,
-                    plots=p2, records=trainTestTable)
+    biomodTable2 <- biomodTable
   } else{
-    theList <- list(folds=foldList, foldID=foldNum, biomodTable=NULL,
-                    k=k, blocks=sf::as_Spatial(subBlocks), species=species, range=theRange,
-                    plots=p2, records=trainTestTable)
+    biomodTable2 <- NULL
   }
+  theList <- list(folds=foldList, foldID=foldNum, biomodTable=biomodTable2,
+                  k=k, blocks=sf::as_Spatial(subBlocks), species=species, range=theRange,
+                  plots=p2, records=trainTestTable)
   class(theList) <- c("SpatialBlock")
   return(theList)
 }

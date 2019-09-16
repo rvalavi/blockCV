@@ -9,16 +9,19 @@ expect_names <- c("folds",
                   "dataType",
                   "records")
 
-test_that("test that buffering function works properly with presence-absence data", {
+PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
+PB <- read.csv(system.file("extdata", "PB.csv", package = "blockCV"))
 
-  PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-  Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
-  pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=sp::CRS(Zone55s))
+pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = 32755)
+pb_data <- sf::st_as_sf(PB, coords = c("x", "y"), crs = 32755)
+
+
+test_that("test that buffering function works properly with presence-absence data", {
 
   # buffering with presence-absence data
   bf1 <- buffering(speciesData= pa_data,
                    species= "Species", # to count the number of presences and absences
-                   theRange= 68000,
+                   theRange= 70000,
                    spDataType = "PA",
                    progress = TRUE)
 
@@ -41,27 +44,24 @@ test_that("test that buffering function works properly with presence-absence dat
 
 test_that("test that buffering function works properly with presence-background data", {
 
-  PB <- read.csv(system.file("extdata", "PB.csv", package = "blockCV"))
-  Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
-  pb_data <- sp::SpatialPointsDataFrame(PB[,c("x", "y")], PB, proj4string=sp::CRS(Zone55s))
-
   # buffering with presence-background data
-  bf2 <- buffering(speciesData= pb_data,
+  pb_sample <- pb_data[sample(nrow(pb_data), 1000), ]
+  bf2 <- buffering(speciesData= pb_sample,
                    species= "Species",
-                   theRange= 68000,
+                   theRange= 70000,
                    spDataType = "PB",
-                   progress = FALSE)
+                   progress = TRUE)
 
   expect_true(exists("bf2"))
   expect_is(bf2, "BufferedBlock")
   expect_equal(names(bf2), expect_names)
-  expect_equal(length(bf2$folds), 116)
+  expect_equal(length(bf2$folds), sum(pb_sample$Species))
   expect_is(bf2$folds, "list")
   expect_is(bf2$k, "integer")
   expect_is(bf2$species, "character")
   expect_is(bf2$range, "numeric")
   expect_equal(bf2$dataType, "PB")
-  expect_equal(dim(bf2$records), c(116, 4))
+  expect_equal(dim(bf2$records), c(sum(pb_sample$Species), 4))
   expect_true(
     !all(bf2$records == 0)
   )
@@ -70,13 +70,9 @@ test_that("test that buffering function works properly with presence-background 
 
 test_that("test that buffering function works properly with no species specified", {
 
-  PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-  Zone55s <- "+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs"
-  pa_data <- sp::SpatialPointsDataFrame(PA[,c("x", "y")], PA, proj4string=sp::CRS(Zone55s))
-
   # buffering with presence-absence data
-  bf3 <- buffering(speciesData= pa_data,
-                   theRange= 68000,
+  bf3 <- buffering(speciesData= sf::as_Spatial(pa_data),
+                   theRange= 70000,
                    spDataType = "PA",
                    progress = TRUE)
 
@@ -98,3 +94,70 @@ test_that("test that buffering function works properly with no species specified
   expect_output(summary.BufferedBlock(bf3))
 
 })
+
+
+test_that("test buffering function with no matching species column", {
+
+  # buffering with presence-absence data
+  bf1 <- buffering(speciesData= pa_data,
+                   species= "response", # to count the number of presences and absences
+                   theRange= 70000,
+                   spDataType = "PA",
+                   progress = TRUE)
+
+  expect_true(exists("bf1"))
+  expect_equal(dim(bf1$records), c(nrow(pa_data), 2))
+  expect_true(
+    !all(bf1$records == 0)
+  )
+
+})
+
+test_that("test buffering function with no spatial species data", {
+
+  expect_error(
+    buffering(speciesData= "pa_data",
+              species= "Species", # to count the number of presences and absences
+              theRange= 68000)
+  )
+
+})
+
+test_that("test buffering function to have sptial points with no CRS", {
+
+  sf::st_crs(pa_data) <- NA
+
+  expect_error(
+    buffering(speciesData= pa_data,
+              species= "Species",
+              theRange= 70000)
+  )
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -9,9 +9,12 @@ expect_names <- c("range",
                   "variograms")
 
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
+awt <- awt[[1:5]]
 nl <- raster::nlayers(awt)
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
+
+awt2 <- raster::aggregate(awt, 5)
 
 test_that("test spatialAutoRange function with multi-layer raster in parallel", {
 
@@ -103,6 +106,60 @@ test_that("test spatialAutoRange function with single-layer raster", {
 
   expect_equal(print.SpatialAutoRange(range3), c("SpatialAutoRange", "list"))
   expect_silent(plot.SpatialAutoRange(range3))
+
+})
+
+test_that("test spatialAutoRange function with species data", {
+
+  range3 <- spatialAutoRange(rasterLayer = awt,
+                             sampleNumber = 1000,
+                             speciesData = pa_data,
+                             doParallel = TRUE)
+
+  expect_true(exists("range3"))
+  expect_is(range3, "SpatialAutoRange")
+  expect_is(range3$plots[[1]], "ggplot")
+  expect_is(range3$variograms[[1]], "autofitVariogram")
+  expect_is(range3$sampleNumber, "numeric")
+  expect_is(range3$range, "numeric")
+  expect_true(range3$range >= 0)
+  expect_true(!is.null(range3$variograms))
+
+  expect_equal(print.SpatialAutoRange(range3), c("SpatialAutoRange", "list"))
+  expect_silent(plot.SpatialAutoRange(range3))
+
+})
+
+test_that("test spatialAutoRange for low-resolution rasters", {
+
+  range3 <- spatialAutoRange(rasterLayer = awt2,
+                            sampleNumber = 5000,
+                            speciesData = pa_data,
+                            doParallel = TRUE)
+
+  expect_true(exists("range3"))
+  expect_is(range3, "SpatialAutoRange")
+  expect_is(range3$plots[[1]], "ggplot")
+  expect_is(range3$variograms[[1]], "autofitVariogram")
+  expect_is(range3$sampleNumber, "integer")
+  expect_is(range3$range, "numeric")
+  expect_true(range3$range >= 0)
+  expect_true(!is.null(range3$variograms))
+
+  expect_equal(print.SpatialAutoRange(range3), c("SpatialAutoRange", "list"))
+  expect_silent(plot.SpatialAutoRange(range3))
+
+})
+
+test_that("test spatialAutoRange for factor rasters", {
+
+  awt[[1]] <- raster::reclassify(awt[[1]], c(-Inf, 20, 1, 20, Inf, 2))
+  awt <- raster::stack(awt)
+  awt[[1]] <- raster::ratify(awt[[1]])
+  expect_error(
+    spatialAutoRange(rasterLayer = awt[[1:3]],
+                     sampleNumber = 1000)
+  )
 
 })
 
