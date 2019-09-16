@@ -151,13 +151,44 @@ test_that("test spatialAutoRange for low-resolution rasters", {
 
 })
 
+test_that("test spatialAutoRange function with WGS84 raster with species points", {
+
+  awt_wgs <- raster::projectRaster(awt, crs = sp::CRS("+init=epsg:4326"))
+  pa_data_wgs <- sf::st_transform(pa_data, crs = raster::crs(awt_wgs))
+
+  range1 <- spatialAutoRange(rasterLayer = awt_wgs,
+                             # speciesData = pa_data_wgs,
+                             doParallel = TRUE,
+                             showPlots = FALSE)
+
+  expect_true(exists("range1"))
+  expect_is(range1, "SpatialAutoRange")
+  # expect_equal(names(range1), expect_names)
+  # expect_equal(nrow(range1$rangeTable), nl)
+  # expect_equal(length(range1$variograms), nl)
+  # expect_equal(dim(range1$rangeTable), c(nl, 3))
+  # expect_is(range1$plots[[1]], "ggplot")
+  # expect_is(range1$variograms[[1]], "autofitVariogram")
+  # expect_is(range1$variograms, "list")
+  # expect_is(range1$rangeTable, "data.frame")
+  # expect_is(range1$sampleNumber, "integer")
+  # expect_is(range1$range, "numeric")
+  # expect_true(range1$range >= 0)
+  # expect_true(!is.null(range1$variograms))
+  # expect_true(
+  #   all(names(awt) %in% range1$rangeTable$layers)
+  # )
+
+})
+
+
 test_that("test spatialAutoRange for factor rasters", {
 
-  awt[[1]] <- raster::reclassify(awt[[1]], c(-Inf, 20, 1, 20, Inf, 2))
-  awt <- raster::stack(awt)
-  awt[[1]] <- raster::ratify(awt[[1]])
+  awt2[[1]] <- raster::reclassify(awt2[[1]], c(-Inf, 20, 1, 20, Inf, 2))
+  awt2 <- raster::stack(awt2)
+  awt2[[1]] <- raster::ratify(awt2[[1]])
   expect_error(
-    spatialAutoRange(rasterLayer = awt[[1:3]],
+    spatialAutoRange(rasterLayer = awt2[[1:3]],
                      sampleNumber = 1000)
   )
 

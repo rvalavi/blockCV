@@ -4,7 +4,7 @@
 \alias{spatialAutoRange}
 \title{Measure spatial autocorrelation in the predictor raster files}
 \usage{
-spatialAutoRange(rasterLayer, sampleNumber = 5000, border = NULL,
+spatialAutoRange(rasterLayer, sampleNumber = 5000L, border = NULL,
   speciesData = NULL, doParallel = TRUE, nCores = NULL,
   showPlots = TRUE, degMetre = 111325, maxpixels = 1e+05,
   plotVariograms = FALSE, progress = TRUE)

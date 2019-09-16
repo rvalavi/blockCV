@@ -88,7 +88,7 @@
 #' summary(range1)
 #' }
 spatialAutoRange <- function(rasterLayer,
-                             sampleNumber = 5000,
+                             sampleNumber = 5000L,
                              border = NULL,
                              speciesData = NULL,
                              doParallel = TRUE,

@@ -25,7 +25,7 @@ test_that("test that the data is corrrect", {
   expect_equal(dim(PB), c(10116, 3))
   expect_is(PB, "data.frame")
   expect_true(exists("awt"))
-  expect_equal(raster::nlayers(awt), 11)
+  expect_equal(raster::nlayers(awt), 10)
   expect_is(awt, "RasterBrick")
 
 })

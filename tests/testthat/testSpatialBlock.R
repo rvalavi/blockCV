@@ -17,7 +17,7 @@ PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
 
 r <- awt[[1]]
-r[r>0] <- 1
+r[r > 0] <- 1
 bound <- raster::rasterToPolygons(r, dissolve = TRUE)
 
 test_that("test spatiaBlock function with random assingment and raster file", {
@@ -32,7 +32,7 @@ test_that("test spatiaBlock function with random assingment and raster file", {
                         selection = "random",
                         border = bound,
                         iteration = 25,
-                        numLimit = 0,
+                        numLimit = 0, ## should it be changed?
                         biomod2Format = TRUE,
                         xOffset = 0.3,
                         yOffset = 0.2,
@@ -66,7 +66,7 @@ test_that("test spatiaBlock function with systematic assingment and no raster fi
                       cols = 8,
                       # border = bound,
                       k = 5,
-                      selection = 'systematic',
+                      selection = "systematic",
                       biomod2Format = FALSE,
                       showBlocks = TRUE)
 
@@ -93,14 +93,15 @@ test_that("test spatiaBlock function with systematic assingment and no raster fi
 })
 
 
-test_that("test spatiaBlock function with systematic assingment and no raster file", {
+test_that("test spatiaBlock function with non-numeric iteration", {
 
   sb2 <- spatialBlock(speciesData = pa_data,
                       rows = 5,
                       cols = 8,
                       k = 5,
-                      selection = 'random',
-                      numLimit = 2,
+                      selection = "random",
+                      iteration = "12", # not numeric
+                      # numLimit = 2,
                       biomod2Format = FALSE,
                       showBlocks = TRUE)
 
@@ -162,29 +163,28 @@ test_that("test spatiaBlock with user-defined blocks", {
   sb <- spatialBlock(speciesData = pa_data,
                      theRange = 70000,
                      selection = "random",
-                     iteration = "1",
+                     iteration = 1,
                      biomod2Format = FALSE,
                      showBlocks = FALSE)
 
   sb4 <- spatialBlock(speciesData = pa_data,
                       blocks = sb$blocks[,-2],
-                      selection = "random",
-                      iteration = 5,
+                      selection = "checkerboard",
                       biomod2Format = FALSE,
                       showBlocks = FALSE)
 
   expect_true(exists("sb4"))
   expect_is(sb4, "SpatialBlock")
   expect_equal(names(sb4), expect_names)
-  expect_equal(length(sb4$folds), 5)
+  expect_equal(length(sb4$folds), 2)
   expect_is(sb4$folds, "list")
   expect_null(sb4$biomodTable)
-  expect_equal(sb4$k, 5)
+  expect_equal(sb4$k, 2)
   expect_is(sb4$blocks, "SpatialPolygonsDataFrame")
   expect_null(sb4$species)
   expect_null(sb4$range)
   expect_is(sb4$plots, "ggplot")
-  expect_equal(dim(sb4$records), c(5, 2))
+  expect_equal(dim(sb4$records), c(2, 2))
   expect_true(
     !all(sb4$records == 0)
   )
@@ -200,31 +200,100 @@ test_that("test spatialBlock failur: number of blocks, wrong selection", {
 
   expect_error(spatialBlock(speciesData = pa_data,
                             cols = 5,
-                            k = 15,
+                            k = 15, # very high k
+                            selection = "random"))
+
+  expect_error(spatialBlock(speciesData = pa_data,
+                            cols = 5,
+                            rows = 8,
+                            k = 1, # very low k
                             selection = "random"))
 
   expect_error(spatialBlock(speciesData = pa_data,
                             cols = 5,
                             k = 5,
-                            selection = "rand"))
+                            selection = "rand")) # wrong selection
 
-  expect_error(spatialBlock(speciesData = pa_data,
-                            cols = 5,
-                            rows = 8,
-                            k = 1,
-                            selection = "random"))
+})
+
+test_that("test spatialBlock failur: wrong species data", {
+
+  expect_error(
+    spatialBlock(speciesData = awt, # wrong speceis data
+                 species = "Species",
+                 rasterLayer = awt,
+                 theRange = 70000,
+                 k = 5)
+  )
+
+})
+
+test_that("test spatialBlock failur: wrong user-defined blocks", {
+
+  expect_error(
+    spatialBlock(speciesData = pa_data, # wrong speceis data
+                 species = "Species",
+                 rasterLayer = awt,
+                 blocks = r,
+                 theRange = 70000,
+                 k = 5)
+  )
+
+})
+
+test_that("test spatialBlock failur: wrong user-defined border", {
+
+  expect_error(
+    spatialBlock(speciesData = pa_data, # wrong speceis data
+                 species = "Species",
+                 rasterLayer = awt,
+                 border = r,
+                 theRange = 70000,
+                 k = 5)
+  )
+
+})
+
+test_that("test spatialBlock with no speceis column match", {
+
+  sb4 <- spatialBlock(speciesData = pa_data,
+                      species = "response", # wrong response
+                      rasterLayer = awt,
+                      maskBySpecies = FALSE,
+                      theRange = 70000,
+                      k = 5)
+
+  expect_true(exists("sb4"))
+  expect_is(sb4, "SpatialBlock")
+  expect_equal(names(sb4), expect_names)
+  expect_equal(length(sb4$folds), 5)
+  expect_equal(sb4$k, 5)
+  expect_equal(dim(sb4$records), c(5, 2))
+  expect_true(
+    !all(sb4$records == 0)
+  )
 
 })
 
 
+test_that("test spatialBlock with no smaller mask raster", {
+
+  ext <- c(xmin = 206961.5,
+           xmax = 481078.8,
+           ymin = 8038112,
+           ymax = 8308669 )
+  awt2 <- raster::crop(awt, ext)
+  expect_warning(
+    sb4 <- spatialBlock(speciesData = pa_data,
+                        species = "response", # wrong response
+                        rasterLayer = awt2,
+                        theRange = 70000,
+                        k = 5)
+  )
+  expect_true(exists("sb4"))
 
 
-
-
-
-
-
-
+})
 
 
 

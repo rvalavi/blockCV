@@ -88,6 +88,13 @@ envBlock <- function(rasterLayer,
   } else if(!methods::is(speciesData, "sf")){
     stop("speciesData should be a sf or SpatialPoints object")
   }
+  ## check if species is a col in speciesData
+  if(!is.null(species)){
+    if(species %in% colnames(speciesData) == FALSE){
+      cat("There is no match between the columns name in 'speciesData' and 'species' argument (response variable).\n")
+      species <- NULL
+    }
+  }
   if(methods::is(rasterLayer, 'Raster')){
     if(raster::nlayers(rasterLayer) >= 1){
       foldList <- list()

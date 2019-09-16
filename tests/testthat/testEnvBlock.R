@@ -17,12 +17,14 @@ pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
 test_that("test that environmental blocking function with rasterBlock, standard and species column", {
 
   # environmental clustering
+  expect_warning( # there sould be not enough records in the folds
   eb <- envBlock(rasterLayer = awt,
                  speciesData = pa_data,
                  species = "Species", # name of the column with species data
                  k = 5,
                  standardization = "standard",
                  rasterBlock = TRUE)
+  )
 
   expect_true(exists("eb"))
   expect_is(eb, "EnvironmentalBlock")
@@ -45,6 +47,7 @@ test_that("test that environmental blocking function with no rasterBlock, normal
                   speciesData = sf::as_Spatial(pa_data),
                   k = 5,
                   standardization = "normal",
+                  biomod2Format = FALSE,
                   rasterBlock = FALSE)
 
   expect_true(exists("eb2"))
@@ -63,6 +66,30 @@ test_that("test that environmental blocking function with no rasterBlock, normal
   expect_output(summary.EnvironmentalBlock(eb2))
 
 })
+
+
+test_that("test that environmental blocking with no standardisation and species column", {
+
+  eb <- envBlock(rasterLayer = awt,
+                 speciesData = pa_data,
+                 species = "response", # wrong column name
+                 k = 5,
+                 standardization = "none",
+                 rasterBlock = TRUE)
+
+  expect_true(exists("eb"))
+  expect_is(eb, "EnvironmentalBlock")
+  expect_equal(names(eb), expect_names)
+  expect_equal(length(eb$folds), 5)
+  expect_is(eb$folds, "list")
+  expect_equal(eb$k, 5)
+  expect_equal(dim(eb$records), c(5, 2))
+  expect_true(
+    !all(eb$records == 0)
+  )
+
+})
+
 
 test_that("test environmental blocking with no spatial or sf object", {
 

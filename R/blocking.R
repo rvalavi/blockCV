@@ -177,7 +177,7 @@ spatialBlock <- function(speciesData,
   ## check if species is a col in speciesData
   if(!is.null(species)){
     if(species %in% colnames(speciesData) == FALSE){
-      warning("There is no match between the columns name in 'speciesData' and 'species' argument (response variable)")
+      cat("There is no match between the columns name in 'speciesData' and 'species' argument (response variable).\n")
       species <- NULL
     }
   }
@@ -223,7 +223,7 @@ spatialBlock <- function(speciesData,
   } else if(is.numeric(iteration) && iteration >= 10000){
     cat("The process might take a while, due to the large number of iterations.\n")
   }
-  if(progress==TRUE && is.null(numLimit)){
+  if(progress==TRUE && numLimit == 0){
     pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
                                      total=iteration, clear=FALSE, width=75) # add progress bar
   }
@@ -299,11 +299,11 @@ spatialBlock <- function(speciesData,
       }
     }
     if(selection == "random"){
-      if(is.numeric(numLimit) && numLimit >= 0){
+      if(is.numeric(numLimit) && numLimit > 0){
         if(any(trainTestTable < numLimit)==FALSE){ # exit the loop if meet the limit number
           break
         }
-      } else if(is.null(numLimit)){ # find the highest minimum number in the table and store relevant objects
+      } else if(numLimit == 0){ # find the highest minimum number in the table and store relevant objects
         if(min(trainTestTable) >= maxNumRecord && stats::sd(unlist(trainTestTable)) < maxSD){
           trainTestTable2 <- trainTestTable
           maxNumRecord <- min(trainTestTable2)
@@ -315,14 +315,14 @@ spatialBlock <- function(speciesData,
           iter <- i
         }
       } else stop("numLimit argument should be a numeric value equal or hagher than 0 or be NULL")
-      if(progress==TRUE && is.null(numLimit)){
+      if(progress == TRUE && numLimit == 0){
         pb$tick() # update progress bar
       }
     } else{
       break
     }
   }
-  if(is.null(numLimit) && selection=='random'){ # return the optimum bloks, table etc.
+  if(numLimit == 0 && selection=="random"){ # return the optimum bloks, table etc.
     subBlocksDF <- subBlocksDF2
     trainTestTable <- trainTestTable2
     foldList <- foldList2
