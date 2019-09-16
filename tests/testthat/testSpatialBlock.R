@@ -195,6 +195,28 @@ test_that("test spatiaBlock with user-defined blocks", {
 
 })
 
+test_that("test spatiaBlock function with NULL numLimit", {
+
+  sb2 <- spatialBlock(speciesData = pa_data,
+                      species = "Species",
+                      rows = 5,
+                      cols = 8,
+                      k = 5,
+                      selection = "random",
+                      iteration = 25,
+                      numLimit = NULL,
+                      biomod2Format = FALSE,
+                      showBlocks = FALSE)
+
+  expect_true(exists("sb2"))
+  expect_is(sb2, "SpatialBlock")
+  expect_equal(names(sb2), expect_names)
+  expect_equal(dim(sb2$records), c(5, 4))
+  expect_true(
+    !all(sb2$records == 0)
+  )
+
+})
 
 test_that("test spatialBlock failur: number of blocks, wrong selection", {
 

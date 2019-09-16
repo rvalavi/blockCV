@@ -44,8 +44,9 @@
 #' @param iteration Integer value. The number of attempts to create folds that fulfil the set requirement for minimum number
 #' of points in each category (\emph{training-presence}, \emph{training-absence}, \emph{testing-presence}
 #' and \emph{testing-absence}), as specified by \code{numLimit} value.
-#' @param numLimit Integer value. The minimum number of points in each category of data (see above - \code{iterration}).
-#' If \code{numLimit = NULL}, the most evenly dispersed number of records is chosen (given the number of iteration).
+#' @param numLimit Integer value. The minimum number of points in each training and testing folds.
+#' If \code{numLimit = 0}, the most evenly dispersed number of records is chosen (given the number of iteration).
+#' This option no longer accepts NULL as input. If it is set to NULL, 0 is used instead.
 #' @param maskBySpecies Since version 1.1, this option is always set to \code{TRUE}.
 #' @param degMetre Integer. The conversion rate of metres to degree. See the details section for more information.
 #' @param rasterLayer RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.
@@ -150,6 +151,9 @@ spatialBlock <- function(speciesData,
   if(selection == "checkerboard"){
     chpattern <- TRUE
     k <- 2
+  }
+  if(is.null(numLimit)){
+    numLimit <- 0
   }
   ## change the sp objects to sf
   if(methods::is(speciesData, "SpatialPoints")){
