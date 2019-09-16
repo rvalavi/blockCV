@@ -38,8 +38,8 @@ This distance should be in \strong{metres}. The range could be explored by \code
 The checkerboard does not work with user-defined spatial blocks.}
 
 \item{iteration}{Integer value. The number of attempts to create folds that fulfil the set requirement for minimum number
-of points in each category (\emph{training-presence}, \emph{training-absence}, \emph{testing-presence}
-and \emph{testing-absence}), as specified by \code{numLimit} value.}
+of points in each trainig and testing fold (for each response class e.g. \emph{train_0}, \emph{train_1}, \emph{test_0}
+and \emph{test_1}), as specified by \code{species} and \code{numLimit} arguments.}
 
 \item{numLimit}{Integer value. The minimum number of points in each training and testing folds.
 If \code{numLimit = 0}, the most evenly dispersed number of records is chosen (given the number of iteration).
