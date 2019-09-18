@@ -174,11 +174,13 @@ envBlock <- function(rasterLayer,
 
 
 #' @export
+#' @method print EnvironmentalBlock
 print.EnvironmentalBlock <- function(x, ...){
   print(class(x))
 }
 
 #' @export
+#' @method summary EnvironmentalBlock
 summary.EnvironmentalBlock <- function(object, ...){
   print("Number of recoreds in each category")
   print(object$records)

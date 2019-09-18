@@ -1,5 +1,13 @@
-rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degree=111325, xOffset=NULL, yOffset=NULL,
-                      checkerboard=FALSE, maxpixels=250000){
+rasterNet <- function(x,
+                      resolution = NULL,
+                      xbin = NULL,
+                      ybin = NULL,
+                      mask = FALSE,
+                      degree = 111325,
+                      xOffset = NULL,
+                      yOffset = NULL,
+                      checkerboard = FALSE,
+                      maxpixels = 1e5){
   if(methods::is(x, "sf")){
     x <- sf::as_Spatial(x)
   }
@@ -7,7 +15,7 @@ rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degr
   extRef <- raster::extent(x)
   if(is.na(sp::proj4string(x))){
     mapext <- raster::extent(x)[1:4]
-    if(mapext >= -180 && mapext <= 180){
+    if(all(mapext >= -180) && all(mapext <= 180)){
       resolution <- resolution / degree
       warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have an un-projected reference system")
     } else {
@@ -15,18 +23,18 @@ rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degr
       warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have a projected reference system")
     }
   } else{
-    if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=crs(x)))){
+    if(sp::is.projected(sp::SpatialPoints(matrix(1:10, 5, byrow=FALSE), proj4string=raster::crs(x)))){
       resolution <- resolution
     } else{
       resolution <- resolution / degree
     }
   }
   if(!is.null(xbin) && is.null(ybin)){
-    rasterNet <- raster::raster(ext, nrow=1, ncol=xbin, crs=crs(x))
+    rasterNet <- raster::raster(ext, nrow=1, ncol=xbin, crs=raster::crs(x))
   } else if(is.null(xbin) && !is.null(ybin)){
-    rasterNet <- raster::raster(ext, nrow=ybin, ncol=1, crs=crs(x))
+    rasterNet <- raster::raster(ext, nrow=ybin, ncol=1, crs=raster::crs(x))
   } else if(!is.null(xbin) && !is.null(ybin)){
-    rasterNet <- raster::raster(ext, nrow=ybin, ncol=xbin, crs=crs(x))
+    rasterNet <- raster::raster(ext, nrow=ybin, ncol=xbin, crs=raster::crs(x))
   } else if(is.null(xbin) && is.null(ybin) && !is.null(resolution)){
     xrange <- raster::xmax(x) - raster::xmin(x) # number of columns
     yrange <- raster::ymax(x) - raster::ymin(x) # number of rows
@@ -57,30 +65,33 @@ rasterNet <- function(x, resolution=NULL, xbin=NULL, ybin=NULL, mask=FALSE, degr
       ext@ymin <- ext@ymin - resolution
       yPix <- yPix + 1
     }
-    rasterNet <- raster::raster(ext, nrow=yPix, ncol=xPix, crs=crs(x))
+    rasterNet <- raster::raster(ext, nrow=yPix, ncol=xPix, crs=raster::crs(x))
   } else stop("A value should be specified for the block size")
-  if(checkerboard == TRUE){
-    values(rasterNet) <- 1:ncell(rasterNet)
-    m <- as.matrix(rasterNet)
-    for(i in 1:ncol(rasterNet)){
+  if(checkerboard){
+    raster::values(rasterNet) <- seq_len(raster::ncell(rasterNet))
+    m <- raster::as.matrix(rasterNet)
+    for(i in seq_len(raster::ncol(rasterNet))){
       if(i %% 2 == 0){
-        m[,i] <- rep(1:2, nrow(m))[1:nrow(m)]
+        m[,i] <- rep(1:2, nrow(m))[seq_len(nrow(m))]
       } else{
-        m[,i] <- rep(2:1, nrow(m))[1:nrow(m)]
+        m[,i] <- rep(2:1, nrow(m))[seq_len(nrow(m))]
       }
     }
-    rasterNet[] <- m
+    raster::values(rasterNet) <- m # rasterNet[] <- m
   } else{
-    values(rasterNet) <- 1:ncell(rasterNet)
+    raster::values(rasterNet) <- seq_len(raster::ncell(rasterNet))
   }
   rasterNet <- raster::rasterToPolygons(rasterNet)
-  if(mask==TRUE){
-    if(methods::is(x, 'Raster')){
+  if(mask){
+    if(methods::is(x, "Raster")){
       points <- raster::rasterToPoints(x[[1]], spatial=TRUE)
-      if(nrow(points) > 750000){
-        points2 <- points[sample(1:nrow(points), maxpixels, replace=FALSE), ]
+      if(nrow(points) > 75e4){
+        maxpixels <- ifelse(maxpixels > 75e4, 75e4, maxpixels)
+        points2 <- points[sample(nrow(points), maxpixels, replace=FALSE), ]
         rasterNet <- raster::intersect(rasterNet, points2)
-      } else  rasterNet <- raster::intersect(rasterNet, points)
+      } else {
+        rasterNet <- raster::intersect(rasterNet, points)
+      }
     } else{
       rasterNet <- raster::intersect(rasterNet, x)
     }
@@ -101,7 +112,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
   } else {
     grid::grid.newpage()
     grid::pushViewport(grid::viewport(layout = grid::grid.layout(nrow(layout), ncol(layout))))
-    for (i in 1:numPlots) {
+    for (i in seq_len(numPlots)) {
       matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
       print(plots[[i]], vp = grid::viewport(layout.pos.row = matchidx$row,
                                             layout.pos.col = matchidx$col))
@@ -135,7 +146,7 @@ normalize <- function(x){
   stzRaster <- raster::stack()
   for(i in 1:raster::nlayers(x)){
     meanR <- mean(raster::values(x[[i]]), na.rm=TRUE)
-    sdR <- sd(raster::values(x[[i]]), na.rm=TRUE)
+    sdR <- stats::sd(raster::values(x[[i]]), na.rm=TRUE)
     stzRaster <- raster::stack(stzRaster, ((x[[i]] - meanR) / sdR))
   }
   return(stzRaster)

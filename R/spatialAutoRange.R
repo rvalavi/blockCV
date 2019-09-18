@@ -103,6 +103,11 @@ spatialAutoRange <- function(rasterLayer,
       stop("speciesData should be a sf or SpatialPoints object")
     }
   }
+  # if(methods::is(speciesData, "SpatialPoints")){
+  #   speciesData <- sf::st_as_sf(speciesData)
+  # } else if(!methods::is(speciesData, "sf")){
+  #   stop("speciesData should be a sf or SpatialPoints object")
+  # }
   if(methods::is(rasterLayer, "Raster")){
     if(any(raster::is.factor(rasterLayer))){
       stop("rasterLayer should not include any factor layer")
@@ -110,7 +115,7 @@ spatialAutoRange <- function(rasterLayer,
     numLayer <- raster::nlayers(rasterLayer)
     if(is.na(sp::proj4string(rasterLayer))){
       mapext <- raster::extent(rasterLayer)[1:4]
-      if(mapext >= -180 && mapext <= 180){
+      if(all(mapext >= -180) && all(mapext <= 180)){
         raster::crs(rasterLayer) <- sp::CRS("+init=epsg:4326")
         warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have geographic coordinate system")
       }
@@ -120,29 +125,29 @@ spatialAutoRange <- function(rasterLayer,
       rp <- raster::rasterToPoints(rasterLayer[[1]])
       if(nrow(rp) < sampleNumber){
         sampleNumber <- nrow(rp)
-        cat("The sampleNumber reduced to", sampleNumber, "; the total number of available cells\n")
+        cat("The sampleNumber reduced to", sampleNumber, "; the total number of available cells.\n")
       }
     }
     if(numLayer==1){
       if(is.null(speciesData)){
         rasterPoints <- raster::rasterToPoints(rasterLayer, spatial=TRUE)
         set.seed(2017)
-        points <- rasterPoints[sample(seq_len(nrow(rasterPoints)), sampleNumber, replace=FALSE), ]
+        points <- rasterPoints[sample(nrow(rasterPoints), sampleNumber, replace=FALSE), ]
         names(points) <- 'target'
       } else{
         points <- raster::extract(rasterLayer, speciesData, na.rm=TRUE, sp=TRUE)
         names(points)[ncol(points)] <- "target"
       }
-      fittedVar = automap::autofitVariogram(target~1, points)
+      fittedVar <- automap::autofitVariogram(target~1, points)
       theRange <- fittedVar$var_model[2,3]
-      if(plotVariograms==TRUE){
+      if(plotVariograms){
         plot(fittedVar)
       }
-    } else if(numLayer>1){
+    } else if(numLayer > 1){
       df <- data.frame(layers = seq_len(numLayer), range = 1, sill = 1)
-      variogramList <- list()
+      variogramList <- vector(mode = "list")
       cat(paste('There are', numLayer, 'raster layers\n'))
-      if(doParallel==TRUE){
+      if(doParallel){
         if(is.null(nCores)){
           nCores <- ceiling((parallel::detectCores()) / 2)
         }
@@ -155,21 +160,25 @@ spatialAutoRange <- function(rasterLayer,
             points <- rasterPoints[sample(seq_len(nrow(rasterPoints)), sampleNumber, replace=FALSE), ]
             names(points) <- 'target'
           } else{
+
             points <- raster::extract(rasterLayer[[r]], speciesData, na.rm=TRUE, sp=TRUE)
             names(points)[ncol(points)] <- "target"
+
+
+
           }
           fittedVar <- automap::autofitVariogram(target~1, points)
         }
-        for(v in 1:length(pp)){
+        parallel::stopCluster(cl)
+        foreach::registerDoSEQ()
+        for(v in seq_len(length(pp))){
           df$range[v] <- pp[[v]]$var_model[2,3]
           df$sill[v] <- pp[[v]]$var_model[2,2]
           df$layers[v] <- names(rasterLayer)[v]
         }
         variogramList <- pp # save variogram of all layer
-        parallel::stopCluster(cl)
-        foreach::registerDoSEQ()
       } else{
-        if(progress==TRUE){
+        if(progress){
           pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
                                  total=numLayer, clear=FALSE, width=75) # add progress bar
         }
@@ -189,7 +198,7 @@ spatialAutoRange <- function(rasterLayer,
           df$range[r] <- fittedVar$var_model[2,3]
           df$sill[r] <- fittedVar$var_model[2,2]
           df$layers[r] <- name;
-          if(progress==TRUE){
+          if(progress){
             pb$tick() # update progress bar
           }
         }
@@ -198,7 +207,7 @@ spatialAutoRange <- function(rasterLayer,
       # calculate all ranges and mean them for block size
       theRange <- stats::median(df$range)
       modelInfo <- df[order(df$range),] # save range and sill of all layers
-      if(plotVariograms==TRUE){
+      if(plotVariograms){
         for(v in seq_len(numLayer)){
           plot(variogramList[[v]])
         }
@@ -208,7 +217,7 @@ spatialAutoRange <- function(rasterLayer,
   # creating the blocks based on calculated autocorrelation range
   if(is.na(sp::proj4string(rasterLayer))){
     mapext <- raster::extent(rasterLayer)[1:4]
-    if(mapext >= -180 && mapext <= 180){
+    if(all(mapext >= -180) && all(mapext <= 180)){
       theRange2 <- theRange * 1000
       if(numLayer > 1){
         modelInfo$range <- modelInfo$range * 1000
@@ -217,7 +226,7 @@ spatialAutoRange <- function(rasterLayer,
       theRange2 <- theRange
     }
   } else{
-    if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=raster::crs(rasterLayer)))){
+    if(sp::is.projected(sp::SpatialPoints(matrix(1:10, 5, byrow=FALSE), proj4string=raster::crs(rasterLayer)))){
       theRange2 <- theRange
     } else{
       theRange2 <- theRange * 1000
@@ -236,11 +245,7 @@ spatialAutoRange <- function(rasterLayer,
     subBlocks <- sf::st_crop(net, border)
   }
   if(numLayer > 1){
-    if(is.null(speciesData)){
-      ptnum <- sampleNumber
-    } else{
-      ptnum <- nrow(speciesData)
-    }
+    ptnum <- ifelse(is.null(speciesData), sampleNumber, nrow(speciesData))
     p1 <- ggplot2::ggplot() +
       ggplot2::geom_bar(ggplot2::aes(x=stats::reorder(factor(layers), range), y=range, fill=range),
                         stat="identity",data=modelInfo,) +
@@ -248,7 +253,7 @@ spatialAutoRange <- function(rasterLayer,
       ggplot2::theme_bw() +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle=75, hjust=1)) +
       ggplot2::ggtitle("Autocorrelation range", subtitle=paste("Based on", ptnum, "sample points"))+
-      ggplot2::guides(fill=FALSE)+
+      ggplot2::guides(fill = FALSE)+
       ggplot2::geom_hline(yintercept=theRange2, color='red', size=0.9, linetype=2)+
       ggplot2::annotate("text", x=floor(nrow(modelInfo)/3),
                         y =  (theRange2 + (max(modelInfo$range)/20)),
@@ -260,7 +265,7 @@ spatialAutoRange <- function(rasterLayer,
   colnames(map_df) <- c("Easting", "Northing", "MAP")
   mid <- stats::median(map_df$MAP)
   p2 <- ggplot2::ggplot() +
-    ggplot2::geom_raster(data = map_df, ggplot2::aes(y=Northing, x=Easting, fill=MAP)) +
+    ggplot2::geom_raster(data = map_df, ggplot2::aes(y=get("Northing"), x=Easting, fill=MAP)) +
     ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
     ggplot2::guides(fill = FALSE) +
     ggplot2::geom_sf(data = subBlocks,
@@ -271,33 +276,41 @@ spatialAutoRange <- function(rasterLayer,
     ggplot2::labs(x = "", y = "") + # set the axes labes to NULL
     ggplot2::ggtitle("Spatial blocks", subtitle = paste("Using", round(theRange2), "metres block size")) +
     ggplot2::theme_bw()
-  if(showPlots==TRUE){
+  if(showPlots){
     if(numLayer > 1){
       multiplot(p1, p2)
     } else{
       plot(p2)
     }
   }
-  if(numLayer>1){
-    finalList <- list(range=theRange2, rangeTable=modelInfo, plots=list(barchart = p1, mapplot = p2),
-                      sampleNumber=sampleNumber, variograms=variogramList)
+  if(numLayer > 1){
+    finalList <- list(range = theRange2,
+                      rangeTable = modelInfo,
+                      plots = list(barchart = p1, mapplot = p2),
+                      sampleNumber = sampleNumber,
+                      variograms = variogramList)
   } else{
-    finalList <- list(range=theRange2, plots=list(mapplot = p2), sampleNumber=sampleNumber, variograms=fittedVar)
+    finalList <- list(range = theRange2,
+                      plots = list(mapplot = p2),
+                      sampleNumber = sampleNumber,
+                      variograms = fittedVar)
   }
   # gc() # to release the occupied RAM in windows OS
   # specify the output class
-  class(finalList) <- c("SpatialAutoRange", class(finalList))
+  class(finalList) <- c("SpatialAutoRange")
   return(finalList)
 }
 
 
 #' @export
+#' @method print SpatialAutoRange
 print.SpatialAutoRange <- function(x, ...){
   print(class(x))
 }
 
 
 #' @export
+#' @method plot SpatialAutoRange
 plot.SpatialAutoRange <- function(x, y, ...){
   if(length(x$plots) == 2){
     multiplot(x$plots$barchart, x$plots$mapplot)
@@ -307,8 +320,9 @@ plot.SpatialAutoRange <- function(x, y, ...){
 }
 
 #' @export
+#' @method summary SpatialAutoRange
 summary.SpatialAutoRange <- function(object, ...){
-  cat("Summary statistics of spatial autocorrelation ranges of all input layers\n")
+  cat("Summary statistics of spatial autocorrelation ranges of all input layers:\n")
   print(summary(object$rangeTable$range))
   print(object$rangeTable[,1:2])
 }

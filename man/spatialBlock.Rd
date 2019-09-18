@@ -15,7 +15,7 @@ spatialBlock(speciesData, species = NULL, blocks = NULL,
 \item{speciesData}{A simple features (sf) or SpatialPoints object containing species data.}
 
 \item{species}{Character (optional). Indicating the name of the field in which species data (response variable e.g. 0s and 1s) is stored.
-This argument is used \emph{to make folds with evenly distributed records}. \strong{This option only works in random fold selection and with binary or
+This argument is used \emph{to make folds with evenly distributed records}. \strong{This option only works by random fold selection and with binary or
 multi-class variables} e.g. species presence-absence/background or land cover classes for remote sensing image classification.
 If \code{speceis = NULL} the response classes will be treated the same and only training and testing records
 will be counted and balanced.}

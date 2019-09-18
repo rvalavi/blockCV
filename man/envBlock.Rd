@@ -16,7 +16,7 @@ envBlock(rasterLayer, speciesData, species = NULL, k = 5,
 \item{species}{Character. Indicating the name of the field in which species data (binary response i.e. 0 and 1) is stored. If \code{speceis = NULL}
 the presence and absence data (response variable) will be treated the same and only training and testing records will be counted. This can be used for multi-class responses
 such as land cover classes for remote sensing image classification, but it is not necessary. \emph{Do not use this argument when the response variable is
-continuous or count}.}
+continuous or count data}.}
 
 \item{k}{Integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.}
 

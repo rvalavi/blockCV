@@ -30,7 +30,7 @@
 #'
 #' @inheritParams buffering
 #' @param species Character (optional). Indicating the name of the field in which species data (response variable e.g. 0s and 1s) is stored.
-#' This argument is used \emph{to make folds with evenly distributed records}. \strong{This option only works in random fold selection and with binary or
+#' This argument is used \emph{to make folds with evenly distributed records}. \strong{This option only works by random fold selection and with binary or
 #' multi-class variables} e.g. species presence-absence/background or land cover classes for remote sensing image classification.
 #' If \code{speceis = NULL} the response classes will be treated the same and only training and testing records
 #' will be counted and balanced.
@@ -403,18 +403,23 @@ spatialBlock <- function(speciesData,
 
 
 #' @export
+#' @method print SpatialBlock
 print.SpatialBlock <- function(x, ...){
   print(class(x))
 }
 
+
 #' @export
+#' @method plot SpatialBlock
 plot.SpatialBlock <- function(x, y, ...){
   plot(x$plots)
   message("Please use foldExplorer function to plot each fold interactively")
 }
 
+
 #' @export
+#' @method summary SpatialBlock
 summary.SpatialBlock <- function(object, ...){
-  print("Number of recoreds in each category")
+  print("Number of recoreds in each training and testing fold")
   print(object$records)
 }

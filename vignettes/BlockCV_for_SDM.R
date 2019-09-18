@@ -77,7 +77,7 @@ sb3 <- spatialBlock(speciesData = pa_data,
 
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7-------------
 # adding points on saptialBlock plot
-sb$plots + geom_sf(data = pa_data, alpha = 0.6)
+sb$plots + geom_sf(data = pa_data, alpha = 0.5)
 
 
 ## ----eval=FALSE, warning=FALSE, message=FALSE----------------------------

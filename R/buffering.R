@@ -21,9 +21,9 @@
 #' @param species Character. Indicating the name of the field in which species data (binary response i.e. 0 and 1) is stored. If \code{speceis = NULL}
 #' the presence and absence data (response variable) will be treated the same and only training and testing records will be counted. This can be used for multi-class responses
 #' such as land cover classes for remote sensing image classification, but it is not necessary. \emph{Do not use this argument when the response variable is
-#' continuous or count}.
-#' @param theRange Numeric value of the specified range by which the training and testing datasets are separated (See \code{\link{spatialAutoRange}}).
-#' This distance should be in \strong{\emph{metres}}. The range can  be explored by \code{spatialAutoRange}.
+#' continuous or count data}.
+#' @param theRange Numeric value of the specified range by which the training and testing datasets are separated.
+#' This distance should be in \strong{\emph{metres}} no matter what the coordinate system is. The range can  be explored by \code{\link{spatialAutoRange}}.
 #' @param spDataType Character input indicating the type of species data. It can take two values, \strong{PA} for \emph{presence-absence} data and \strong{PB} for
 #' \emph{presence-background} data, when \code{species} argument is not \code{NULL}. See the details section for more information on these two approaches.
 #' @param addBG Logical. Add background points to the test set when \code{spDataType = "PB"}.
@@ -192,11 +192,13 @@ buffering <- function(speciesData,
 
 
 #' @export
+#' @method print BufferedBlock
 print.BufferedBlock <- function(x, ...){
   print(class(x))
 }
 
 #' @export
+#' @method summary BufferedBlock
 summary.BufferedBlock <- function(object, ...){
   print("Number of recoreds in each category")
   print(object$records)
