@@ -183,7 +183,7 @@ plot(sac$variograms[[1]])
 #    AUCs[k] <- auc(precrec_obj)[1,4] # extract AUC-ROC
 #  }
 #  
-#  # print the mean and standard deviation of AUCs
+#  # print the mean of AUCs
 #  print(mean(AUCs))
 #  
 
