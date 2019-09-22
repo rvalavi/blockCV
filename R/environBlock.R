@@ -4,7 +4,7 @@
 #' conditions based on the input covariates. Species data corresponding to any of these groups or clusters are assigned to a
 #' fold. This function does the clustering in raster space and species data. Clustering is done using \code{\link[stats]{kmeans}}
 #' for both approaches (for raster using \pkg{RStoolbox} which use the same function internally). This function works on single or
-#' multiple raster files; multiple rasters need to be in a brick or stack format.
+#' multiple raster files; multiple rasters need to be in a raster brick or stack format.
 #'
 #' As k-means algorithms use Euclidean distance to estimate clusters, the input covariates should be quantitative variables. Since
 #' variables with wider ranges of values might dominate the clusters and bias the environmental clustering (Hastie et al., 2009),
@@ -13,7 +13,7 @@
 #' to constrain all raster values between 0 and 1.
 #'
 #' By default, the clustering is done in the raster space. In this approach the clusters will be consistent throughout the region
-#' and across species (in the same region). However, this may result in a cluster(s) that covers none of the species records,
+#' and across species (in the same region). However, this may result in a cluster(s) that covers none of the species records (the spatial location of response samples),
 #' espcially when species data is not dispersed throughout the region or the number of clusters (k or folds) is high. In this
 #' case, the number of folds is less than specified \code{k}. If \code{rasterBlock = FALSE}, the clustering will be done in
 #' species points and the number of the folds will be the same as \code{k}.
@@ -21,15 +21,15 @@
 #' Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster
 #' value should be deleted prior to the analysis or another raster layer would be provided.
 #'
-#' @param rasterLayer RasterLayer, RasterBrick or RasterStack of covariates to identify environmental groups.
+#' @param rasterLayer A raster object of covariates to identify environmental groups.
 #' @inheritParams buffering
 #' @inheritParams spatialBlock
 #' @param rasterBlock Logical. If TRUE, the clustering is done in the raster layer rather than species data. See details for
 #' more information.
 #' @param standardization Standardize input raster layers. Three possible inputs are "normal" (the default), "standard" and "none".
 #' See details for more information.
-#' @param numLimit Integer value. The minimum number of points in each category of data (\emph{training-presence},
-#' \emph{training-absence}, \emph{testing-presence} and \emph{testing-absence}). Shows a message if the number of points
+#' @param numLimit Integer value. The minimum number of points in each category of data (\emph{train_0},
+#' \emph{train_1}, \emph{test_0} and \emph{test_1}). Shows a message if the number of points
 #' in any of the folds happens to be less than this number.
 #'
 #' @seealso \code{\link{spatialBlock}} and \code{\link{buffering}} for alternative blocking strategies; \code{\link{foldExplorer}}

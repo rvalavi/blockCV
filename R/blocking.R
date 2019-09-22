@@ -29,9 +29,9 @@
 #'
 #'
 #' @inheritParams buffering
-#' @param species Character (optional). Indicating the name of the field in which species data (response variable e.g. 0s and 1s) is stored.
+#' @param species Character (optional). Indicating the name of the column in which species data (response variable e.g. 0s and 1s) is stored.
 #' This argument is used \emph{to make folds with evenly distributed records}. \strong{This option only works by random fold selection and with binary or
-#' multi-class variables} e.g. species presence-absence/background or land cover classes for remote sensing image classification.
+#' multi-class responses} e.g. species presence-absence/background or land cover classes for remote sensing image classification.
 #' If \code{speceis = NULL} the response classes will be treated the same and only training and testing records
 #' will be counted and balanced.
 #' @param blocks A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
@@ -49,7 +49,7 @@
 #' This option no longer accepts NULL as input. If it is set to NULL, 0 is used instead.
 #' @param maskBySpecies Since version 1.1, this option is always set to \code{TRUE}.
 #' @param degMetre Integer. The conversion rate of metres to degree. See the details section for more information.
-#' @param rasterLayer RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.
+#' @param rasterLayer A raster object for visualisation. If provided, this will be used to specify the blocks covering the area.
 #' @param border A sf or SpatialPolygons object to clip the block based on it.
 #' @param showBlocks Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer could be specified
 #' in \code{rasterlayer} argument to be as background.
@@ -105,9 +105,9 @@
 #' # spatial blocking by specified range and random assignment
 #' sb1 <- spatialBlock(speciesData = pa_data,
 #'                     species = "Species",
-#'                     theRange = 68000,
+#'                     theRange = 70000,
 #'                     k = 5,
-#'                     selection = 'random',
+#'                     selection = "random",
 #'                     iteration = 250,
 #'                     numLimit = NULL,
 #'                     biomod2Format = TRUE,
@@ -121,7 +121,7 @@
 #'                     rows = 5,
 #'                     cols = 8,
 #'                     k = 5,
-#'                     selection = 'systematic',
+#'                     selection = "systematic",
 #'                     biomod2Format = TRUE)
 #'
 #' }
@@ -232,7 +232,8 @@ spatialBlock <- function(speciesData,
                                      total=iteration, clear=FALSE, width=75) # add progress bar
   }
   ## do the intersection once and outside of the loop
-  subBlocksDF <- sf:::as.data.frame.sgbp(sf::st_intersects(speciesData, subBlocks))
+  # subBlocksDF <- sf:::as.data.frame.sgbp(sf::st_intersects(speciesData, subBlocks))
+  subBlocksDF <- as.data.frame(sf::st_intersects(speciesData, subBlocks))
   names(subBlocksDF) <- c("records", "blocks")
   # randomly remove the repeated records occurred on the edges of blocks
   if(nrow(subBlocksDF) > nrow(speciesData)){
@@ -326,7 +327,7 @@ spatialBlock <- function(speciesData,
       break
     }
   }
-  if(numLimit == 0 && selection=="random"){ # return the optimum bloks, table etc.
+  if(numLimit == 0 && selection == "random"){ # return the best bloks, table etc.
     subBlocksDF <- subBlocksDF2
     trainTestTable <- trainTestTable2
     foldList <- foldList2
@@ -343,7 +344,7 @@ spatialBlock <- function(speciesData,
       warning("The fold ", zerofolds, " has class(es) with ", numLimit, " (or less) records")
     }
   }
-  # add the folds number to the blocks
+  ## add the folds number to the blocks
   fold_of_block <- subBlocksDF[, c("blocks", "folds")]
   fold_of_block <- fold_of_block[!duplicated(fold_of_block), ]
   fold_of_block <- fold_of_block[order(fold_of_block$blocks), ]
@@ -355,7 +356,7 @@ spatialBlock <- function(speciesData,
                        fill ="orangered4",
                        alpha = 0.04,
                        size = 0.2) +
-      ggplot2::geom_sf_text(ggplot2::aes(label = folds),
+      ggplot2::geom_sf_text(ggplot2::aes_string(label = "folds"),
                             data = subBlocks) +
       ggplot2::labs(x = "", y = "") + # or set the axes labes to NULL
       ggplot2::ggtitle("Spatial blocks",
@@ -368,7 +369,7 @@ spatialBlock <- function(speciesData,
       colnames(map_df) <- c("Easting", "Northing", "MAP")
       mid <- stats::median(map_df$MAP)
       p2 <- ggplot2::ggplot() +
-        ggplot2::geom_raster(data = map_df, ggplot2::aes(y=Northing, x=Easting, fill=MAP)) +
+        ggplot2::geom_raster(data = map_df, ggplot2::aes_string(y="Northing", x="Easting", fill="MAP")) +
         ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
         ggplot2::guides(fill = FALSE) +
         ggplot2::geom_sf(data = subBlocks,
@@ -376,7 +377,7 @@ spatialBlock <- function(speciesData,
                          fill ="orangered4",
                          alpha = 0.04,
                          size = 0.2) +
-        ggplot2::geom_sf_text(ggplot2::aes(label = folds),
+        ggplot2::geom_sf_text(ggplot2::aes_string(label = "folds"),
                               data = subBlocks) +
         ggplot2::labs(x = "", y = "") + # set the axes labes to NULL
         ggplot2::ggtitle("Spatial blocks",
@@ -394,9 +395,15 @@ spatialBlock <- function(speciesData,
   } else{
     biomodTable2 <- NULL
   }
-  theList <- list(folds=foldList, foldID=foldNum, biomodTable=biomodTable2,
-                  k=k, blocks=sf::as_Spatial(subBlocks), species=species, range=theRange,
-                  plots=p2, records=trainTestTable)
+  theList <- list(folds = foldList,
+                  foldID = foldNum,
+                  biomodTable = biomodTable2,
+                  k = k,
+                  blocks = sf::as_Spatial(subBlocks),
+                  species = species,
+                  range = theRange,
+                  plots = p2,
+                  records = trainTestTable)
   class(theList) <- c("SpatialBlock")
   return(theList)
 }
@@ -413,13 +420,13 @@ print.SpatialBlock <- function(x, ...){
 #' @method plot SpatialBlock
 plot.SpatialBlock <- function(x, y, ...){
   plot(x$plots)
-  message("Please use foldExplorer function to plot each fold interactively")
+  message("Please use foldExplorer function to plot each fold interactively.")
 }
 
 
 #' @export
 #' @method summary SpatialBlock
 summary.SpatialBlock <- function(object, ...){
-  print("Number of recoreds in each training and testing fold")
+  cat("Number of recoreds in each training and testing fold:\n")
   print(object$records)
 }

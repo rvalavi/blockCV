@@ -9,9 +9,9 @@ envBlock(rasterLayer, speciesData, species = NULL, k = 5,
   biomod2Format = TRUE, numLimit = 0)
 }
 \arguments{
-\item{rasterLayer}{RasterLayer, RasterBrick or RasterStack of covariates to identify environmental groups.}
+\item{rasterLayer}{A raster object of covariates to identify environmental groups.}
 
-\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data.}
+\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data (response variable).}
 
 \item{species}{Character. Indicating the name of the field in which species data (binary response i.e. 0 and 1) is stored. If \code{speceis = NULL}
 the presence and absence data (response variable) will be treated the same and only training and testing records will be counted. This can be used for multi-class responses
@@ -29,8 +29,8 @@ more information.}
 \item{biomod2Format}{Logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 a \emph{DataSplitTable} for cross-validation.}
 
-\item{numLimit}{Integer value. The minimum number of points in each category of data (\emph{training-presence},
-\emph{training-absence}, \emph{testing-presence} and \emph{testing-absence}). Shows a message if the number of points
+\item{numLimit}{Integer value. The minimum number of points in each category of data (\emph{train_0},
+\emph{train_1}, \emph{test_0} and \emph{test_1}). Shows a message if the number of points
 in any of the folds happens to be less than this number.}
 }
 \value{
@@ -49,7 +49,7 @@ Environmental blocking for cross-validation. This function uses clustering metho
 conditions based on the input covariates. Species data corresponding to any of these groups or clusters are assigned to a
 fold. This function does the clustering in raster space and species data. Clustering is done using \code{\link[stats]{kmeans}}
 for both approaches (for raster using \pkg{RStoolbox} which use the same function internally). This function works on single or
-multiple raster files; multiple rasters need to be in a brick or stack format.
+multiple raster files; multiple rasters need to be in a raster brick or stack format.
 }
 \details{
 As k-means algorithms use Euclidean distance to estimate clusters, the input covariates should be quantitative variables. Since
@@ -59,7 +59,7 @@ mean and dividing by the standard deviation of each raster (the default) or opti
 to constrain all raster values between 0 and 1.
 
 By default, the clustering is done in the raster space. In this approach the clusters will be consistent throughout the region
-and across species (in the same region). However, this may result in a cluster(s) that covers none of the species records,
+and across species (in the same region). However, this may result in a cluster(s) that covers none of the species records (the spatial location of response samples),
 espcially when species data is not dispersed throughout the region or the number of clusters (k or folds) is high. In this
 case, the number of folds is less than specified \code{k}. If \code{rasterBlock = FALSE}, the clustering will be done in
 species points and the number of the folds will be the same as \code{k}.

@@ -55,12 +55,13 @@ sb <- spatialBlock(speciesData = pa_data,
 
 ## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
 # spatial blocking by rows and columns with checkerboard assignment
-sb2 <- spatialBlock(speciesData = pa_data,
+sb2 <- spatialBlock(speciesData = pb_data, # presence-background data
                     species = "Species",
                     rasterLayer = awt,
                     rows = 5,
                     cols = 6,
-                    selection = "checkerboard",
+                    k = 5,
+                    selection = "systematic",
                     biomod2Format = TRUE)
 
 
@@ -70,13 +71,14 @@ sb3 <- spatialBlock(speciesData = pa_data,
                     species = "Species",
                     rasterLayer = awt,
                     rows = 6,
-                    k = 3,
-                    selection = "systematic",
+                    selection = "checkerboard",
                     biomod2Format = TRUE)
 
 
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7-------------
 # adding points on saptialBlock plot
+library(ggplot2)
+
 sb$plots + geom_sf(data = pa_data, alpha = 0.5)
 
 
@@ -111,7 +113,7 @@ sb$plots + geom_sf(data = pa_data, alpha = 0.5)
 ## ---- eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2----
 sac <- spatialAutoRange(rasterLayer = awt,
                         sampleNumber = 5000,
-                        doParallel = FALSE,
+                        doParallel = TRUE,
                         showPlots = TRUE)
 
 
@@ -145,70 +147,85 @@ plot(sac$variograms[[1]])
 #                minRange = 30000, # limit the search domain
 #                maxRange = 100000)
 
-## ---- fig.height=4, fig.width=7------------------------------------------
-# loading the libraries
-library(maxnet)
-library(plotROC)
-# extract the raster values for the species points as a dataframe
-mydata <- raster::extract(awt, pa_data)
-mydata <- as.data.frame(mydata)
-# create a vector of 1 (for presence) and 0 (for absence)
-pb <- pa_data$Species
+## ---- eval=FALSE, fig.height=4, fig.width=7------------------------------
+#  # loading the libraries
+#  library(maxnet)
+#  library(precrec)
+#  # library(ggplot2)
+#  
+#  # extract the raster values for the species points as a dataframe
+#  mydata <- raster::extract(awt, pb_data)
+#  mydata <- as.data.frame(mydata)
+#  # create a vector of 1 (for presence) and 0 (for background samples)
+#  pb <- pb_data$Species
+#  
+#  # extract the folds in spatialBlock object created
+#  # in the previous section (with presence-background data)
+#  folds <- sb2$foldID
+#  
+#  # create an empty vector to store the AUC of each fold
+#  AUCs <- vector(mode = "numeric")
+#  for(k in seq_len(5)){
+#    # extracting the training and testing indices
+#    # this way only works for spatialBlock and envBlock folds
+#    trainSet <- which(folds != k) # training set indices
+#    testSet <- which(folds == k) # testing set indices
+#    # fitting a maxent model using linear, quadratic and hinge features
+#    mx <- maxnet(p = pb[trainSet],
+#                 data = mydata[trainSet, ],
+#                 maxnet.formula(p = pb[trainSet],
+#                                data = mydata[trainSet, ],
+#                                classes = "default"))
+#    testTable <- pb_data[testSet, ] # a table for testing predictions and reference data
+#    testTable$pred <- predict(mx, mydata[testSet, ], type = "cloglog") # predict the test set
+#    # calculate area under the ROC curve
+#    precrec_obj <- evalmod(scores = testTable$pred, labels = testTable$Species)
+#    AUCs[k] <- auc(precrec_obj)[1,4] # extract AUC-ROC
+#  }
+#  
+#  # print the mean and standard deviation of AUCs
+#  print(mean(AUCs))
+#  
 
-# extract the folds in buffering object created in the previous section (with presence-background data)
-folds <- sb$folds
-# create an empty vector to store the AUC of each fold
-AUCs <- vector(mode = "numeric")
-for(k in seq_len(length(folds))){
-  trainSet <- unlist(folds[[k]][1]) # extract the training set indices
-  testSet <- unlist(folds[[k]][2]) # extract the testing set indices
-  # fitting a maxent model using linear, quadratic and hinge features
-  mx <- maxnet(p = pb[trainSet], 
-               data = mydata[trainSet, ], 
-               maxnet.formula(p = pb[trainSet], 
-                              data = mydata[trainSet, ], 
-                              classes = "default"))
-  testTable <- pb_data[testSet, ] # a table for testing predictions and reference data
-  testTable$pred <- predict(mx, mydata[testSet, ], type="cloglog") # predict the test set
-  # calculate AUC using calc_auc function in plotROC package
-  auc <- calc_auc(ggplot(testTable, aes(m=pred, d=Species)) + geom_roc(n.cuts = 0))[3]
-  AUCs[k] <- as.numeric(auc)
-}
+## ---- echo=FALSE---------------------------------------------------------
+# The model fitting is not run to save the vignette generation time
+# this AUC is based on the actual run
+print(0.8664762)
 
-# print the mean and standard deviation of AUCs
-print(mean(AUCs))
-
-
-## ---- warning=FALSE, message=FALSE, fig.height=3.7, fig.width=7----------
-# loading the libraries
-library(randomForest)
-library(plotROC)
-
-# extract the raster values for the species points as a dataframe
-mydata <- raster::extract(awt, pa_data, df=TRUE)
-# adding species column to the dataframe
-mydata$Species <- as.factor(pa_data$Species)
-# remove extra column (ID)
-mydata <- mydata[,-1]
-
-# extract the folds in BufferedBlock object created in the previous section
-folds <- sb$folds
-# create a data.frame to store the prediction of each fold (record)
-testTable <- pa_data
-testTable$pred <- NA
-for(k in 1:length(folds)){
-  trainSet <- unlist(folds[[k]][1]) # extract the training set indices
-  testSet <- unlist(folds[[k]][2]) # extract the testing set indices
-  rf <- randomForest(Species~., mydata[trainSet, ], ntree=250) # model fitting on training set
-  testTable[testSet,"pred"] <- predict(rf, mydata[testSet, ], type="prob")[,2] # predict the test set
-}
-# calculate Area Under the ROC curve and plot the result using plotROC package
-ggROC <- ggplot(testTable, aes(m=pred, d=Species)) + geom_roc(n.cuts=0, color='red') + 
-  coord_equal() + geom_abline(intercept = 0, slope = 1) + theme_bw() +
-  labs(x="False positive rate (1 - specificity)", y="True positive rate (sensitivity)")
-auc <- calc_auc(ggROC)[3]
-plot(ggROC + ggtitle('', subtitle=paste("AUC for testing dataset:", signif(auc, 4))))
-
+## ---- eval=FALSE, fig.height=3.7, fig.width=7----------------------------
+#  # loading the libraries
+#  library(randomForest)
+#  library(precrec)
+#  
+#  # extract the raster values for the species points as a dataframe
+#  mydata <- raster::extract(awt, pa_data, df = TRUE)
+#  # adding species column to the dataframe
+#  mydata$Species <- as.factor(pa_data$Species)
+#  # remove extra column (ID)
+#  mydata <- mydata[,-1]
+#  
+#  # extract the foldIDs in SpatialBlock object
+#  # created in the previous section
+#  folds <- bf1$folds
+#  
+#  # create a data.frame to store the prediction of each fold (record)
+#  testTable <- pa_data
+#  testTable$pred <- NA
+#  
+#  for(k in seq_len(length(folds))){
+#    # extracting the training and testing indices
+#    # this way only works for all three blocking strategies
+#    trainSet <- unlist(folds[[k]][1]) # training set indices
+#    testSet <- unlist(folds[[k]][2]) # testing set indices
+#    rf <- randomForest(Species~., mydata[trainSet, ], ntree = 250) # model fitting on training set
+#    testTable$pred[testSet] <- predict(rf, mydata[testSet, ], type = "prob")[,2] # predict the test set
+#  }
+#  
+#  # calculate Area Under the ROC and PR curves and plot the result
+#  precrec_obj <- evalmod(scores = testTable$pred, labels = testTable$Species)
+#  
+#  autoplot(precrec_obj)
+#  
 
 ## ----warning=FALSE, message=FALSE, eval=FALSE----------------------------
 #  # loading the library

@@ -9,9 +9,9 @@ foldExplorer(blocks, rasterLayer, speciesData)
 \arguments{
 \item{blocks}{An SpatialBlock, EnvironmentalBlock or BufferedBlock object.}
 
-\item{rasterLayer}{A RasterLayer, RasterBrick or RasterStack object as background map for visualisation.}
+\item{rasterLayer}{A raster object as background map for visualisation.}
 
-\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data.}
+\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data (response variable).}
 }
 \value{
 An interactive map showing folds and the species data, that can be used  to explore folds. Note that this can also

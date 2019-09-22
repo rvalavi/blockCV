@@ -8,9 +8,9 @@ rangeExplorer(rasterLayer, speciesData = NULL, species = NULL,
   rangeTable = NULL, minRange = NULL, maxRange = NULL)
 }
 \arguments{
-\item{rasterLayer}{A RasterLayer, RasterBrick or RasterStack object as background map for visualisation.}
+\item{rasterLayer}{A raster object as background map for visualisation.}
 
-\item{speciesData}{A SpatialPoints* object containing species data. If provided, the species data will be shown on the map.}
+\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data (response variable). If provided, the species data will be shown on the map.}
 
 \item{species}{Character value indicating the name of the field in which the species data (response variable e.g. 0s and 1s) are stored.
 If provided, species presence and absence data will be shown in different colours.}

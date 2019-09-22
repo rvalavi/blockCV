@@ -99,6 +99,21 @@ rasterNet <- function(x,
   return(sf::st_as_sf(rasterNet))
 }
 
+fitvario <- function(r, spdata, rdata, sn){
+  if(is.null(spdata)){
+    rasterPoints <- raster::rasterToPoints(rdata[[r]], spatial = TRUE)
+    set.seed(2017)
+    points <- rasterPoints[sample(nrow(rasterPoints), sn, replace = FALSE),]
+    names(points) <- "target"
+  } else{
+    points <- raster::extract(rdata[[r]], spdata, na.rm = TRUE, sp = TRUE)
+    names(points)[ncol(points)] <- "target"
+  }
+  # pb$tick()
+  fittedVar <- automap::autofitVariogram(target~1, points)
+  return(fittedVar)
+}
+
 
 multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
   plots <- c(list(...), plotlist)

@@ -4,7 +4,7 @@
 #' using the RStudio Shiny app.
 #'
 #' @param blocks An SpatialBlock, EnvironmentalBlock or BufferedBlock object.
-#' @param rasterLayer A RasterLayer, RasterBrick or RasterStack object as background map for visualisation.
+#' @param rasterLayer A raster object as background map for visualisation.
 #' @inheritParams buffering
 #'
 #' @import ggplot2
@@ -86,7 +86,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
   colnames(map_df) <- c("Easting", "Northing", "MAP")
   mid <- stats::median(map_df$MAP)
   basePlot <- ggplot2::ggplot() +
-    ggplot2::geom_raster(data=map_df, ggplot2::aes(y=Northing, x=Easting, fill=MAP)) +
+    ggplot2::geom_raster(data=map_df, ggplot2::aes_string(y="Northing", x="Easting", fill="MAP")) +
     ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
     ggplot2::guides(fill = FALSE) +
     ggplot2::theme_bw() +
@@ -202,7 +202,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' of block sizes by using the \code{minRange} and \code{maxRanege} arguments.
 #'
 #' @inheritParams foldExplorer
-#' @param speciesData A SpatialPoints* object containing species data. If provided, the species data will be shown on the map.
+#' @param speciesData A simple features (sf) or SpatialPoints object containing species data (response variable). If provided, the species data will be shown on the map.
 #' @param species Character value indicating the name of the field in which the species data (response variable e.g. 0s and 1s) are stored.
 #' If provided, species presence and absence data will be shown in different colours.
 #' @param rangeTable A data.frame created by \code{spatialAutoRange} function containing spatial autocorrelation parameters of all covariates.
@@ -301,7 +301,7 @@ rangeExplorer <- function(rasterLayer,
   colnames(map_df) <- c("Easting", "Northing", "MAP")
   mid <- stats::median(map_df$MAP)
   basepl <- ggplot2::ggplot() +
-    ggplot2::geom_raster(data=map_df, ggplot2::aes(y=Northing, x=Easting, fill=MAP)) +
+    ggplot2::geom_raster(data=map_df, ggplot2::aes_string(y="Northing", x="Easting", fill="MAP")) +
     ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
     ggplot2::guides(fill=FALSE) +
     ggplot2::theme_bw()

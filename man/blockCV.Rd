@@ -7,18 +7,21 @@
 \title{blockCV: A package for generating spatially or environmentally separated
         folds for k-fold cross-validation of species distribution modelling.}
 \description{
-Simple random selection of testing and training folds in structured environment leads to underestimation of error in the evaluation of spatial
+Simple random selection of training and testing folds in the structured environment leads to
+an underestimation of error in the evaluation of spatial
 predictions and may result in inappropriate model selection (Telford and Birks, 2009; Roberts et al., 2017). The use of spatial and
-environmental blocks to separate test and train sets has been suggested as a good strategy for realistic error estimation in datasets
-with dependence structures, and more generally as a robust method for estimating predictive performance of models used to predict mapped
+environmental blocks to separate training and testing sets has been suggested as a good strategy for realistic error estimation in datasets
+with dependence structures, and more generally as a robust method for estimating the predictive performance of models used to predict mapped
 distributions (Roberts et al., 2017).
-Package \strong{blockCV} provides functions to separate train and test sets using \emph{buffers}, \emph{spatial} and \emph{environmental}
-blocks. It provides several options for how those blocks are constructed.
+Package \strong{blockCV} provides functions to separate train and test sets
+using \emph{buffers}, \emph{spatial} and \emph{environmental} blocks.
+It provides several options for how those blocks are constructed.
 It also has a function that applies geostatistical techniques to investigate the existing
 level of spatial autocorrelation in the covariates to inform the choice of a suitable  distance band by which to separate the data sets.
 In addition, some visualization tools are provided to help the user choose the block size and explore generated folds. The package has been
 written with \emph{species distribution modelling} in mind, and the functions allow for a number of common scenarios (including presence-absence
 and presence-background species data, rare and common species, raster data for predictor variables).
+Although it can be applied to any spatial modelling e.g. multi-class responses for remote sensing image classification.
 }
 \references{
 Roberts et al., 2017. Cross-validation strategies for data with temporal, spatial, hierarchical,

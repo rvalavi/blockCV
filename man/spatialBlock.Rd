@@ -12,18 +12,18 @@ spatialBlock(speciesData, species = NULL, blocks = NULL,
   yOffset = 0, progress = TRUE)
 }
 \arguments{
-\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data.}
+\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data (response variable).}
 
-\item{species}{Character (optional). Indicating the name of the field in which species data (response variable e.g. 0s and 1s) is stored.
+\item{species}{Character (optional). Indicating the name of the column in which species data (response variable e.g. 0s and 1s) is stored.
 This argument is used \emph{to make folds with evenly distributed records}. \strong{This option only works by random fold selection and with binary or
-multi-class variables} e.g. species presence-absence/background or land cover classes for remote sensing image classification.
+multi-class responses} e.g. species presence-absence/background or land cover classes for remote sensing image classification.
 If \code{speceis = NULL} the response classes will be treated the same and only training and testing records
 will be counted and balanced.}
 
 \item{blocks}{A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
 the species points.}
 
-\item{rasterLayer}{RasterLayer for visualisation. If provided, this will be used to specify the blocks covering the area.}
+\item{rasterLayer}{A raster object for visualisation. If provided, this will be used to specify the blocks covering the area.}
 
 \item{theRange}{Numeric value of the specified range by which blocks are created and training/testing data are separated.
 This distance should be in \strong{metres}. The range could be explored by \code{spatialAutoRange()} and \code{rangeExplorer()} functions.}
@@ -121,9 +121,9 @@ pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 # spatial blocking by specified range and random assignment
 sb1 <- spatialBlock(speciesData = pa_data,
                     species = "Species",
-                    theRange = 68000,
+                    theRange = 70000,
                     k = 5,
-                    selection = 'random',
+                    selection = "random",
                     iteration = 250,
                     numLimit = NULL,
                     biomod2Format = TRUE,
@@ -137,7 +137,7 @@ sb2 <- spatialBlock(speciesData = pa_data,
                     rows = 5,
                     cols = 8,
                     k = 5,
-                    selection = 'systematic',
+                    selection = "systematic",
                     biomod2Format = TRUE)
 
 }

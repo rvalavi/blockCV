@@ -1,8 +1,8 @@
 Package: blockCV
 Type: Package
 Title: Spatial and environmental blocking for k-fold cross-validation
-Version: 1.1.0
-Date: 2019-09-10
+Version: 2.0.0
+Date: 2019-09-19
 Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "valavi.r@gmail.com"),
              person("Jane", "Elith", role = "aut",
@@ -19,21 +19,21 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-  R (>= 3.3),
-  ggplot2 (>= 2.2.1)
+  R (>= 3.3.0),
+  snowfall
 Imports:
   raster (>= 2.5-8),
   sp (>= 1.2-5),
-  sf (>= 0.5-4),
-  doParallel (>= 1.0.10),
-  foreach (>= 1.4.3),
+  sf (>= 0.7-7),
+  ggplot2 (>= 3.2.1),
   automap (>= 1.0-14),
+  parallel,
   RStoolbox (>= 0.1.8),
   shiny (>= 1.0.3),
   shinydashboard,
-  methods,
   geosphere,
   progress,
+  methods,
   grid
 RoxygenNote: 6.1.1
 Suggests: knitr,

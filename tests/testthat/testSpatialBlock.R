@@ -14,7 +14,7 @@ expect_names <- c("folds",
 
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
+pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 
 r <- awt[[1]]
 r[r > 0] <- 1
@@ -58,6 +58,7 @@ test_that("test spatiaBlock function with random assingment and raster file", {
   )
 
 })
+
 
 test_that("test spatiaBlock function with systematic assingment and no raster file", {
 

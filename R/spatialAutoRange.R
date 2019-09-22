@@ -14,15 +14,15 @@
 #' reference system for layers with extent lying between -180 and 180, and a projected reference system otherwise.
 #'
 #' Variograms are calculated based on the distances between pairs of points, so unprojected rasters (in degrees) will
-#' not give an accurate result (especially over large latitudinal extents). For unprojected rasters, the great circle
-#' distance (rather than Euclidian distance) is used to calculate the spatial distances between pairs of points. To
+#' not give an accurate result (especially over large latitudinal extents). For unprojected rasters, \emph{the great circle distance} (rather
+#' than Euclidian distance) is used to calculate the spatial distances between pairs of points. To
 #' enable more accurate estimate, it is recommended to transform unprojected maps (geographic coordinate
 #' system / latitude-longitude) to a projected metric reference system (e.g. UTM or Lambert) where it is possible.
 #' See \code{\link[automap]{autofitVariogram}} from \pkg{automap} and \code{\link[gstat]{variogram}} from \pkg{gstat} packages
 #' for further information.
 #'
 #'
-#' @param rasterLayer RasterLayer, RasterBrick or RasterStack of covariates to find spatial autocorrelation range.
+#' @param rasterLayer A raster object of covariates to find spatial autocorrelation range.
 #' @param sampleNumber Integer. The number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 #' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
 #' @inheritParams spatialBlock
@@ -44,8 +44,6 @@
 #' (by default 111325; the standard distance of a degree in metres, on the Equator).
 #'
 #' @import automap
-#' @import foreach
-#' @import doParallel
 #'
 #' @references O’Sullivan, D., Unwin, D.J., 2010. Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 #'
@@ -103,11 +101,6 @@ spatialAutoRange <- function(rasterLayer,
       stop("speciesData should be a sf or SpatialPoints object")
     }
   }
-  # if(methods::is(speciesData, "SpatialPoints")){
-  #   speciesData <- sf::st_as_sf(speciesData)
-  # } else if(!methods::is(speciesData, "sf")){
-  #   stop("speciesData should be a sf or SpatialPoints object")
-  # }
   if(methods::is(rasterLayer, "Raster")){
     if(any(raster::is.factor(rasterLayer))){
       stop("rasterLayer should not include any factor layer")
@@ -121,7 +114,7 @@ spatialAutoRange <- function(rasterLayer,
       }
     }
     # reduce the sampleNumber if the raster does not have enough cells
-    if(raster::ncell(rasterLayer) < 10 * sampleNumber){
+    if(raster::ncell(rasterLayer) < 10 * sampleNumber && is.null(speciesData)){
       rp <- raster::rasterToPoints(rasterLayer[[1]])
       if(nrow(rp) < sampleNumber){
         sampleNumber <- nrow(rp)
@@ -146,31 +139,42 @@ spatialAutoRange <- function(rasterLayer,
     } else if(numLayer > 1){
       df <- data.frame(layers = seq_len(numLayer), range = 1, sill = 1)
       variogramList <- vector(mode = "list")
-      cat(paste('There are', numLayer, 'raster layers\n'))
+      cat(paste("There are", numLayer, "raster layers\n"))
       if(doParallel){
         if(is.null(nCores)){
-          nCores <- ceiling((parallel::detectCores()) / 2)
+          nCores <- ceiling(parallel::detectCores() / 2)
         }
-        cl <- parallel::makeCluster(nCores) # use snow clusters
-        doParallel::registerDoParallel(cl) # set up a parallel backend for foreach package
-        pp <- foreach::foreach(r = seq_len(numLayer), .inorder=TRUE, .packages=c('raster', 'automap', 'sf')) %dopar% {
-          if(is.null(speciesData)){
-            rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
-            set.seed(2017)
-            points <- rasterPoints[sample(seq_len(nrow(rasterPoints)), sampleNumber, replace=FALSE), ]
-            names(points) <- 'target'
-          } else{
+        # cl <- parallel::makeCluster(nCores) # use snow clusters
+        # doParallel::registerDoParallel(cl) # set up a parallel backend for foreach package
+        # pp <- foreach::foreach(r = seq_len(numLayer),
+        #                        .inorder = TRUE,
+        #                        .export = c("speciesData", "rasterLayer", "sampleNumber"),
+        #                        .packages = c('raster', 'automap', 'sf')) %dopar% {
+        #   if(is.null(speciesData)){
+        #     rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
+        #     # set.seed(2017)
+        #     points <- rasterPoints[sample(nrow(rasterPoints), sampleNumber, replace=FALSE), ]
+        #     names(points) <- "target"
+        #   } else{
+        #     points <- raster::extract(rasterLayer[[r]], speciesData, na.rm=TRUE, sp=TRUE)
+        #     names(points)[ncol(points)] <- "target"
+        #   }
+        #   fittedVar <- automap::autofitVariogram(target~1, points)
+        # }
+        # parallel::stopCluster(cl)
+        # # foreach::registerDoSEQ()
+        # snowfall::sfStop()
+        snowfall::sfInit(parallel = TRUE, cpus = nCores)
+        # snowfall::sfInit(parallel = FALSE)
+        snowfall::sfExport("speciesData", "rasterLayer", "sampleNumber")
+        snowfall::sfLibrary("sf", character.only = TRUE)
+        pp <- snowfall::sfClusterApplyLB(seq_len(numLayer),
+                                         function(x){fitvario(r = x,
+                                                              spdata = speciesData,
+                                                              rdata = rasterLayer,
+                                                              sn = sampleNumber)})
 
-            points <- raster::extract(rasterLayer[[r]], speciesData, na.rm=TRUE, sp=TRUE)
-            names(points)[ncol(points)] <- "target"
-
-
-
-          }
-          fittedVar <- automap::autofitVariogram(target~1, points)
-        }
-        parallel::stopCluster(cl)
-        foreach::registerDoSEQ()
+        snowfall::sfStop()
         for(v in seq_len(length(pp))){
           df$range[v] <- pp[[v]]$var_model[2,3]
           df$sill[v] <- pp[[v]]$var_model[2,2]
@@ -187,7 +191,7 @@ spatialAutoRange <- function(rasterLayer,
           if(is.null(speciesData)){
             rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
             set.seed(2017)
-            points <- rasterPoints[sample(seq_len(nrow(rasterPoints)), sampleNumber, replace=FALSE), ]
+            points <- rasterPoints[sample(nrow(rasterPoints), sampleNumber, replace=FALSE), ]
             names(points) <- "target"
           } else{
             points <- raster::extract(rasterLayer[[r]], speciesData, na.rm=TRUE, sp=TRUE)
@@ -247,7 +251,7 @@ spatialAutoRange <- function(rasterLayer,
   if(numLayer > 1){
     ptnum <- ifelse(is.null(speciesData), sampleNumber, nrow(speciesData))
     p1 <- ggplot2::ggplot() +
-      ggplot2::geom_bar(ggplot2::aes(x=stats::reorder(factor(layers), range), y=range, fill=range),
+      ggplot2::geom_bar(ggplot2::aes(x=stats::reorder(factor(get("layers")), get("range")), y=get("range"), fill=get("range")),
                         stat="identity",data=modelInfo,) +
       ggplot2::labs(x = "Layers", y = "Range (m)") +
       ggplot2::theme_bw() +
@@ -265,7 +269,7 @@ spatialAutoRange <- function(rasterLayer,
   colnames(map_df) <- c("Easting", "Northing", "MAP")
   mid <- stats::median(map_df$MAP)
   p2 <- ggplot2::ggplot() +
-    ggplot2::geom_raster(data = map_df, ggplot2::aes(y=get("Northing"), x=Easting, fill=MAP)) +
+    ggplot2::geom_raster(data = map_df, ggplot2::aes_string(y="Northing", x="Easting", fill="MAP")) +
     ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
     ggplot2::guides(fill = FALSE) +
     ggplot2::geom_sf(data = subBlocks,

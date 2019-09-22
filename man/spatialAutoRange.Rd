@@ -10,7 +10,7 @@ spatialAutoRange(rasterLayer, sampleNumber = 5000L, border = NULL,
   plotVariograms = FALSE, progress = TRUE)
 }
 \arguments{
-\item{rasterLayer}{RasterLayer, RasterBrick or RasterStack of covariates to find spatial autocorrelation range.}
+\item{rasterLayer}{A raster object of covariates to find spatial autocorrelation range.}
 
 \item{sampleNumber}{Integer. The number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).}
@@ -66,8 +66,8 @@ system is not specified, the function attempts to guess it based on the extent o
 reference system for layers with extent lying between -180 and 180, and a projected reference system otherwise.
 
 Variograms are calculated based on the distances between pairs of points, so unprojected rasters (in degrees) will
-not give an accurate result (especially over large latitudinal extents). For unprojected rasters, the great circle
-distance (rather than Euclidian distance) is used to calculate the spatial distances between pairs of points. To
+not give an accurate result (especially over large latitudinal extents). For unprojected rasters, \emph{the great circle distance} (rather
+than Euclidian distance) is used to calculate the spatial distances between pairs of points. To
 enable more accurate estimate, it is recommended to transform unprojected maps (geographic coordinate
 system / latitude-longitude) to a projected metric reference system (e.g. UTM or Lambert) where it is possible.
 See \code{\link[automap]{autofitVariogram}} from \pkg{automap} and \code{\link[gstat]{variogram}} from \pkg{gstat} packages
