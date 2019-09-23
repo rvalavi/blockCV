@@ -161,6 +161,7 @@ plot(sac$variograms[[1]])
 #  
 #  # extract the folds in spatialBlock object created
 #  # in the previous section (with presence-background data)
+#  # this way (foldID) only works for spatialBlock and envBlock folds
 #  folds <- sb2$foldID
 #  
 #  # create an empty vector to store the AUC of each fold
@@ -206,6 +207,7 @@ print(0.8664762)
 #  
 #  # extract the foldIDs in SpatialBlock object
 #  # created in the previous section
+#  # this way (folds) works for all three blocking strategies
 #  folds <- bf1$folds
 #  
 #  # create a data.frame to store the prediction of each fold (record)
@@ -214,7 +216,7 @@ print(0.8664762)
 #  
 #  for(k in seq_len(length(folds))){
 #    # extracting the training and testing indices
-#    # this way only works for all three blocking strategies
+#    # this way works for all three blocking strategies
 #    trainSet <- unlist(folds[[k]][1]) # training set indices
 #    testSet <- unlist(folds[[k]][2]) # testing set indices
 #    rf <- randomForest(Species~., mydata[trainSet, ], ntree = 250) # model fitting on training set
