@@ -12,7 +12,7 @@ os:
 
 cache: packages
 
-# script:
-#     - R CMD build . --no-build-vignettes --no-resave-data --no-manual
+script:
+  - R CMD build . #--no-build-vignettes --no-resave-data --no-manual
 
 warnings_are_errors: false
