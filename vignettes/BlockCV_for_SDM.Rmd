@@ -338,7 +338,7 @@ testTable$pred <- NA
 
 for(k in seq_len(length(folds))){
   # extracting the training and testing indices
-  # this way only works for all three blocking strategies
+  # this way  works for all three blocking strategies
   trainSet <- unlist(folds[[k]][1]) # training set indices
   testSet <- unlist(folds[[k]][2]) # testing set indices
   rf <- randomForest(Species~., mydata[trainSet, ], ntree = 250) # model fitting on training set

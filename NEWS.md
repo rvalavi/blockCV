@@ -1,5 +1,5 @@
 # version 2.0.0
-* most of the underlying function are migrated to `sf` functions;
+* most of the underlying functions are migrated to `sf` functions;
 * the parallel processing changed from `foreach` to `snowfall`;
 * the `species` argument in `spatialBlock` function accepts multi-class responses to find evenly distributed records in train and test folds;
 
