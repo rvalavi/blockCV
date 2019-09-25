@@ -24,6 +24,7 @@ devtools::install_github("rvalavi/blockCV")
 ## Features
 Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
 
+* There are three blocking methods: **buffers**, **spatial** and **environmental** blocks
 * The assignment of the spatial blocks to cross-validation folds can be done in *three different ways* 
 * The spatial blocks can be assigned to cross-validation folds to have **evenly distributed records** for **binary** (e.g. species presence-absence/background) or **multi-class** responses (e.g. land cover classes for remote sensing image classification) 
 * The position of the spatial blocks can be modified 
@@ -86,7 +87,7 @@ The vignette is also available via this [link](http://htmlpreview.github.io/?htt
 
 
 ## Citation
-To cite package **blockCV** in publications use:
+To cite package **blockCV** in publications, please use:
 
 Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. **blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models**. *Methods Ecol Evol*. 2019; 10:225–232. [https://doi.org/10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
 
