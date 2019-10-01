@@ -15,9 +15,9 @@ spatialAutoRange(rasterLayer, sampleNumber = 5000L, border = NULL,
 \item{sampleNumber}{Integer. The number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).}
 
-\item{border}{A sf or SpatialPolygons object to clip the block based on it.}
+\item{border}{A sf or SpatialPolygons object to clip the block based on it (optional).}
 
-\item{speciesData}{A spatial or sf object. If provided, the \code{sampleNumber} is ignored and
+\item{speciesData}{A spatial or sf object (optional). If provided, the \code{sampleNumber} is ignored and
 variograms are created based on species locations. This option is not recommended if the species data is not
 evenly distributed across the whole study area and/or the number of records is low.}
 

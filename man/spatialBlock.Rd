@@ -23,7 +23,7 @@ will be counted and balanced.}
 \item{blocks}{A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
 the species points.}
 
-\item{rasterLayer}{A raster object for visualisation. If provided, this will be used to specify the blocks covering the area.}
+\item{rasterLayer}{A raster object for visualisation (optional). If provided, this will be used to specify the blocks covering the area.}
 
 \item{theRange}{Numeric value of the specified range by which blocks are created and training/testing data are separated.
 This distance should be in \strong{metres}. The range could be explored by \code{spatialAutoRange()} and \code{rangeExplorer()} functions.}
@@ -49,7 +49,7 @@ This option no longer accepts NULL as input. If it is set to NULL, 0 is used ins
 
 \item{degMetre}{Integer. The conversion rate of metres to degree. See the details section for more information.}
 
-\item{border}{A sf or SpatialPolygons object to clip the block based on it.}
+\item{border}{A sf or SpatialPolygons object to clip the block based on it (optional).}
 
 \item{showBlocks}{Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer could be specified
 in \code{rasterlayer} argument to be as background.}
