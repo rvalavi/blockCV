@@ -1,11 +1,17 @@
 citHeader("To cite package blockCV in publications, please use:")
 
 citEntry(
-  entry="Article",
-  title="blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models",
-  volume= "10",
-  number="2",
-  pages="225-232",
-  year="2019",
-  author="Roozbeh Valavi, Jane Elith, José J. Lahoz-Monfort and Gurutzeta Guillera-Arroita",
-  textVersion="Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods Ecol Evol. 2019; 10:225–232. https://doi.org/10.1111/2041-210X.13107")
+  entry = "Article",
+  author = c(person("Roozbeh", "Valavi"),
+             person("Jane", "Elith"),
+             person("José J.", "Lahoz-Monfort"),
+             person("Gurutzeta", "Guillera-Arroita")),
+  title = "blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models",
+  journal = "Methods in Ecology and Evolution",
+  volume = "10",
+  number = "2",
+  pages = "225-232",
+  year = "2019",
+  author = "Roozbeh Valavi, Jane Elith, José J. Lahoz-Monfort and Gurutzeta Guillera-Arroita",
+  textVersion = "Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods Ecol Evol. 2019; 10:225–232. https://doi.org/10.1111/2041-210X.13107"
+)
