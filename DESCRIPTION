@@ -1,8 +1,8 @@
 Package: blockCV
 Type: Package
-Title: Spatial and environmental blocking for k-fold cross-validation
+Title: Spatial and Environmental Blocking for k-Fold Cross-Validation
 Version: 2.0.0
-Date: 2019-09-19
+Date: 2019-10-28
 Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "valavi.r@gmail.com"),
              person("Jane", "Elith", role = "aut",
@@ -11,7 +11,6 @@ Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "jose.lahoz@unimelb.edu.au"),
              person("Gurutzeta", "Guillera-Arroita", role = "aut",
                     email = "gurutzeta.guillera@unimelb.edu.au"))
-Author: Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita
 URL: https://github.com/rvalavi/blockCV
 Maintainer: Roozbeh Valavi <valavi.r@gmail.com>
 Description: The blockCV package creates spatially or environmentally separated training and testing folds for cross-validation to provide a robust error estimation in spatially structured environments. It also investigates the effective range of spatial autocorrelation in continuous raster covariates to find an initial realistic distance band to separate training and testing datasets spatially. The distance band can be used for spatial blocking or buffering to create folds.
@@ -19,12 +18,13 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-  R (>= 3.3.0),
+  R (>= 3.5.0),
   snowfall
 Imports:
   raster (>= 2.5-8),
   sp (>= 1.2-5),
-  sf (>= 0.7-7),
+  sf (>= 0.8-0),
+  dplyr (>= 0.8.3),
   ggplot2 (>= 3.2.1),
   automap (>= 1.0-14),
   parallel,
@@ -35,7 +35,7 @@ Imports:
   progress,
   methods,
   grid
-RoxygenNote: 6.1.1
+RoxygenNote: 6.1.99.9001
 Suggests: knitr,
     rmarkdown,
     testthat,
