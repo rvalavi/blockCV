@@ -3,5 +3,6 @@
 ^\.travis\.yml$
 ^codecov\.yml$
 ^appveyor\.yml$
-^doc$
+^inst/doc$
 ^Meta$
+cran_comments.md

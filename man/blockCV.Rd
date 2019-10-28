@@ -3,7 +3,6 @@
 \docType{package}
 \name{blockCV}
 \alias{blockCV}
-\alias{blockCV-package}
 \title{blockCV: A package for generating spatially or environmentally separated
         folds for k-fold cross-validation of species distribution modelling.}
 \description{

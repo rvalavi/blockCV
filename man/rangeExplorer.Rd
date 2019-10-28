@@ -4,8 +4,14 @@
 \alias{rangeExplorer}
 \title{Explore spatial block size}
 \usage{
-rangeExplorer(rasterLayer, speciesData = NULL, species = NULL,
-  rangeTable = NULL, minRange = NULL, maxRange = NULL)
+rangeExplorer(
+  rasterLayer,
+  speciesData = NULL,
+  species = NULL,
+  rangeTable = NULL,
+  minRange = NULL,
+  maxRange = NULL
+)
 }
 \arguments{
 \item{rasterLayer}{A raster object as background map for visualisation.}

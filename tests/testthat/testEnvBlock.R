@@ -147,12 +147,3 @@ test_that("test environmental blocking with too many folds", {
 
 })
 
-
-
-
-
-
-
-
-
-

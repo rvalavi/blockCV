@@ -4,8 +4,14 @@
 \alias{buffering}
 \title{Use distance (buffer) around records to separate train and test folds}
 \usage{
-buffering(speciesData, species = NULL, theRange, spDataType = "PA",
-  addBG = TRUE, progress = TRUE)
+buffering(
+  speciesData,
+  species = NULL,
+  theRange,
+  spDataType = "PA",
+  addBG = TRUE,
+  progress = TRUE
+)
 }
 \arguments{
 \item{speciesData}{A simple features (sf) or SpatialPoints object containing species data (response variable).}
