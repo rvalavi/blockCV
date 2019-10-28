@@ -25,7 +25,7 @@ devtools::install_github("rvalavi/blockCV")
 Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
 
 * There are three blocking methods: **buffers**, **spatial** and **environmental** blocks
-* The assignment of the spatial blocks to cross-validation folds can be done in *three different ways* 
+* The assignment of the spatial blocks to cross-validation folds can be done in three different ways: **random**, **systematic** and **checkerboard** pattern
 * The spatial blocks can be assigned to cross-validation folds to have **evenly distributed records** for **binary** (e.g. species presence-absence/background) or **multi-class** responses (e.g. land cover classes for remote sensing image classification) 
 * The position of the spatial blocks can be modified 
 * The buffering function can account for *presence-absence* and *presence-background* data types 
