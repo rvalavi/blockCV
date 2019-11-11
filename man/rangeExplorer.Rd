@@ -31,7 +31,7 @@ domain of spatial block size.}
 }
 \value{
 An interactive map with blocks (and optionally species data) superimposed. Note that this can also be opened in a
-web browser window. When you return to the R console, press “Esc” to return to the prompt.
+web browser window. When you return to the R console, press "Esc" to return to the prompt.
 }
 \description{
 This function assists selection of block size. It allows the user to visualise the blocks interactively,

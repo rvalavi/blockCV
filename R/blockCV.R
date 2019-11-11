@@ -22,9 +22,9 @@
 #' @references Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
 #' or phylogenetic structure. Ecography. 40: 913-929.
 #'
-#' Telford, R.J., Birks, H.J.B., (2009). Evaluation of transfer functions in spatially structured environments. Quat. Sci. Rev. 28, 1309–1316.
+#' Telford, R.J., Birks, H.J.B., (2009). Evaluation of transfer functions in spatially structured environments. Quat. Sci. Rev. 28, 1309-1316.
 #'
-#' Valavi, R., Elith, J., Lahoz‐Monfort, J. J., & Guillera‐Arroita, G. (2019). blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods in Ecology and Evolution, 10(2), 225–232. doi:10.1111/2041-210X.13107.
+#' Valavi, R., Elith, J., Lahoz-Monfort, J. J., & Guillera-Arroita, G. (2019). blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods in Ecology and Evolution, 10(2), 225-232. doi:10.1111/2041-210X.13107.
 #'
 #' @name blockCV
 #' @docType package

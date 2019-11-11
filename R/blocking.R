@@ -67,15 +67,15 @@
 #' and \code{\link{envBlock}} for alternative blocking strategies; \code{\link{foldExplorer}} for visualisation of the generated folds.
 #' @seealso For \emph{DataSplitTable} see \code{\link[biomod2]{BIOMOD_cv}} in \pkg{biomod2} package
 #'
-#' @references Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321–331.
+#' @references Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321-331.
 #'
-#' O’Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
+#' O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 #'
 #' Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
 #' or phylogenetic structure. Ecography. 40: 913-929.
 #'
 #' Wenger, S.J., Olden, J.D., (2012). Assessing transferability of ecological models: an underappreciated aspect of statistical
-#' validation. Methods Ecol. Evol. 3, 260–267.
+#' validation. Methods Ecol. Evol. 3, 260-267.
 #'
 #' @return An object of class S3. A list of objects including:
 #'    \itemize{

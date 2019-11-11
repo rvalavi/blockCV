@@ -5,7 +5,7 @@
 #' ranges of all input raster layers. This is the range over which observations are independent and is determined by
 #' constructing the empirical variogram, a fundamental geostatistical tool for measuring spatial autocorrelation.
 #' The empirical variogram models the structure of spatial autocorrelation by measuring variability between all possible
-#' pairs of points (O’Sullivan and Unwin, 2010). Results are plotted. See the details section for further information.
+#' pairs of points (O'Sullivan and Unwin, 2010). Results are plotted. See the details section for further information.
 #'
 #'
 #' The input raster layers should be continuous for computing the variograms and estimating the range of spatial
@@ -45,7 +45,7 @@
 #'
 #' @import automap
 #'
-#' @references O’Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
+#' @references O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 #'
 #' Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
 #' or phylogenetic structure. Ecography. 40: 913-929.

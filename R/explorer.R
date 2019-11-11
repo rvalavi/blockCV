@@ -13,7 +13,7 @@
 #' @seealso \code{\link{spatialBlock}}, \code{\link{buffering}} and \code{\link{envBlock}}
 #'
 #' @return An interactive map showing folds and the species data, that can be used  to explore folds. Note that this can also
-#' be opened in a web browser window. When you return to the R console, press “Esc” to return to the prompt.
+#' be opened in a web browser window. When you return to the R console, press "Esc" to return to the prompt.
 #' @export
 #'
 #' @examples
@@ -218,7 +218,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' @seealso \code{\link{spatialBlock}}; \code{\link{spatialAutoRange}} for the \code{rangeTable}
 #'
 #' @return An interactive map with blocks (and optionally species data) superimposed. Note that this can also be opened in a
-#' web browser window. When you return to the R console, press “Esc” to return to the prompt.
+#' web browser window. When you return to the R console, press "Esc" to return to the prompt.
 #' @export
 #'
 #' @examples

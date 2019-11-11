@@ -15,7 +15,7 @@ foldExplorer(blocks, rasterLayer, speciesData)
 }
 \value{
 An interactive map showing folds and the species data, that can be used  to explore folds. Note that this can also
-be opened in a web browser window. When you return to the R console, press “Esc” to return to the prompt.
+be opened in a web browser window. When you return to the R console, press "Esc" to return to the prompt.
 }
 \description{
 A function for visualising the generated folds on a map, and allowing interactive exploration of the data in the folds,

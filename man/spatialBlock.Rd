@@ -161,15 +161,15 @@ sb2 <- spatialBlock(speciesData = pa_data,
 }
 }
 \references{
-Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321–331.
+Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321-331.
 
-O’Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
+O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 
 Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
 or phylogenetic structure. Ecography. 40: 913-929.
 
 Wenger, S.J., Olden, J.D., (2012). Assessing transferability of ecological models: an underappreciated aspect of statistical
-validation. Methods Ecol. Evol. 3, 260–267.
+validation. Methods Ecol. Evol. 3, 260-267.
 }
 \seealso{
 \code{\link{spatialAutoRange}} and \code{\link{rangeExplorer}} for selecting block size; \code{\link{buffering}}
