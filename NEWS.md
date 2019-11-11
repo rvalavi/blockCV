@@ -1,3 +1,6 @@
+# version 2.0.1
+* print() and cat() are removed from the functions and verbose argument is added instead
+
 # version 2.0.0
 * most of the underlying functions are migrated to `sf` functions;
 * the parallel processing changed from `foreach` to `snowfall`;
