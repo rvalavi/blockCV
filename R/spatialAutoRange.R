@@ -45,9 +45,9 @@
 #'
 #' @import automap
 #'
-#' @references O’Sullivan, D., Unwin, D.J., 2010. Geographic Information Analysis, 2nd ed. John Wiley & Sons.
+#' @references O’Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 #'
-#' Roberts et al., 2017. Cross-validation strategies for data with temporal, spatial, hierarchical,
+#' Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
 #' or phylogenetic structure. Ecography. 40: 913-929.
 #'
 #' @return An object of class S3. A list object including:
@@ -71,7 +71,7 @@
 #' range1 <- spatialAutoRange(rasterLayer = awt,
 #'                            sampleNumber = 5000, # number of cells to be used
 #'                            doParallel = TRUE,
-#'                            nCores = 8, # if NULL, it uses half of the CPU cores
+#'                            nCores = 2, # if NULL, it uses half of the CPU cores
 #'                            plotVariograms = FALSE,
 #'                            showPlots = TRUE)
 #'
@@ -118,7 +118,7 @@ spatialAutoRange <- function(rasterLayer,
       rp <- raster::rasterToPoints(rasterLayer[[1]])
       if(nrow(rp) < sampleNumber){
         sampleNumber <- nrow(rp)
-        cat("The sampleNumber reduced to", sampleNumber, "; the total number of available cells.\n")
+        message("The sampleNumber reduced to", sampleNumber, "; the total number of available cells.\n")
       }
     }
     if(numLayer==1){
@@ -126,7 +126,7 @@ spatialAutoRange <- function(rasterLayer,
         rasterPoints <- raster::rasterToPoints(rasterLayer, spatial=TRUE)
         set.seed(2017)
         points <- rasterPoints[sample(nrow(rasterPoints), sampleNumber, replace=FALSE), ]
-        names(points) <- 'target'
+        names(points) <- "target"
       } else{
         points <- raster::extract(rasterLayer, speciesData, na.rm=TRUE, sp=TRUE)
         names(points)[ncol(points)] <- "target"
@@ -139,7 +139,7 @@ spatialAutoRange <- function(rasterLayer,
     } else if(numLayer > 1){
       df <- data.frame(layers = seq_len(numLayer), range = 1, sill = 1)
       variogramList <- vector(mode = "list")
-      cat(paste("There are", numLayer, "raster layers\n"))
+      message(paste("There are", numLayer, "raster layers\n"))
       if(doParallel){
         if(is.null(nCores)){
           nCores <- ceiling(parallel::detectCores() / 2)

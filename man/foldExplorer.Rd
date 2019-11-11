@@ -19,7 +19,7 @@ be opened in a web browser window. When you return to the R console, press “Es
 }
 \description{
 A function for visualising the generated folds on a map, and allowing interactive exploration of the data in the folds,
-using the RStudio Shiny app.
+using the \pkg{RStudio Shiny} app.
 }
 \examples{
 \dontrun{
@@ -47,7 +47,7 @@ bf <- buffering(speciesData= pa_data,
                 species= "Species", # to count the number of presences and absences
                 theRange= 70000,
                 spDataType = "PA",
-                progress = T)
+                progress = TRUE)
 
 foldExplorer(bf, awt, pa_data)
 

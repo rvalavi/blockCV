@@ -31,6 +31,7 @@
 #' @param numLimit Integer value. The minimum number of points in each category of data (\emph{train_0},
 #' \emph{train_1}, \emph{test_0} and \emph{test_1}). Shows a message if the number of points
 #' in any of the folds happens to be less than this number.
+#' @param verbose Logical. To print the report of the recods per fold.
 #'
 #' @seealso \code{\link{spatialBlock}} and \code{\link{buffering}} for alternative blocking strategies; \code{\link{foldExplorer}}
 #' for visualisation of the generated folds.
@@ -40,7 +41,7 @@
 #' @references Hastie, T., Tibshirani, R., & Friedman, J. (2009). The elements of statistical learning: Data Mining, Inference,
 #' and Prediction (2nd ed., Vol. 1). Springer series in statistics New York.
 #'
-#' Roberts et al., 2017. Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography. 40: 913-929.
+#' Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography. 40: 913-929.
 #'
 #'
 #' @return An object of class S3. A list of objects including:
@@ -62,16 +63,15 @@
 #' # import presence-absence species data
 #' PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 #' # make a sf object from data.frame
-#' pa_data <- sf::st_as_sf(PA coords = c("x", "y"), crs = raster::crs(awt))
+#' pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 #'
 #' # environmental clustering
 #' eb <- envBlock(rasterLayer = awt,
 #'                speciesData = pa_data,
-#'                species = "Species", # name of the column with species data
+#'                species = "Species", # name of the column with response
 #'                k = 5,
 #'                standardization = "standard",
-#'                rasterBlock = TRUE,
-#'                numLimit = 50)
+#'                rasterBlock = TRUE)
 #' }
 #'
 envBlock <- function(rasterLayer,
@@ -81,7 +81,8 @@ envBlock <- function(rasterLayer,
                      standardization = "normal",
                      rasterBlock = TRUE,
                      biomod2Format = TRUE,
-                     numLimit = 0){
+                     numLimit = 0,
+                     verbose = TRUE){
   ## change the sp objects to sf
   if(methods::is(speciesData, "SpatialPoints")){
     speciesData <- sf::st_as_sf(speciesData)
@@ -166,7 +167,7 @@ envBlock <- function(rasterLayer,
       }
     } else stop("'The raster layer is empty!'")
   } else stop('The input file is not a valid R raster file')
-  print(trainTestTable)
+  if(verbose) print(trainTestTable)
   # specify the output class
   class(theList) <- c("EnvironmentalBlock")
   return(theList)

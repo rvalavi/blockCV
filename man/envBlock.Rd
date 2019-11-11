@@ -12,7 +12,8 @@ envBlock(
   standardization = "normal",
   rasterBlock = TRUE,
   biomod2Format = TRUE,
-  numLimit = 0
+  numLimit = 0,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -39,6 +40,8 @@ a \emph{DataSplitTable} for cross-validation.}
 \item{numLimit}{Integer value. The minimum number of points in each category of data (\emph{train_0},
 \emph{train_1}, \emph{test_0} and \emph{test_1}). Shows a message if the number of points
 in any of the folds happens to be less than this number.}
+
+\item{verbose}{Logical. To print the report of the recods per fold.}
 }
 \value{
 An object of class S3. A list of objects including:
@@ -82,16 +85,15 @@ awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 # import presence-absence species data
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 # make a sf object from data.frame
-pa_data <- sf::st_as_sf(PA coords = c("x", "y"), crs = raster::crs(awt))
+pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 
 # environmental clustering
 eb <- envBlock(rasterLayer = awt,
                speciesData = pa_data,
-               species = "Species", # name of the column with species data
+               species = "Species", # name of the column with response
                k = 5,
                standardization = "standard",
-               rasterBlock = TRUE,
-               numLimit = 50)
+               rasterBlock = TRUE)
 }
 
 }
@@ -99,7 +101,7 @@ eb <- envBlock(rasterLayer = awt,
 Hastie, T., Tibshirani, R., & Friedman, J. (2009). The elements of statistical learning: Data Mining, Inference,
 and Prediction (2nd ed., Vol. 1). Springer series in statistics New York.
 
-Roberts et al., 2017. Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography. 40: 913-929.
+Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography. 40: 913-929.
 }
 \seealso{
 \code{\link{spatialBlock}} and \code{\link{buffering}} for alternative blocking strategies; \code{\link{foldExplorer}}

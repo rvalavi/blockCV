@@ -99,6 +99,7 @@ rasterNet <- function(x,
   return(sf::st_as_sf(rasterNet))
 }
 
+
 fitvario <- function(r, spdata, rdata, sn){
   if(is.null(spdata)){
     rasterPoints <- raster::rasterToPoints(rdata[[r]], spatial = TRUE)

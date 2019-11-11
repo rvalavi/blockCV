@@ -1,7 +1,7 @@
 #' Explore the generated folds
 #'
 #' A function for visualising the generated folds on a map, and allowing interactive exploration of the data in the folds,
-#' using the RStudio Shiny app.
+#' using the \pkg{RStudio Shiny} app.
 #'
 #' @param blocks An SpatialBlock, EnvironmentalBlock or BufferedBlock object.
 #' @param rasterLayer A raster object as background map for visualisation.
@@ -42,7 +42,7 @@
 #'                 species= "Species", # to count the number of presences and absences
 #'                 theRange= 70000,
 #'                 spDataType = "PA",
-#'                 progress = T)
+#'                 progress = TRUE)
 #'
 #' foldExplorer(bf, awt, pa_data)
 #'
@@ -270,7 +270,7 @@ rangeExplorer <- function(rasterLayer,
       resol <- raster::res(rasterLayer) * 111000
       xaxes <- "Longitude"
       yaxes <- "Latitude"
-      cat("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have an un-projected reference system.\n")
+      message("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have an un-projected reference system.\n")
     } else {
       xrange <- Xmx - Xmn
       yrange <- Ymx - Ymn
@@ -336,7 +336,7 @@ rangeExplorer <- function(rasterLayer,
     val <- mean(c(xrange, yrange)) / 10
   }
   if(maxR > maxy){ # limit the maximum range to the maximum extent of the map
-    cat("Selected range is bigger than the extent of the base map. The range is set to the biggest extent (X or Y).\n")
+    message("Selected range is bigger than the extent of the base map. The range is set to the biggest extent (X or Y).\n")
     maxR <- maxy
   }
   minR <- round(minR)

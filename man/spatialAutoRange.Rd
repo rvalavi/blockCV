@@ -92,7 +92,7 @@ awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 range1 <- spatialAutoRange(rasterLayer = awt,
                            sampleNumber = 5000, # number of cells to be used
                            doParallel = TRUE,
-                           nCores = 8, # if NULL, it uses half of the CPU cores
+                           nCores = 2, # if NULL, it uses half of the CPU cores
                            plotVariograms = FALSE,
                            showPlots = TRUE)
 
@@ -108,8 +108,8 @@ summary(range1)
 }
 }
 \references{
-O’Sullivan, D., Unwin, D.J., 2010. Geographic Information Analysis, 2nd ed. John Wiley & Sons.
+O’Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 
-Roberts et al., 2017. Cross-validation strategies for data with temporal, spatial, hierarchical,
+Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
 or phylogenetic structure. Ecography. 40: 913-929.
 }

@@ -7,8 +7,8 @@
 #' environmental blocks to separate training and testing sets has been suggested as a good strategy for realistic error estimation in datasets
 #' with dependence structures, and more generally as a robust method for estimating the predictive performance of models used to predict mapped
 #' distributions (Roberts et al., 2017).
-#' Package \strong{blockCV} provides functions to separate train and test sets
-#' using \emph{buffers}, \emph{spatial} and \emph{environmental} blocks.
+#' Package \strong{'blockCV'} provides functions to separate train and test sets
+#' using \emph{buffers}, \emph{spatial} and \emph{environmental} blocks (Valavi et al., 2019).
 #' It provides several options for how those blocks are constructed.
 #' It also has a function that applies geostatistical techniques to investigate the existing
 #' level of spatial autocorrelation in the covariates to inform the choice of a suitable  distance band by which to separate the data sets.
@@ -19,10 +19,12 @@
 #'
 #' @seealso \code{\link{spatialBlock}}, \code{\link{buffering}} and \code{\link{envBlock}} for blocking strategies.
 #'
-#' @references Roberts et al., 2017. Cross-validation strategies for data with temporal, spatial, hierarchical,
+#' @references Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
 #' or phylogenetic structure. Ecography. 40: 913-929.
 #'
-#' Telford, R.J., Birks, H.J.B., 2009. Evaluation of transfer functions in spatially structured environments. Quat. Sci. Rev. 28, 1309–1316.
+#' Telford, R.J., Birks, H.J.B., (2009). Evaluation of transfer functions in spatially structured environments. Quat. Sci. Rev. 28, 1309–1316.
+#'
+#' Valavi, R., Elith, J., Lahoz‐Monfort, J. J., & Guillera‐Arroita, G. (2019). blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods in Ecology and Evolution, 10(2), 225–232. doi:10.1111/2041-210X.13107.
 #'
 #' @name blockCV
 #' @docType package

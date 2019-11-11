@@ -61,6 +61,7 @@
 #' @param xOffset Numeric value between \strong{0} and \strong{1} for shifting the blocks horizontally.
 #' The value is the proportion of block size.
 #' @param yOffset Numeric value between \strong{0} and \strong{1} for shifting the blocks vertically. The value is the proportion of block size.
+#' @param verbose Logical. To print the report of the recods per fold.
 #'
 #' @seealso \code{\link{spatialAutoRange}} and \code{\link{rangeExplorer}} for selecting block size; \code{\link{buffering}}
 #' and \code{\link{envBlock}} for alternative blocking strategies; \code{\link{foldExplorer}} for visualisation of the generated folds.
@@ -68,12 +69,12 @@
 #'
 #' @references Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321–331.
 #'
-#' O’Sullivan, D., Unwin, D.J., 2010. Geographic Information Analysis, 2nd ed. John Wiley & Sons.
+#' O’Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 #'
-#' Roberts et al., 2017. Cross-validation strategies for data with temporal, spatial, hierarchical,
+#' Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
 #' or phylogenetic structure. Ecography. 40: 913-929.
 #'
-#' Wenger, S.J., Olden, J.D., 2012. Assessing transferability of ecological models: an underappreciated aspect of statistical
+#' Wenger, S.J., Olden, J.D., (2012). Assessing transferability of ecological models: an underappreciated aspect of statistical
 #' validation. Methods Ecol. Evol. 3, 260–267.
 #'
 #' @return An object of class S3. A list of objects including:
@@ -143,7 +144,8 @@ spatialBlock <- function(speciesData,
                          biomod2Format = TRUE,
                          xOffset = 0,
                          yOffset = 0,
-                         progress = TRUE){
+                         progress = TRUE,
+                         verbose = TRUE){
   if(!is.element(selection, c("systematic", "random", "checkerboard"))){
     stop("The selection argument must be 'systematic', 'random' or 'checkerboard'")
   }
@@ -176,12 +178,12 @@ spatialBlock <- function(speciesData,
     }
   }
   if(maskBySpecies==FALSE){
-    cat("Since version 1.1, this option is always set to TRUE.\n")
+    message("Since version 1.1, this option is always set to TRUE.\n")
   }
   ## check if species is a col in speciesData
   if(!is.null(species)){
     if(species %in% colnames(speciesData) == FALSE){
-      cat("There is no match between the columns name in 'speciesData' and 'species' argument (response variable).\n")
+      warning("There is no match between the columns name in 'speciesData' and 'species' argument (response variable).\n")
       species <- NULL
     }
   }
@@ -217,15 +219,15 @@ spatialBlock <- function(speciesData,
     subBlocks <- blocks[speciesData,]
     if(selection == "checkerboard"){
       selection <- "systematic"
-      cat("'checkerboard' fold selection does not work with user defined blocks. 'systematic' will be used instead.\n")
+      message("'checkerboard' fold selection does not work with user defined blocks. 'systematic' will be used instead.\n")
     }
   }
   iteration <- as.integer(iteration)
   if(iteration < 1 || !is.numeric(iteration)){
     iteration <- 1L
-    cat("The interation has been set to 1! \n", "Iteration must be a positive numeric value.\n")
+    message("The interation has been set to 1! \n", "Iteration must be a positive numeric value.\n")
   } else if(is.numeric(iteration) && iteration >= 10000){
-    cat("The process might take a while, due to the large number of iterations.\n")
+    message("The process might take a while, due to the large number of iterations.\n")
   }
   if(progress==TRUE && numLimit == 0){
     pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
@@ -333,9 +335,9 @@ spatialBlock <- function(speciesData,
     foldList <- foldList2
     foldNum <- foldNum2
     biomodTable <- biomodTable2
-    cat(paste0("The best folds was in iteration ", iter, ":\n"))
+    if(verbose) cat(paste0("The best folds was in iteration ", iter, ":\n"))
   }
-  print(trainTestTable)
+  if(verbose) print(trainTestTable)
   if(any(trainTestTable <= numLimit)){
     zerofolds <- which(apply(trainTestTable, 1, function(x) any(x == numLimit)))
     if(length(zerofolds) > 1){

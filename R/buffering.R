@@ -16,7 +16,7 @@
 #' test point, all presence and absence points other than the target point within the buffer are ignored, and the training set comprises all presences and
 #' absences outside the buffer. Apart from the folds, the number of \emph{training-presence}, \emph{training-absence}, \emph{testing-presence} and \emph{testing-absence}
 #' records is stored and returned in the \code{records} table. If \code{species = NULL} (no column with 0s and 1s is defined),
-#' the procedure is like presence-absence data. All other types of data (continuous, count or multi-class response) should be used like this.
+#' the procedure is like presence-absence data. All other types of data (continuous, count or multi-class responses) should be used like this.
 #'
 #'
 #' @param speciesData A simple features (sf) or SpatialPoints object containing species data (response variable).
@@ -61,7 +61,7 @@
 #'                  species= "Species",
 #'                  theRange= 70000,
 #'                  spDataType = "PA",
-#'                  progress = T)
+#'                  progress = TRUE)
 #'
 #'
 #' # import presence-background species data
@@ -75,7 +75,7 @@
 #'                  theRange= 70000,
 #'                  spDataType = "PB",
 #'                  addBG = TRUE, # add background data to testing folds
-#'                  progress = T)
+#'                  progress = TRUE)
 #'
 #' # buffering with no species attribute
 #' bf3 <- buffering(speciesData = pa_data,
@@ -101,7 +101,7 @@ buffering <- function(speciesData,
   ## check if species is a col in speciesData
   if(!is.null(species)){
     if(species %in% colnames(speciesData) == FALSE){
-      cat("There is no match between the columns name in 'speciesData' and 'species' argument (response variable).\n")
+      warning("There is no match between the columns name in 'speciesData' and 'species' argument (response variable).\n")
       species <- NULL
     }
   }
