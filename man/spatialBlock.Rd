@@ -125,7 +125,7 @@ edge effect (O'Sullivan & Unwin, 2014), whereby points located on the edges of t
 not separated spatially. Blocking with a buffering strategy overcomes this issue (see \code{\link{buffering}}).
 }
 \examples{
-\dontrun{
+\donttest{
 
 # load package data
 library(sf)

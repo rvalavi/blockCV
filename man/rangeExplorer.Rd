@@ -46,7 +46,7 @@ based on the spatial autocorrelation range of covariates. It is also possible to
 of block sizes by using the \code{minRange} and \code{maxRanege} arguments.
 }
 \examples{
-\dontrun{
+\donttest{
 
 # load package data
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))

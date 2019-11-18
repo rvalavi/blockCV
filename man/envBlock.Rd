@@ -78,7 +78,7 @@ Note that the input raster layer should cover all the species points, otherwise 
 value should be deleted prior to the analysis or another raster layer would be provided.
 }
 \examples{
-\dontrun{
+\donttest{
 
 # load package data
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))

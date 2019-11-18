@@ -62,7 +62,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' # load the example raster data
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))

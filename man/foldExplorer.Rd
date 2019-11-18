@@ -22,7 +22,7 @@ A function for visualising the generated folds on a map, and allowing interactiv
 using the \pkg{RStudio Shiny} app.
 }
 \examples{
-\dontrun{
+\donttest{
 
 # load package data
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))

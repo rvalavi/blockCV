@@ -83,7 +83,7 @@ See \code{\link[automap]{autofitVariogram}} from \pkg{automap} and \code{\link[g
 for further information.
 }
 \examples{
-\dontrun{
+\donttest{
 
 # load the example raster data
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))

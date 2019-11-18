@@ -92,7 +92,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' # load package data
 #' library(sf)

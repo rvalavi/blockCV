@@ -17,7 +17,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' # load package data
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
@@ -222,7 +222,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' # load package data
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))

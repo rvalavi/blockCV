@@ -63,7 +63,7 @@ records is stored and returned in the \code{records} table. If \code{species = N
 the procedure is like presence-absence data. All other types of data (continuous, count or multi-class responses) should be used like this.
 }
 \examples{
-\dontrun{
+\donttest{
 
 # import presence-absence species data
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
