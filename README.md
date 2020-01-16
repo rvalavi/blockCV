@@ -12,14 +12,6 @@
    
 In a nutshell, package **blockCV** provides functions to build train and test data sets using three general strategies: *buffers*, *spatial* and *environmental* blocks. It offers several options for how those blocks are constructed and how blocks are allocated to cross-validation folds. It includes a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the chosen predictor variables to inform the choice of the block and buffer size. In addition, visualization tools further aid the selection of block size and provide an understanding of the spread of species data across generated folds. 
 
-## Installation
-To install the package from GitHub use:
-
-```r
-# install.packages("devtools")
-devtools::install_github("rvalavi/blockCV")
-```
-
 
 ## Features
 Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
@@ -31,6 +23,24 @@ Compared to other available packages, **blockCV** provides more strategies and c
 * The buffering function can account for *presence-absence* and *presence-background* data types 
 * The variables are standardized to avoid wide range variables to dominate the environmental blocks 
 * Using geostatistical techniques to inform the choice of a suitable distance band by which to separate the data sets 
+
+
+## Installation
+To install the package from GitHub use:
+
+```r
+# install.packages("devtools")
+devtools::install_github("rvalavi/blockCV")
+```
+
+
+## Vignette
+To see the vignette of the package use:
+
+```r
+browseVignettes("blockCV")
+```
+The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
 
 
 ## Basic usage
@@ -74,15 +84,6 @@ rangeExplorer(rasterLayer = myrasters,
 
 ```
 ![](https://i.ibb.co/Vtz1vVz/ezgif-com-gif-maker.gif)
-
-
-## Vignette
-To see the vignette of the package use:
-
-```r
-browseVignettes("blockCV")
-```
-The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
 
 
 

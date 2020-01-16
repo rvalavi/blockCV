@@ -31,7 +31,7 @@ test_that("test spatiaBlock function with random assingment and raster file", {
                         k = 5,
                         selection = "random",
                         border = bound,
-                        iteration = 25,
+                        iteration = 5,
                         numLimit = 0, ## should it be changed?
                         biomod2Format = TRUE,
                         xOffset = 0.3,
@@ -204,7 +204,7 @@ test_that("test spatiaBlock function with NULL numLimit", {
                       cols = 8,
                       k = 5,
                       selection = "random",
-                      iteration = 25,
+                      iteration = 5,
                       numLimit = NULL,
                       biomod2Format = FALSE,
                       showBlocks = FALSE)
@@ -254,7 +254,7 @@ test_that("test spatialBlock failur: wrong species data", {
 test_that("test spatialBlock failur: wrong user-defined blocks", {
 
   expect_error(
-    spatialBlock(speciesData = pa_data, # wrong speceis data
+    spatialBlock(speciesData = pa_data, # wrong user-defined blocks
                  species = "Species",
                  rasterLayer = awt,
                  blocks = r,
@@ -317,20 +317,6 @@ test_that("test spatialBlock with no smaller mask raster", {
 
 
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
