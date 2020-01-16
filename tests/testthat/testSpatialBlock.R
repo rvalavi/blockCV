@@ -279,12 +279,14 @@ test_that("test spatialBlock failur: wrong user-defined border", {
 
 test_that("test spatialBlock with no speceis column match", {
 
+  expect_warning(
   sb4 <- spatialBlock(speciesData = pa_data,
                       species = "response", # wrong response
                       rasterLayer = awt,
                       maskBySpecies = FALSE,
                       theRange = 70000,
                       k = 5)
+  )
 
   expect_true(exists("sb4"))
   expect_is(sb4, "SpatialBlock")

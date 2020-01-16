@@ -99,11 +99,13 @@ test_that("test that buffering function works properly with no species specified
 test_that("test buffering function with no matching species column", {
 
   # buffering with presence-absence data
+  expect_warning(
   bf1 <- buffering(speciesData= pa_data,
                    species= "response", # to count the number of presences and absences
                    theRange= 70000,
                    spDataType = "PA",
                    progress = TRUE)
+  )
 
   expect_true(exists("bf1"))
   expect_equal(dim(bf1$records), c(nrow(pa_data), 2))
