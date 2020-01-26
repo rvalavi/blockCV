@@ -29,8 +29,7 @@ Compared to other available packages, **blockCV** provides more strategies and c
 To install the package from GitHub use:
 
 ```r
-# install.packages("devtools")
-devtools::install_github("rvalavi/blockCV")
+remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
 ```
 
 
