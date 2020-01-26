@@ -1,8 +1,8 @@
 Package: blockCV
 Type: Package
 Title: Spatial and Environmental Blocking for K-Fold Cross-Validation
-Version: 2.0.1
-Date: 2020-01-15
+Version: 2.1.0
+Date: 2020-01-26
 Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "valavi.r@gmail.com"),
              person("Jane", "Elith", role = "aut",
@@ -13,31 +13,30 @@ Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "gurutzeta.guillera@unimelb.edu.au"))
 URL: https://github.com/rvalavi/blockCV
 Maintainer: Roozbeh Valavi <valavi.r@gmail.com>
-Description: Creating spatially or environmentally separated folds for cross-validation to provide a robust error estimation in spatially structured environments; Investigating and visualising the effective range of spatial autocorrelation in continuous raster covariates to find an initial realistic distance band to separate training and testing datasets spatially described in Valavi, R. et al., (2019) <doi:10.1111/2041-210X.13107>.
+Description: Creating spatially or environmentally separated folds for cross-validation to provide a robust error estimation in spatially structured environments; Investigating and visualising the effective range of spatial autocorrelation in continuous raster covariates to find an initial realistic distance band to separate training and testing datasets spatially described in Valavi, R. et al. (2019) <doi:10.1111/2041-210X.13107>.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-  R (>= 3.5.0),
-  snowfall
+  R (>= 3.5.0)
 Imports:
   raster (>= 2.5-8),
-  sp (>= 1.2-5),
   sf (>= 0.8-0),
-  dplyr (>= 0.8.3),
+  progress
+RoxygenNote: 6.1.99.9001
+Suggests: 
+  knitr,
   ggplot2 (>= 3.2.1),
+  cowplot,
   automap (>= 1.0-14),
-  parallel,
-  RStoolbox (>= 0.1.8),
+  rgeos,
+  future,
+  future.apply,
   shiny (>= 1.0.3),
   shinydashboard,
   geosphere,
-  progress,
   methods,
-  grid
-RoxygenNote: 6.1.99.9001
-Suggests: knitr,
-    rmarkdown,
-    testthat,
-    covr
+  rmarkdown,
+  testthat,
+  covr
 VignetteBuilder: knitr

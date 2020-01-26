@@ -11,6 +11,7 @@ envBlock(
   k = 5,
   standardization = "normal",
   rasterBlock = TRUE,
+  sampleNumber = 10000,
   biomod2Format = TRUE,
   numLimit = 0,
   verbose = TRUE
@@ -33,6 +34,8 @@ See details for more information.}
 
 \item{rasterBlock}{Logical. If TRUE, the clustering is done in the raster layer rather than species data. See details for
 more information.}
+
+\item{sampleNumber}{Integer. The number of samples from raster layers to build the clusters.}
 
 \item{biomod2Format}{Logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 a \emph{DataSplitTable} for cross-validation.}
@@ -58,7 +61,7 @@ An object of class S3. A list of objects including:
 Environmental blocking for cross-validation. This function uses clustering methods to specify sets of similar environmental
 conditions based on the input covariates. Species data corresponding to any of these groups or clusters are assigned to a
 fold. This function does the clustering in raster space and species data. Clustering is done using \code{\link[stats]{kmeans}}
-for both approaches (for raster using \pkg{RStoolbox} which use the same function internally). This function works on single or
+for both approaches. This function works on single or
 multiple raster files; multiple rasters need to be in a raster brick or stack format.
 }
 \details{
@@ -107,6 +110,6 @@ Roberts et al., (2017). Cross-validation strategies for data with temporal, spat
 \code{\link{spatialBlock}} and \code{\link{buffering}} for alternative blocking strategies; \code{\link{foldExplorer}}
 for visualisation of the generated folds.
 
-For \emph{DataSplitTable} see \code{\link[biomod2]{BIOMOD_cv}} in \pkg{biomod2} package. \code{\link[RStoolbox]{unsuperClass}}
+For \emph{DataSplitTable} see \code{\link[biomod2]{BIOMOD_cv}} in \pkg{biomod2} package.
 for clustering.
 }

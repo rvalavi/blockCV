@@ -43,8 +43,6 @@
 #' calculated based on deviding the calculated \emph{range} by this value to convert to the input map's unit
 #' (by default 111325; the standard distance of a degree in metres, on the Equator).
 #'
-#' @import automap
-#'
 #' @references O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 #'
 #' Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
@@ -89,13 +87,30 @@ spatialAutoRange <- function(rasterLayer,
                              sampleNumber = 5000L,
                              border = NULL,
                              speciesData = NULL,
-                             doParallel = TRUE,
+                             doParallel = FALSE,
                              nCores = NULL,
                              showPlots = TRUE,
                              degMetre = 111325,
                              maxpixels = 1e+05,
                              plotVariograms = FALSE,
                              progress = TRUE){
+  # check for availability of required packages
+  if(doParallel){
+    pkg <- c("ggplot2", "cowplot", "automap", "future.apply")
+  } else{
+    pkg <- c("ggplot2", "cowplot", "automap")
+  }
+  pkgna <- pkg[!(pkg %in% utils::installed.packages()[, "Package"])]
+  if(length(pkgna) > 0){
+    nm <- paste(pkgna, collapse = ", ")
+    message("This function requires these packages: ", nm, "\nWould you like to install them now?\n1: yes\n2: no")
+    user <- readline(prompt = paste0("Selection: "))
+    if(tolower(user) %in% c("1", "yes", "y")){
+      utils::install.packages(pkgna)
+    } else{
+      stop("Please install these packages: ", nm)
+    }
+  }
   if(!is.null(speciesData)){
     if((methods::is(speciesData, "SpatialPoints") || methods::is(speciesData, "sf"))==FALSE){
       stop("speciesData should be a sf or SpatialPoints object")
@@ -106,18 +121,18 @@ spatialAutoRange <- function(rasterLayer,
       stop("rasterLayer should not include any factor layer")
     }
     numLayer <- raster::nlayers(rasterLayer)
-    if(is.na(sp::proj4string(rasterLayer))){
+    if(is.na(raster::projection(rasterLayer))){
       mapext <- raster::extent(rasterLayer)[1:4]
       if(all(mapext >= -180) && all(mapext <= 180)){
-        raster::crs(rasterLayer) <- sp::CRS("+init=epsg:4326")
+        raster::projection(rasterLayer) <- "+proj=longlat +datum=WGS84 +no_defs"
         warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have geographic coordinate system")
       }
     }
     # reduce the sampleNumber if the raster does not have enough cells
     if(raster::ncell(rasterLayer) < 10 * sampleNumber && is.null(speciesData)){
-      rp <- raster::rasterToPoints(rasterLayer[[1]])
-      if(nrow(rp) < sampleNumber){
-        sampleNumber <- nrow(rp)
+      rp <- length(which(!is.na(raster::values(rasterLayer[[1]]))))
+      if(rp < sampleNumber){
+        sampleNumber <- rp
         message("The sampleNumber reduced to", sampleNumber, "; the total number of available cells.\n")
       }
     }
@@ -142,39 +157,15 @@ spatialAutoRange <- function(rasterLayer,
       message(paste("There are", numLayer, "raster layers\n"))
       if(doParallel){
         if(is.null(nCores)){
-          nCores <- ceiling(parallel::detectCores() / 2)
+          nCores <- ceiling(future::availableCores() / 2)
         }
-        # cl <- parallel::makeCluster(nCores) # use snow clusters
-        # doParallel::registerDoParallel(cl) # set up a parallel backend for foreach package
-        # pp <- foreach::foreach(r = seq_len(numLayer),
-        #                        .inorder = TRUE,
-        #                        .export = c("speciesData", "rasterLayer", "sampleNumber"),
-        #                        .packages = c('raster', 'automap', 'sf')) %dopar% {
-        #   if(is.null(speciesData)){
-        #     rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
-        #     # set.seed(2017)
-        #     points <- rasterPoints[sample(nrow(rasterPoints), sampleNumber, replace=FALSE), ]
-        #     names(points) <- "target"
-        #   } else{
-        #     points <- raster::extract(rasterLayer[[r]], speciesData, na.rm=TRUE, sp=TRUE)
-        #     names(points)[ncol(points)] <- "target"
-        #   }
-        #   fittedVar <- automap::autofitVariogram(target~1, points)
-        # }
-        # parallel::stopCluster(cl)
-        # # foreach::registerDoSEQ()
-        # snowfall::sfStop()
-        snowfall::sfInit(parallel = TRUE, cpus = nCores)
-        # snowfall::sfInit(parallel = FALSE)
-        snowfall::sfExport("speciesData", "rasterLayer", "sampleNumber")
-        snowfall::sfLibrary("sf", character.only = TRUE)
-        pp <- snowfall::sfClusterApplyLB(seq_len(numLayer),
-                                         function(x){fitvario(r = x,
-                                                              spdata = speciesData,
-                                                              rdata = rasterLayer,
-                                                              sn = sampleNumber)})
-
-        snowfall::sfStop()
+        suppressWarnings(future::plan("multiprocess", workers = nCores))
+        pp <- future.apply::future_lapply(seq_len(numLayer),
+                                          fitvario,
+                                          spdata = speciesData,
+                                          rdata = rasterLayer,
+                                          sn = sampleNumber)
+        future::plan("sequential")
         for(v in seq_len(length(pp))){
           df$range[v] <- pp[[v]]$var_model[2,3]
           df$sill[v] <- pp[[v]]$var_model[2,2]
@@ -184,7 +175,7 @@ spatialAutoRange <- function(rasterLayer,
       } else{
         if(progress){
           pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
-                                 total=numLayer, clear=FALSE, width=75) # add progress bar
+                                           total=numLayer, clear=FALSE, width=75) # add progress bar
         }
         for(r in seq_len(numLayer)){
           name <- names(rasterLayer[[r]])
@@ -219,7 +210,7 @@ spatialAutoRange <- function(rasterLayer,
     } else stop("The raster layer is empty!")
   } else stop("The input file is not a valid raster object")
   # creating the blocks based on calculated autocorrelation range
-  if(is.na(sp::proj4string(rasterLayer))){
+  if(is.na(raster::projection(rasterLayer))){
     mapext <- raster::extent(rasterLayer)[1:4]
     if(all(mapext >= -180) && all(mapext <= 180)){
       theRange2 <- theRange * 1000
@@ -230,13 +221,13 @@ spatialAutoRange <- function(rasterLayer,
       theRange2 <- theRange
     }
   } else{
-    if(sp::is.projected(sp::SpatialPoints(matrix(1:10, 5, byrow=FALSE), proj4string=raster::crs(rasterLayer)))){
-      theRange2 <- theRange
-    } else{
+    if(sf::st_is_longlat(sf::st_as_sf(data.frame(x=32:35,y=32:35), coords=c("x","y"), crs=raster::projection(rasterLayer)))){
       theRange2 <- theRange * 1000
       if(numLayer > 1){
         modelInfo$range <- modelInfo$range * 1000
       }
+    } else{
+      theRange2 <- theRange
     }
   }
   if(is.null(border)){
@@ -257,8 +248,8 @@ spatialAutoRange <- function(rasterLayer,
       ggplot2::theme_bw() +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle=75, hjust=1)) +
       ggplot2::ggtitle("Autocorrelation range", subtitle=paste("Based on", ptnum, "sample points"))+
-      ggplot2::guides(fill = FALSE)+
-      ggplot2::geom_hline(yintercept=theRange2, color='red', size=0.9, linetype=2)+
+      ggplot2::guides(fill = FALSE) +
+      ggplot2::geom_hline(yintercept=theRange2, color='red', size=0.9, linetype=2) +
       ggplot2::annotate("text", x=floor(nrow(modelInfo)/3),
                         y =  (theRange2 + (max(modelInfo$range)/20)),
                         label="Block size", color='red')
@@ -282,7 +273,7 @@ spatialAutoRange <- function(rasterLayer,
     ggplot2::theme_bw()
   if(showPlots){
     if(numLayer > 1){
-      multiplot(p1, p2)
+      plot(cowplot::plot_grid(p1, p2))
     } else{
       plot(p2)
     }
@@ -299,7 +290,6 @@ spatialAutoRange <- function(rasterLayer,
                       sampleNumber = sampleNumber,
                       variograms = fittedVar)
   }
-  # gc() # to release the occupied RAM in windows OS
   # specify the output class
   class(finalList) <- c("SpatialAutoRange")
   return(finalList)
@@ -317,7 +307,7 @@ print.SpatialAutoRange <- function(x, ...){
 #' @method plot SpatialAutoRange
 plot.SpatialAutoRange <- function(x, y, ...){
   if(length(x$plots) == 2){
-    multiplot(x$plots$barchart, x$plots$mapplot)
+    plot(cowplot::plot_grid(x$plots$barchart, x$plots$mapplot))
   } else{
     plot(x$plots$mapplot)
   }

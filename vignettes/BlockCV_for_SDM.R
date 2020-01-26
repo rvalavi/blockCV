@@ -125,9 +125,11 @@ class(sac)
 # summary statistics of the output
 summary(sac)
 
-## ---- fig.height=4, fig.width=7------------------------------------------
-plot(sac$variograms[[1]])
-
+## ---- eval=FALSE, fig.height=4, fig.width=7------------------------------
+#  library(automap)
+#  
+#  plot(sac$variograms[[1]])
+#  
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  # explore generated folds

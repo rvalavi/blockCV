@@ -67,7 +67,7 @@ This option no longer accepts NULL as input. If it is set to NULL, 0 is used ins
 
 \item{border}{A sf or SpatialPolygons object to clip the block based on it (optional).}
 
-\item{showBlocks}{Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer could be specified
+\item{showBlocks}{Logical. If TRUE the final blocks with fold numbers will be created with ggplot and plotted. A raster layer could be specified
 in \code{rasterlayer} argument to be as background.}
 
 \item{biomod2Format}{Logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
@@ -142,7 +142,7 @@ sb1 <- spatialBlock(speciesData = pa_data,
                     theRange = 70000,
                     k = 5,
                     selection = "random",
-                    iteration = 250,
+                    iteration = 100,
                     numLimit = NULL,
                     biomod2Format = TRUE,
                     xOffset = 0.3, # shift the blocks horizontally

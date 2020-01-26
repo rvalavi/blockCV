@@ -16,29 +16,29 @@ awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 
-r <- awt[[1]]
-r[r > 0] <- 1
-bound <- raster::rasterToPolygons(r, dissolve = TRUE)
+# r <- awt[[1]]
+# r[r > 0] <- 1
+# bound <- raster::rasterToPolygons(r, dissolve = TRUE)
 
 test_that("test spatiaBlock function with random assingment and raster file", {
 
   set.seed(1000)
-  expect_warning(
+  # expect_warning(
     sb1 <- spatialBlock(speciesData = pa_data,
                         species = "Species",
                         rasterLayer = awt,
                         theRange = 70000,
                         k = 5,
                         selection = "random",
-                        border = bound,
+                        # border = bound,
                         iteration = 5,
-                        numLimit = 0, ## should it be changed?
+                        numLimit = 0,
                         biomod2Format = TRUE,
                         xOffset = 0.3,
                         yOffset = 0.2,
                         showBlocks = FALSE,
                         progress = TRUE)
-  )
+  # )
 
   expect_true(exists("sb1"))
   expect_is(sb1, "SpatialBlock")
@@ -51,7 +51,7 @@ test_that("test spatiaBlock function with random assingment and raster file", {
   expect_is(sb1$blocks, "SpatialPolygonsDataFrame")
   expect_is(sb1$species, "character")
   expect_is(sb1$range, "numeric")
-  expect_is(sb1$plots, "ggplot")
+  expect_null(sb1$plots)
   expect_equal(dim(sb1$records), c(5, 4))
   expect_true(
     !all(sb1$records == 0)
@@ -65,7 +65,6 @@ test_that("test spatiaBlock function with systematic assingment and no raster fi
   sb2 <- spatialBlock(speciesData = sf::as_Spatial(pa_data),
                       rows = 5,
                       cols = 8,
-                      # border = bound,
                       k = 5,
                       selection = "systematic",
                       biomod2Format = FALSE,
@@ -184,7 +183,7 @@ test_that("test spatiaBlock with user-defined blocks", {
   expect_is(sb4$blocks, "SpatialPolygonsDataFrame")
   expect_null(sb4$species)
   expect_null(sb4$range)
-  expect_is(sb4$plots, "ggplot")
+  expect_null(sb4$plots)
   expect_equal(dim(sb4$records), c(2, 2))
   expect_true(
     !all(sb4$records == 0)
@@ -264,18 +263,6 @@ test_that("test spatialBlock failur: wrong user-defined blocks", {
 
 })
 
-test_that("test spatialBlock failur: wrong user-defined border", {
-
-  expect_error(
-    spatialBlock(speciesData = pa_data, # wrong speceis data
-                 species = "Species",
-                 rasterLayer = awt,
-                 border = r,
-                 theRange = 70000,
-                 k = 5)
-  )
-
-})
 
 test_that("test spatialBlock with no speceis column match", {
 
@@ -300,8 +287,24 @@ test_that("test spatialBlock with no speceis column match", {
 
 })
 
+# skip these on CRAN ------------------------------------------------------
+
+test_that("test spatialBlock failur: wrong user-defined border", {
+  skip_on_cran()
+
+  expect_error(
+    spatialBlock(speciesData = pa_data, # wrong speceis data
+                 species = "Species",
+                 rasterLayer = awt,
+                 border = r,
+                 theRange = 70000,
+                 k = 5)
+  )
+
+})
 
 test_that("test spatialBlock with no smaller mask raster", {
+  skip_on_cran()
 
   ext <- c(xmin = 206961.5,
            xmax = 481078.8,
@@ -317,8 +320,4 @@ test_that("test spatialBlock with no smaller mask raster", {
   )
   expect_true(exists("sb4"))
 
-
 })
-
-
-

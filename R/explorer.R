@@ -7,9 +7,6 @@
 #' @param rasterLayer A raster object as background map for visualisation.
 #' @inheritParams buffering
 #'
-#' @import ggplot2
-#' @import shiny
-#' @import shinydashboard
 #' @seealso \code{\link{spatialBlock}}, \code{\link{buffering}} and \code{\link{envBlock}}
 #'
 #' @return An interactive map showing folds and the species data, that can be used  to explore folds. Note that this can also
@@ -57,6 +54,20 @@
 #' }
 #'
 foldExplorer <- function(blocks, rasterLayer, speciesData){
+  # check for required packages
+  pkg <- c("ggplot2", "cowplot", "shiny", "shinydashboard")
+  pkgna <- pkg[!(pkg %in% utils::installed.packages()[, "Package"])]
+  if(length(pkgna) > 0){
+    nm <- paste(pkgna, collapse = ", ")
+    message("This function requires these packages: ", nm,
+            "\nWould you like to install them now?\n1: yes\n2: no")
+    user <- readline(prompt = paste0("Selection: "))
+    if(tolower(user) %in% c("1", "yes", "y")){
+      utils::install.packages(pkgna)
+    } else{
+      stop("Please install these packages: ", nm)
+    }
+  }
   # testing the input arguments
   if(is.null(rasterLayer)){
     stop("A raster layer should be provided")
@@ -174,7 +185,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
             ggplot2::ggtitle("Testing set")
         }
       }
-      multiplot(ptr, pts)
+      plot(cowplot::plot_grid(ptr, pts))
     })
     if(is.null(species)){
       output$Tr <- shiny::renderText({paste("Number of training records: ", blocks$records[input$num,1])})
@@ -211,10 +222,6 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' @param maxRange A numeric value to set the maximum possible range for creating spatial blocks. It is used to limit the searching
 #' domain of spatial block size.
 #'
-#' @import ggplot2
-#' @import shiny
-#' @import shinydashboard
-#'
 #' @seealso \code{\link{spatialBlock}}; \code{\link{spatialAutoRange}} for the \code{rangeTable}
 #'
 #' @return An interactive map with blocks (and optionally species data) superimposed. Note that this can also be opened in a
@@ -248,6 +255,20 @@ rangeExplorer <- function(rasterLayer,
                           rangeTable=NULL,
                           minRange=NULL,
                           maxRange=NULL){
+  # check for required packages
+  pkg <- c("ggplot2", "shiny", "shinydashboard", "geosphere")
+  pkgna <- pkg[!(pkg %in% utils::installed.packages()[, "Package"])]
+  if(length(pkgna) > 0){
+    nm <- paste(pkgna, collapse = ", ")
+    message("This function requires these packages: ", nm,
+            "\nWould you like to install them now?\n1: yes\n2: no")
+    user <- readline(prompt = paste0("Selection: "))
+    if(tolower(user) %in% c("1", "yes", "y")){
+      utils::install.packages(pkgna)
+    } else{
+      stop("Please install these packages: ", nm)
+    }
+  }
   if(!is.null(speciesData)){
     if(methods::is(speciesData, "SpatialPoints")){
       speciesData <- sf::st_as_sf(speciesData)
@@ -261,7 +282,7 @@ rangeExplorer <- function(rasterLayer,
   Ymx <- raster::ymax(rasterLayer)
   Ymn <- raster::ymin(rasterLayer)
   Ymean <- (Ymx - Ymn)/2
-  if(is.na(sp::proj4string(rasterLayer))){
+  if(is.na(raster::projection(rasterLayer))){
     mapext <- raster::extent(rasterLayer)[1:4]
     if(mapext >= -180 && mapext <= 180){
       xrange <- geosphere::distGeo(c(Xmx, Ymean), c(Xmn, Ymean))
@@ -280,20 +301,20 @@ rangeExplorer <- function(rasterLayer,
       yaxes <- "Northing"
     }
   } else{
-    if(sp::is.projected(sp::SpatialPoints((matrix(1:10, 5, byrow=FALSE)), proj4string=crs(rasterLayer)))){
-      xrange <- Xmx - Xmn
-      yrange <- Ymx - Ymn
-      maxy <- max(c(xrange, yrange))
-      resol <- raster::res(rasterLayer)
-      xaxes <- "Easting"
-      yaxes <- "Northing"
-    } else{
+    if(sf::st_is_longlat(sf::st_as_sf(data.frame(x=32:35,y=32:35), coords=c("x","y"), crs=raster::projection(rasterLayer)))){
       xrange <- geosphere::distGeo(c(Xmx, Ymean), c(Xmn, Ymean))
       yrange <- geosphere::distGeo(c(Xmn, Ymx), c(Xmn, Ymn))
       maxy <- max(c(xrange, yrange))
       resol <- raster::res(rasterLayer) * 111000
       xaxes <- "Longitude"
       yaxes <- "Latitude"
+    } else{
+      xrange <- Xmx - Xmn
+      yrange <- Ymx - Ymn
+      maxy <- max(c(xrange, yrange))
+      resol <- raster::res(rasterLayer)
+      xaxes <- "Easting"
+      yaxes <- "Northing"
     }
   }
   samp <- raster::sampleRegular(rasterLayer[[1]], 5e+05, asRaster=TRUE)

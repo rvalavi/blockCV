@@ -220,12 +220,15 @@ To see the details of the fitted variograms:
 summary(sac)
 ```
 
-To visualise them: 
+To visualise them (this needs the automap package to be loaded): 
 
-```{r, fig.height=4, fig.width=7}
+```{r, eval=FALSE, fig.height=4, fig.width=7}
+library(automap)
+
 plot(sac$variograms[[1]])
 
 ```
+![](../man/figures/variogram.jpeg)
    
    
 ## Visualisation tools

@@ -29,5 +29,5 @@
 #' @name blockCV
 #' @docType package
 #' @author Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita
-#' @import sf raster automap snowfall ggplot2 shiny progress
+#' @import sf raster progress
 NULL

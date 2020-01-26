@@ -3,7 +3,7 @@
 #' Environmental blocking for cross-validation. This function uses clustering methods to specify sets of similar environmental
 #' conditions based on the input covariates. Species data corresponding to any of these groups or clusters are assigned to a
 #' fold. This function does the clustering in raster space and species data. Clustering is done using \code{\link[stats]{kmeans}}
-#' for both approaches (for raster using \pkg{RStoolbox} which use the same function internally). This function works on single or
+#' for both approaches. This function works on single or
 #' multiple raster files; multiple rasters need to be in a raster brick or stack format.
 #'
 #' As k-means algorithms use Euclidean distance to estimate clusters, the input covariates should be quantitative variables. Since
@@ -26,6 +26,7 @@
 #' @inheritParams spatialBlock
 #' @param rasterBlock Logical. If TRUE, the clustering is done in the raster layer rather than species data. See details for
 #' more information.
+#' @param sampleNumber Integer. The number of samples from raster layers to build the clusters.
 #' @param standardization Standardize input raster layers. Three possible inputs are "normal" (the default), "standard" and "none".
 #' See details for more information.
 #' @param numLimit Integer value. The minimum number of points in each category of data (\emph{train_0},
@@ -35,7 +36,7 @@
 #'
 #' @seealso \code{\link{spatialBlock}} and \code{\link{buffering}} for alternative blocking strategies; \code{\link{foldExplorer}}
 #' for visualisation of the generated folds.
-#' @seealso For \emph{DataSplitTable} see \code{\link[biomod2]{BIOMOD_cv}} in \pkg{biomod2} package. \code{\link[RStoolbox]{unsuperClass}}
+#' @seealso For \emph{DataSplitTable} see \code{\link[biomod2]{BIOMOD_cv}} in \pkg{biomod2} package.
 #' for clustering.
 #'
 #' @references Hastie, T., Tibshirani, R., & Friedman, J. (2009). The elements of statistical learning: Data Mining, Inference,
@@ -80,6 +81,7 @@ envBlock <- function(rasterLayer,
                      k = 5,
                      standardization = "normal",
                      rasterBlock = TRUE,
+                     sampleNumber = 10000,
                      biomod2Format = TRUE,
                      numLimit = 0,
                      verbose = TRUE){
@@ -109,12 +111,21 @@ envBlock <- function(rasterLayer,
         rasterLayer <- rasterLayer
       }
       if(rasterBlock==TRUE){
-        unsClass <- RStoolbox::unsuperClass(rasterLayer, nSamples = 10000, nClasses = k, nIter = 500) # more samples or a new argument?!
-        unsMap <- unsClass$map
-        speciesData$fold <- raster::extract(unsMap, speciesData)
-        if(anyNA(speciesData$fold)){
+        ext <- raster::extract(rasterLayer, speciesData)
+        if(anyNA(ext)){
           stop("The input raster layer does not cover all the species points.")
         }
+        # check number of raster cells
+        if(raster::ncell(rasterLayer) < 10 * sampleNumber){
+          rp <- length(which(!is.na(raster::values(rasterLayer[[1]]))))
+          if(rp < sampleNumber)
+            sampleNumber <- rp
+        }
+        sampr <- raster::sampleRandom(rasterLayer, size = sampleNumber)
+        sampr <- sampr[stats::complete.cases(sampr), ]
+        sampr <- rbind(ext, sampr)
+        kms <- stats::kmeans(sampr, centers = k, iter.max = 500, nstart = 25)
+        speciesData$fold <- kms$cluster[seq_len(nrow(speciesData))]
       } else{
         ext <- raster::extract(rasterLayer, speciesData)
         if(anyNA(ext)){
@@ -124,7 +135,7 @@ envBlock <- function(rasterLayer,
         speciesData$fold <- kms$cluster
       }
       if(is.null(species)){
-        trainTestTable <- base::data.frame(train = rep(0, k), test = 0)
+        trainTestTable <- data.frame(train = rep(0, k), test = 0)
       } else{
         cl <- sort(unique(speciesData[, species, drop = TRUE]))
         clen <- length(cl)

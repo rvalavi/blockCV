@@ -1,3 +1,10 @@
+# version 2.1.0
+* snowfall package for parallel processing is replaces by future.apply package; #7
+* future.apply, shiny, shinydashboard, geosphere and ggplot2 packages moved to SUGGESTION packages. These are not install by default and the user is asked if needed. #7
+* RStoolbox is no longer used for clustering
+* an argument is added to envBlock function for sampling from raster layers
+* no dependency on sp package any more
+
 # version 2.0.1
 * print() and cat() are removed from the functions and verbose argument is added instead
 

@@ -51,7 +51,7 @@
 #' @param degMetre Integer. The conversion rate of metres to degree. See the details section for more information.
 #' @param rasterLayer A raster object for visualisation (optional). If provided, this will be used to specify the blocks covering the area.
 #' @param border A sf or SpatialPolygons object to clip the block based on it (optional).
-#' @param showBlocks Logical. If TRUE the final blocks with fold numbers will be plotted. A raster layer could be specified
+#' @param showBlocks Logical. If TRUE the final blocks with fold numbers will be created with ggplot and plotted. A raster layer could be specified
 #' in \code{rasterlayer} argument to be as background.
 #' @param biomod2Format Logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 #' a \emph{DataSplitTable} for cross-validation.
@@ -109,7 +109,7 @@
 #'                     theRange = 70000,
 #'                     k = 5,
 #'                     selection = "random",
-#'                     iteration = 250,
+#'                     iteration = 100,
 #'                     numLimit = NULL,
 #'                     biomod2Format = TRUE,
 #'                     xOffset = 0.3, # shift the blocks horizontally
@@ -146,6 +146,20 @@ spatialBlock <- function(speciesData,
                          yOffset = 0,
                          progress = TRUE,
                          verbose = TRUE){
+  if(showBlocks){
+    # check for availability of ggplot2
+    pkg <- c("ggplot2")
+    pkgna <- pkg[!(pkg %in% utils::installed.packages()[, "Package"])]
+    if(length(pkgna) > 0){
+      message("This function requires ", pkg, " package for plotting.", "\nWould you like to install it now?\n1: yes\n2: no")
+      user <- readline(prompt = paste0("Selection: "))
+      if(tolower(user) %in% c("1", "yes", "y")){
+        utils::install.packages(pkgna)
+      } else{
+        stop("Please install ggplot2 package or set showBlocks = FALSE.")
+      }
+    }
+  }
   if(!is.element(selection, c("systematic", "random", "checkerboard"))){
     stop("The selection argument must be 'systematic', 'random' or 'checkerboard'")
   }
@@ -275,7 +289,7 @@ spatialBlock <- function(speciesData,
       subBlocksDF <- merge(x = subBlocksDF, y = foldDF, by = "blocks", all.x = TRUE)
     }
     if(is.null(species)){
-      trainTestTable <- base::data.frame(train=rep(0, k), test=0)
+      trainTestTable <- data.frame(train=rep(0, k), test=0)
     } else{
       cl <- sort(unique(speciesData[, species, drop = TRUE]))
       clen <- length(cl)
@@ -351,29 +365,9 @@ spatialBlock <- function(speciesData,
   fold_of_block <- fold_of_block[!duplicated(fold_of_block), ]
   fold_of_block <- fold_of_block[order(fold_of_block$blocks), ]
   subBlocks$folds <- fold_of_block$folds
-  if(is.null(rasterLayer)){
-    p2 <- ggplot2::ggplot() +
-      ggplot2::geom_sf(data = subBlocks,
-                       color ="red",
-                       fill ="orangered4",
-                       alpha = 0.04,
-                       size = 0.2) +
-      ggplot2::geom_sf_text(ggplot2::aes_string(label = "folds"),
-                            data = subBlocks) +
-      ggplot2::labs(x = "", y = "") + # or set the axes labes to NULL
-      ggplot2::ggtitle("Spatial blocks",
-                       subtitle=paste("The", selection, "fold assignment")) +
-      ggplot2::theme_bw()
-  } else{
-    if(methods::is(rasterLayer, "Raster")){
-      samp <- raster::sampleRegular(rasterLayer[[1]], 5e+05, asRaster=TRUE)
-      map_df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
-      colnames(map_df) <- c("Easting", "Northing", "MAP")
-      mid <- stats::median(map_df$MAP)
+  if(showBlocks){
+    if(is.null(rasterLayer)){
       p2 <- ggplot2::ggplot() +
-        ggplot2::geom_raster(data = map_df, ggplot2::aes_string(y="Northing", x="Easting", fill="MAP")) +
-        ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
-        ggplot2::guides(fill = FALSE) +
         ggplot2::geom_sf(data = subBlocks,
                          color ="red",
                          fill ="orangered4",
@@ -381,17 +375,39 @@ spatialBlock <- function(speciesData,
                          size = 0.2) +
         ggplot2::geom_sf_text(ggplot2::aes_string(label = "folds"),
                               data = subBlocks) +
-        ggplot2::labs(x = "", y = "") + # set the axes labes to NULL
+        ggplot2::labs(x = "", y = "") + # or set the axes labes to NULL
         ggplot2::ggtitle("Spatial blocks",
                          subtitle=paste("The", selection, "fold assignment")) +
         ggplot2::theme_bw()
+    } else{
+      if(methods::is(rasterLayer, "Raster")){
+        samp <- raster::sampleRegular(rasterLayer[[1]], 5e+05, asRaster=TRUE)
+        map_df <- raster::as.data.frame(samp, xy=TRUE, centroids=TRUE, na.rm=TRUE)
+        colnames(map_df) <- c("Easting", "Northing", "MAP")
+        mid <- stats::median(map_df$MAP)
+        p2 <- ggplot2::ggplot() +
+          ggplot2::geom_raster(data = map_df, ggplot2::aes_string(y="Northing", x="Easting", fill="MAP")) +
+          ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
+          ggplot2::guides(fill = FALSE) +
+          ggplot2::geom_sf(data = subBlocks,
+                           color ="red",
+                           fill ="orangered4",
+                           alpha = 0.04,
+                           size = 0.2) +
+          ggplot2::geom_sf_text(ggplot2::aes_string(label = "folds"),
+                                data = subBlocks) +
+          ggplot2::labs(x = "", y = "") + # set the axes labes to NULL
+          ggplot2::ggtitle("Spatial blocks",
+                           subtitle=paste("The", selection, "fold assignment")) +
+          ggplot2::theme_bw()
+      }
     }
-  }
-  if(showBlocks==TRUE){
     plot(p2)
+  } else{
+    p2 <- NULL
   }
   # save the objects
-  if(biomod2Format==TRUE){
+  if(biomod2Format){
     biomodTable <- as.matrix(biomodTable)
     biomodTable2 <- biomodTable
   } else{
@@ -421,7 +437,11 @@ print.SpatialBlock <- function(x, ...){
 #' @export
 #' @method plot SpatialBlock
 plot.SpatialBlock <- function(x, y, ...){
-  plot(x$plots)
+  if(is.null(x$plots)){
+    plot(x$blocks)
+  } else{
+    plot(x$plots)
+  }
   message("Please use foldExplorer function to plot each fold interactively.")
 }
 

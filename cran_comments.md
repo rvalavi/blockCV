@@ -1,6 +1,7 @@
 ## Test environments
 * local OS X install, R 3.6.1
-* win-builder
+* windows-x86_64-release
+* debian-gcc-release
 
 ## R CMD check results
 There were no ERRORs or WARNINGs.
