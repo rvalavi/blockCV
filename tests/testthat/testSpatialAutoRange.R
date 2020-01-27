@@ -152,7 +152,7 @@ test_that("test spatialAutoRange function with single-layer raster and species d
   skip_on_cran()
 
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-  pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
+  pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::projection(awt))
 
   range3 <- spatialAutoRange(rasterLayer = awt[[1]],
                              speciesData = pa_data,
@@ -177,7 +177,7 @@ test_that("test spatialAutoRange function with species data", {
   skip_on_cran()
 
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-  pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
+  pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::projection(awt))
 
   range3 <- spatialAutoRange(rasterLayer = awt,
                              speciesData = pa_data,
@@ -201,7 +201,7 @@ test_that("test spatialAutoRange with no parallel and species data", {
   skip_on_cran()
 
   PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-  pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
+  pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::projection(awt))
 
   range3 <- spatialAutoRange(rasterLayer = awt,
                              speciesData = pa_data,

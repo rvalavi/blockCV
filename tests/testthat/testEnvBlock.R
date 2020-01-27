@@ -12,7 +12,7 @@ expect_names <- c("folds",
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
 awt <- awt[[1:3]]
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
+pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::projection(awt))
 
 test_that("test that environmental blocking function with rasterBlock, standard and species column", {
 

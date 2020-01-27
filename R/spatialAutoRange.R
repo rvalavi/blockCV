@@ -133,7 +133,7 @@ spatialAutoRange <- function(rasterLayer,
       rp <- length(which(!is.na(raster::values(rasterLayer[[1]]))))
       if(rp < sampleNumber){
         sampleNumber <- rp
-        message("The sampleNumber reduced to", sampleNumber, "; the total number of available cells.\n")
+        message("The sampleNumber reduced to ", sampleNumber, "; the total number of available cells.\n")
       }
     }
     if(numLayer==1){

@@ -118,8 +118,10 @@ envBlock <- function(rasterLayer,
         # check number of raster cells
         if(raster::ncell(rasterLayer) < 10 * sampleNumber){
           rp <- length(which(!is.na(raster::values(rasterLayer[[1]]))))
-          if(rp < sampleNumber)
+          if(rp < sampleNumber){
             sampleNumber <- rp
+            message("The sampleNumber reduced to ", sampleNumber, "; the total number of available cells.\n")
+          }
         }
         sampr <- raster::sampleRandom(rasterLayer, size = sampleNumber)
         sampr <- sampr[stats::complete.cases(sampr), ]
