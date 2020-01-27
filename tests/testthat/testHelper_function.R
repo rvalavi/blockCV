@@ -3,12 +3,12 @@ library(blockCV)
 context("external helper functions fully")
 
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-suppressWarnings(awt_wgs <- raster::projectRaster(awt, crs = "+proj=longlat +datum=WGS84 +no_defs"))
 PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
 
 test_that("helper function with no CRS", {
 
+  expect_warning(awt_wgs <- raster::projectRaster(awt, crs = "+proj=longlat +datum=WGS84 +no_defs"))
   raster::crs(awt_wgs) <- NA
 
   expect_warning(

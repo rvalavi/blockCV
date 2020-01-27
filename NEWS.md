@@ -4,6 +4,7 @@
 * RStoolbox is no longer used for clustering
 * an argument is added to envBlock function for sampling from raster layers
 * no dependency on sp package any more
+* doParallel = FALSE by default in spatialAutoRange function
 
 # version 2.0.1
 * print() and cat() are removed from the functions and verbose argument is added instead

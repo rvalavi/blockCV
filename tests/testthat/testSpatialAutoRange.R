@@ -104,7 +104,7 @@ test_that("test spatialAutoRange for wrong input", {
 test_that("test spatialAutoRange function with WGS84 raster with NA crs", {
   skip_on_cran()
 
-  suppressWarnings(awt_wgs <- raster::projectRaster(awt, crs = "+proj=longlat +datum=WGS84 +no_defs"))
+  expect_warning(awt_wgs <- raster::projectRaster(awt, crs = "+proj=longlat +datum=WGS84 +no_defs"))
   raster::projection(awt_wgs) <- NA
   # pa_data_wgs <- sf::st_transform(pa_data, crs = raster::crs(awt_wgs))
   expect_warning(
