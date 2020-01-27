@@ -110,7 +110,6 @@ fitvario <- function(r, spdata, rdata, sn){
     points <- raster::extract(rdata[[r]], spdata, na.rm = TRUE, sp = TRUE)
     names(points)[ncol(points)] <- "target"
   }
-  # pb$tick()
   fittedVar <- automap::autofitVariogram(target~1, points)
   return(fittedVar)
 }

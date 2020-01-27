@@ -179,19 +179,9 @@ spatialAutoRange <- function(rasterLayer,
         }
         for(r in seq_len(numLayer)){
           name <- names(rasterLayer[[r]])
-          if(is.null(speciesData)){
-            rasterPoints <- raster::rasterToPoints(rasterLayer[[r]], spatial=TRUE)
-            set.seed(2017)
-            points <- rasterPoints[sample(nrow(rasterPoints), sampleNumber, replace=FALSE), ]
-            names(points) <- "target"
-          } else{
-            points <- raster::extract(rasterLayer[[r]], speciesData, na.rm=TRUE, sp=TRUE)
-            names(points)[ncol(points)] <- "target"
-          }
-          fittedVar <- automap::autofitVariogram(target~1, points)
-          variogramList[[r]] <- fittedVar
-          df$range[r] <- fittedVar$var_model[2,3]
-          df$sill[r] <- fittedVar$var_model[2,2]
+          variogramList[[r]] <- fitvario(r, spdata = speciesData, rdata = rasterLayer, sn = sampleNumber)
+          df$range[r] <- variogramList[[r]]$var_model[2,3]
+          df$sill[r] <- variogramList[[r]]$var_model[2,2]
           df$layers[r] <- name;
           if(progress){
             pb$tick() # update progress bar
