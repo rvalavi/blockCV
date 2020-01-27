@@ -8,8 +8,8 @@ pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
 
 test_that("helper function with no CRS", {
 
-  expect_warning(awt_wgs <- raster::projectRaster(awt, crs = "+proj=longlat +datum=WGS84 +no_defs"))
-  raster::crs(awt_wgs) <- NA
+  awt_wgs <- raster::projectRaster(from = awt, crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+  raster::projection(awt_wgs) <- NA
 
   expect_warning(
     net <- blockCV:::rasterNet(x = awt_wgs, resolution = 70000, mask = TRUE)

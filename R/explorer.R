@@ -301,7 +301,7 @@ rangeExplorer <- function(rasterLayer,
       yaxes <- "Northing"
     }
   } else{
-    if(sf::st_is_longlat(sf::st_as_sf(data.frame(x=32:35,y=32:35), coords=c("x","y"), crs=raster::projection(rasterLayer)))){
+    if(raster::isLonLat(rasterLayer)){
       xrange <- geosphere::distGeo(c(Xmx, Ymean), c(Xmn, Ymean))
       yrange <- geosphere::distGeo(c(Xmn, Ymx), c(Xmn, Ymn))
       maxy <- max(c(xrange, yrange))

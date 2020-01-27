@@ -23,7 +23,7 @@ rasterNet <- function(x,
       warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have a projected reference system")
     }
   } else{
-    if(sf::st_is_longlat(sf::st_as_sf(data.frame(x=32:35,y=32:35), coords=c("x","y"), crs=raster::projection(x)))){
+    if(raster::isLonLat(x)){
       resolution <- resolution / degree
     } else{
       resolution <- resolution
