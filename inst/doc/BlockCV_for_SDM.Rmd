@@ -23,7 +23,7 @@ This document presents the main functions of the package and illustrates its usa
 The **`blockCV`** is available in GitHub and it will be available in *CRAN* soon. It is recommended to install the dependencies of the package. To install the package from GitHub use:
 
 ```{r, eval=FALSE}
-devtools::install_github("rvalavi/blockCV")
+remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
 ```
 
 ```{r, results="hide", warning=FALSE, message=FALSE}

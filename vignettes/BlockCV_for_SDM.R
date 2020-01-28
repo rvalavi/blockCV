@@ -1,5 +1,5 @@
 ## ---- eval=FALSE---------------------------------------------------------
-#  devtools::install_github("rvalavi/blockCV")
+#  remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
 
 ## ---- results="hide", warning=FALSE, message=FALSE-----------------------
 # loading the package
