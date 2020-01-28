@@ -101,30 +101,30 @@ test_that("test spatialAutoRange for wrong input", {
 
 # skip these on CRAN ------------------------------------------------------
 
-test_that("test spatialAutoRange function with WGS84 raster with NA crs", {
-  skip_on_cran()
-
-  suppressWarnings(awt_wgs <- raster::projectRaster(awt, crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
-  raster::projection(awt_wgs) <- NA
-  # pa_data_wgs <- sf::st_transform(pa_data, crs = raster::crs(awt_wgs))
-  expect_warning(
-  range1 <- spatialAutoRange(rasterLayer = awt_wgs,
-                             # speciesData = pa_data_wgs,
-                             doParallel = FALSE,
-                             showPlots = FALSE)
-  )
-
-  expect_true(exists("range1"))
-  expect_is(range1, "SpatialAutoRange")
-  expect_equal(names(range1), expect_names)
-  expect_is(range1$range, "numeric")
-  expect_true(range1$range >= 0)
-  expect_true(!is.null(range1$variograms))
-  expect_true(
-    all(names(awt_wgs) %in% range1$rangeTable$layers)
-  )
-
-})
+# test_that("test spatialAutoRange function with WGS84 raster with NA crs", {
+#   skip_on_cran()
+#
+#   suppressWarnings(awt_wgs <- raster::projectRaster(awt, crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+#   raster::projection(awt_wgs) <- NA
+#   # pa_data_wgs <- sf::st_transform(pa_data, crs = raster::crs(awt_wgs))
+#   expect_warning(
+#   range1 <- spatialAutoRange(rasterLayer = awt_wgs,
+#                              # speciesData = pa_data_wgs,
+#                              doParallel = FALSE,
+#                              showPlots = FALSE)
+#   )
+#
+#   expect_true(exists("range1"))
+#   expect_is(range1, "SpatialAutoRange")
+#   expect_equal(names(range1), expect_names)
+#   expect_is(range1$range, "numeric")
+#   expect_true(range1$range >= 0)
+#   expect_true(!is.null(range1$variograms))
+#   expect_true(
+#     all(names(awt_wgs) %in% range1$rangeTable$layers)
+#   )
+#
+# })
 
 test_that("test spatialAutoRange function with single-layer raster", {
   skip_on_cran()
