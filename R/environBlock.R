@@ -94,7 +94,7 @@ envBlock <- function(rasterLayer,
   ## check if species is a col in speciesData
   if(!is.null(species)){
     if(species %in% colnames(speciesData) == FALSE){
-      cat("There is no match between the columns name in 'speciesData' and 'species' argument (response variable).\n")
+      warning("There is no match between the columns name in 'speciesData' and 'species' argument (the response variable).\n")
       species <- NULL
     }
   }

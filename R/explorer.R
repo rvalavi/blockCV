@@ -15,6 +15,7 @@
 #'
 #' @examples
 #' \donttest{
+#' if(interactive()){
 #'
 #' # load package data
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
@@ -52,11 +53,12 @@
 #' foldExplorer(eb, awt, pa_data)
 #'
 #' }
+#' }
 #'
 foldExplorer <- function(blocks, rasterLayer, speciesData){
   # check for required packages
   pkg <- c("ggplot2", "cowplot", "shiny", "shinydashboard")
-  pkgna <- pkg[!(pkg %in% utils::installed.packages()[, "Package"])]
+  pkgna <- names(which(sapply(sapply(pkg, find.package, quiet = TRUE), length) == 0))
   if(length(pkgna) > 0){
     nm <- paste(pkgna, collapse = ", ")
     message("This function requires these packages: ", nm,
@@ -230,6 +232,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #'
 #' @examples
 #' \donttest{
+#' if(interactive()){
 #'
 #' # load package data
 #' awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
@@ -247,7 +250,7 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #'               rangeTable = NULL,
 #'               minRange = 30000, # limit the search domain
 #'               maxRange = 100000)
-#'
+#' }
 #' }
 rangeExplorer <- function(rasterLayer,
                           speciesData=NULL,
@@ -257,7 +260,7 @@ rangeExplorer <- function(rasterLayer,
                           maxRange=NULL){
   # check for required packages
   pkg <- c("ggplot2", "shiny", "shinydashboard", "geosphere")
-  pkgna <- pkg[!(pkg %in% utils::installed.packages()[, "Package"])]
+  pkgna <- names(which(sapply(sapply(pkg, find.package, quiet = TRUE), length) == 0))
   if(length(pkgna) > 0){
     nm <- paste(pkgna, collapse = ", ")
     message("This function requires these packages: ", nm,

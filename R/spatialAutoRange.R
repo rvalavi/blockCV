@@ -100,7 +100,7 @@ spatialAutoRange <- function(rasterLayer,
   } else{
     pkg <- c("ggplot2", "cowplot", "automap")
   }
-  pkgna <- pkg[!(pkg %in% utils::installed.packages()[, "Package"])]
+  pkgna <- names(which(sapply(sapply(pkg, find.package, quiet = TRUE), length) == 0))
   if(length(pkgna) > 0){
     nm <- paste(pkgna, collapse = ", ")
     message("This function requires these packages: ", nm, "\nWould you like to install them now?\n1: yes\n2: no")

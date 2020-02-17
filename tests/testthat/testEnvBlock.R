@@ -70,12 +70,14 @@ test_that("test that environmental blocking function with no rasterBlock, normal
 
 test_that("test that environmental blocking with no standardisation and species column", {
 
+  expect_warning(
   eb <- envBlock(rasterLayer = awt,
                  speciesData = pa_data,
                  species = "response", # wrong column name
                  k = 5,
                  standardization = "none",
                  rasterBlock = TRUE)
+  )
 
   expect_true(exists("eb"))
   expect_is(eb, "EnvironmentalBlock")

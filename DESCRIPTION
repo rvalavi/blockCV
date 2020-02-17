@@ -1,8 +1,8 @@
 Package: blockCV
 Type: Package
 Title: Spatial and Environmental Blocking for K-Fold Cross-Validation
-Version: 2.1.0
-Date: 2020-01-26
+Version: 2.1.1
+Date: 2020-02-16
 Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "valavi.r@gmail.com"),
              person("Jane", "Elith", role = "aut",
@@ -23,7 +23,7 @@ Imports:
   raster (>= 2.5-8),
   sf (>= 0.8-0),
   progress
-RoxygenNote: 6.1.99.9001
+RoxygenNote: 7.0.2
 Suggests: 
   knitr,
   ggplot2 (>= 3.2.1),

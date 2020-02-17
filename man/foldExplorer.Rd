@@ -23,6 +23,7 @@ using the \pkg{RStudio Shiny} app.
 }
 \examples{
 \donttest{
+if(interactive()){
 
 # load package data
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
@@ -59,6 +60,7 @@ eb <- envBlock(rasterLayer = awt,
 
 foldExplorer(eb, awt, pa_data)
 
+}
 }
 
 }

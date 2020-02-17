@@ -47,6 +47,7 @@ of block sizes by using the \code{minRange} and \code{maxRanege} arguments.
 }
 \examples{
 \donttest{
+if(interactive()){
 
 # load package data
 awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
@@ -64,7 +65,7 @@ rangeExplorer(rasterLayer = awt,
               rangeTable = NULL,
               minRange = 30000, # limit the search domain
               maxRange = 100000)
-
+}
 }
 }
 \seealso{

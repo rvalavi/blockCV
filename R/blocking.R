@@ -149,7 +149,7 @@ spatialBlock <- function(speciesData,
   if(showBlocks){
     # check for availability of ggplot2
     pkg <- c("ggplot2")
-    pkgna <- pkg[!(pkg %in% utils::installed.packages()[, "Package"])]
+    pkgna <- names(which(sapply(sapply(pkg, find.package, quiet = TRUE), length) == 0))
     if(length(pkgna) > 0){
       message("This function requires ", pkg, " package for plotting.", "\nWould you like to install it now?\n1: yes\n2: no")
       user <- readline(prompt = paste0("Selection: "))
