@@ -32,7 +32,11 @@ To install the package from GitHub use:
 ```r
 remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
 ```
+Or installing from CRAN:
 
+```r
+install.packages("blockCV", dependencies = TRUE)
+```
 
 ## Vignette
 To see the vignette of the package use:
