@@ -1,3 +1,7 @@
+# version 2.1.2
+* predefined folds from user-defined blocks are noe accepted
+* add seed argument to spatialBlock to have consistent results where needed
+
 # version 2.1.0
 * snowfall package for parallel processing is replaces by future.apply package; #7
 * future.apply, shiny, shinydashboard, geosphere and ggplot2 packages moved to SUGGESTION packages. These are not install by default and the user is asked if needed. #7

@@ -7,7 +7,6 @@
 spatialBlock(
   speciesData,
   species = NULL,
-  blocks = NULL,
   rasterLayer = NULL,
   theRange = NULL,
   rows = NULL,
@@ -15,6 +14,8 @@ spatialBlock(
   k = 5L,
   selection = "random",
   iteration = 100L,
+  blocks = NULL,
+  foldsCol = NULL,
   numLimit = 0L,
   maskBySpecies = TRUE,
   degMetre = 111325,
@@ -23,6 +24,7 @@ spatialBlock(
   biomod2Format = TRUE,
   xOffset = 0,
   yOffset = 0,
+  seed = NULL,
   progress = TRUE,
   verbose = TRUE
 )
@@ -36,9 +38,6 @@ multi-class responses} e.g. species presence-absence/background or land cover cl
 If \code{speceis = NULL} the response classes will be treated the same and only training and testing records
 will be counted and balanced.}
 
-\item{blocks}{A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
-the species points.}
-
 \item{rasterLayer}{A raster object for visualisation (optional). If provided, this will be used to specify the blocks covering the area.}
 
 \item{theRange}{Numeric value of the specified range by which blocks are created and training/testing data are separated.
@@ -50,12 +49,18 @@ This distance should be in \strong{metres}. The range could be explored by \code
 
 \item{k}{Integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.}
 
-\item{selection}{Type of assignment of blocks into  folds. Can be \strong{random} (default), \strong{systematic} or \strong{checkerboard}.
-The checkerboard does not work with user-defined spatial blocks.}
+\item{selection}{Type of assignment of blocks into folds. Can be \strong{random} (default), \strong{systematic}, \strong{checkerboard}, or \strong{predefined}.
+The checkerboard does not work with user-defined spatial blocks. If the selection = 'predefined', user-defined blocks and foldsCol must be supplied.}
 
 \item{iteration}{Integer value. The number of attempts to create folds that fulfil the set requirement for minimum number
 of points in each trainig and testing fold (for each response class e.g. \emph{train_0}, \emph{train_1}, \emph{test_0}
 and \emph{test_1}), as specified by \code{species} and \code{numLimit} arguments.}
+
+\item{blocks}{A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
+the species (response) points. If the selection = 'predefined', this argument (and foldsCol) must be supplied.}
+
+\item{foldsCol}{Character. Indicating the name of the column (in user-defined blocks) in which the associated folds are stored.
+This argument is necessary if you choose the 'predefined' selection.}
 
 \item{numLimit}{Integer value. The minimum number of points in each training and testing folds.
 If \code{numLimit = 0}, the most evenly dispersed number of records is chosen (given the number of iteration).
@@ -77,6 +82,8 @@ a \emph{DataSplitTable} for cross-validation.}
 The value is the proportion of block size.}
 
 \item{yOffset}{Numeric value between \strong{0} and \strong{1} for shifting the blocks vertically. The value is the proportion of block size.}
+
+\item{seed}{Integer. A random seed generator for reproducibility.}
 
 \item{progress}{Logical. If TRUE shows a progress bar when \code{numLimit = NULL} in random fold selection.}
 

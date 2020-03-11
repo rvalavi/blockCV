@@ -34,16 +34,18 @@
 #' multi-class responses} e.g. species presence-absence/background or land cover classes for remote sensing image classification.
 #' If \code{speceis = NULL} the response classes will be treated the same and only training and testing records
 #' will be counted and balanced.
-#' @param blocks A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
-#' the species points.
 #' @param theRange Numeric value of the specified range by which blocks are created and training/testing data are separated.
 #' This distance should be in \strong{metres}. The range could be explored by \code{spatialAutoRange()} and \code{rangeExplorer()} functions.
 #' @param k Integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.
-#' @param selection Type of assignment of blocks into  folds. Can be \strong{random} (default), \strong{systematic} or \strong{checkerboard}.
-#' The checkerboard does not work with user-defined spatial blocks.
+#' @param selection Type of assignment of blocks into folds. Can be \strong{random} (default), \strong{systematic}, \strong{checkerboard}, or \strong{predefined}.
+#' The checkerboard does not work with user-defined spatial blocks. If the selection = 'predefined', user-defined blocks and foldsCol must be supplied.
 #' @param iteration Integer value. The number of attempts to create folds that fulfil the set requirement for minimum number
 #' of points in each trainig and testing fold (for each response class e.g. \emph{train_0}, \emph{train_1}, \emph{test_0}
 #' and \emph{test_1}), as specified by \code{species} and \code{numLimit} arguments.
+#' @param blocks A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
+#' the species (response) points. If the selection = 'predefined', this argument (and foldsCol) must be supplied.
+#' @param foldsCol Character. Indicating the name of the column (in user-defined blocks) in which the associated folds are stored.
+#' This argument is necessary if you choose the 'predefined' selection.
 #' @param numLimit Integer value. The minimum number of points in each training and testing folds.
 #' If \code{numLimit = 0}, the most evenly dispersed number of records is chosen (given the number of iteration).
 #' This option no longer accepts NULL as input. If it is set to NULL, 0 is used instead.
@@ -61,6 +63,7 @@
 #' @param xOffset Numeric value between \strong{0} and \strong{1} for shifting the blocks horizontally.
 #' The value is the proportion of block size.
 #' @param yOffset Numeric value between \strong{0} and \strong{1} for shifting the blocks vertically. The value is the proportion of block size.
+#' @param seed Integer. A random seed generator for reproducibility.
 #' @param verbose Logical. To print the report of the recods per fold.
 #'
 #' @seealso \code{\link{spatialAutoRange}} and \code{\link{rangeExplorer}} for selecting block size; \code{\link{buffering}}
@@ -128,7 +131,6 @@
 #' }
 spatialBlock <- function(speciesData,
                          species = NULL,
-                         blocks = NULL,
                          rasterLayer = NULL,
                          theRange = NULL,
                          rows = NULL,
@@ -136,14 +138,17 @@ spatialBlock <- function(speciesData,
                          k = 5L,
                          selection = "random",
                          iteration = 100L,
+                         blocks = NULL,
+                         foldsCol = NULL,
                          numLimit = 0L,
-                         maskBySpecies = TRUE,
+                         maskBySpecies = TRUE, # remove in the next version
                          degMetre = 111325,
                          border = NULL,
                          showBlocks = TRUE,
                          biomod2Format = TRUE,
                          xOffset = 0,
                          yOffset = 0,
+                         seed = NULL,
                          progress = TRUE,
                          verbose = TRUE){
   if(showBlocks){
@@ -160,8 +165,8 @@ spatialBlock <- function(speciesData,
       }
     }
   }
-  if(!is.element(selection, c("systematic", "random", "checkerboard"))){
-    stop("The selection argument must be 'systematic', 'random' or 'checkerboard'")
+  if(!is.element(selection, c("systematic", "random", "checkerboard", "predefined"))){
+    stop("The selection argument must be 'random', 'systematic', 'checkerboard', or 'predefined'.")
   }
   chpattern <- FALSE
   if(selection == "checkerboard"){
@@ -188,17 +193,29 @@ spatialBlock <- function(speciesData,
     if(methods::is(border, "SpatialPolygons")){
       border <- sf::st_as_sf(border)
     } else if(!methods::is(border, "sf")){
-      stop("blocks, should be a spatial or sf object")
+      stop("border, should be a spatial or sf object")
     }
   }
+  # remove this for the next update!
   if(maskBySpecies==FALSE){
     message("Since version 1.1, this option is always set to TRUE.\n")
   }
   ## check if species is a col in speciesData
   if(!is.null(species)){
     if(species %in% colnames(speciesData) == FALSE){
-      warning("There is no match between the columns name in 'speciesData' and 'species' argument (response variable).\n")
+      warning("There is no match between the column names in 'speciesData' and 'species' argument (response variable).\n")
       species <- NULL
+    }
+  }
+  if(selection == "predefined"){
+    if(is.null(foldsCol) || is.null(blocks)){
+      stop("The blocks and foldsCol should be specified for 'predefined' fold selection")
+    }
+    if(foldsCol %in% colnames(blocks) == FALSE){
+      stop("There is no match between the column names in the 'blocks' object and the specified 'foldsCol' argument.\n")
+    }
+    if(!is.numeric(blocks[,foldsCol, drop = TRUE])){
+      stop("The fold values in the specified foldsCol should be integer numbers.")
     }
   }
   if(is.null(blocks)){
@@ -239,8 +256,8 @@ spatialBlock <- function(speciesData,
   iteration <- as.integer(iteration)
   if(iteration < 1 || !is.numeric(iteration)){
     iteration <- 1L
-    message("The interation has been set to 1! \n", "Iteration must be a positive numeric value.\n")
-  } else if(is.numeric(iteration) && iteration >= 10000){
+    message("The interation has been set to 1! \n", "Iteration must be a positive integer value.\n")
+  } else if(is.numeric(iteration) && iteration >= 1000){
     message("The process might take a while, due to the large number of iterations.\n")
   }
   if(progress==TRUE && numLimit == 0){
@@ -248,11 +265,13 @@ spatialBlock <- function(speciesData,
                                      total=iteration, clear=FALSE, width=75) # add progress bar
   }
   ## do the intersection once and outside of the loop
-  # subBlocksDF <- sf:::as.data.frame.sgbp(sf::st_intersects(speciesData, subBlocks))
   subBlocksDF <- as.data.frame(sf::st_intersects(speciesData, subBlocks))
   names(subBlocksDF) <- c("records", "blocks")
   # randomly remove the repeated records occurred on the edges of blocks
   if(nrow(subBlocksDF) > nrow(speciesData)){
+    if(!is.null(seed)){
+      set.seed(seed)
+    }
     subBlocksDF <- subBlocksDF[sample(nrow(subBlocksDF)), ]
     subBlocksDF <- subBlocksDF[!duplicated(subBlocksDF$records), ]
   } else if(nrow(subBlocksDF) < nrow(speciesData) || anyNA(subBlocksDF)){
@@ -262,6 +281,9 @@ spatialBlock <- function(speciesData,
   nrowBlocks <- length(unique(subBlocksDF$blocks))
   maxNumRecord <- 0
   maxSD <- Inf
+  if(!is.null(seed)){
+    set.seed(seed)
+  }
   for(i in seq_len(iteration)){
     if(k > nrowBlocks){
       stop("'k' is bigger than the number of spatial blocks\n",
@@ -287,7 +309,11 @@ spatialBlock <- function(speciesData,
         foldDF$folds[unfold] <- sample(seq_len(k), rest, replace = FALSE)
       }
       subBlocksDF <- merge(x = subBlocksDF, y = foldDF, by = "blocks", all.x = TRUE)
+    } else if(selection=='predefined'){
+      foldDF <- data.frame(blocks = seq_len(nrowBlocks), folds = blocks[ , foldsCol, drop = TRUE])
+      subBlocksDF <- merge(x = subBlocksDF, y = foldDF, by = "blocks", all.x = TRUE)
     }
+    # creat records table
     if(is.null(species)){
       trainTestTable <- data.frame(train=rep(0, k), test=0)
     } else{
@@ -296,6 +322,7 @@ spatialBlock <- function(speciesData,
       trainTestTable <- as.data.frame(matrix(0, nrow = k, ncol = clen * 2))
       names(trainTestTable) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
     }
+    # count the number of points in each fold
     foldList <- list()
     foldNum <- rep(NA, nrow(subBlocksDF))
     biomodTable <- data.frame(RUN1=rep(TRUE, nrow(subBlocksDF)))

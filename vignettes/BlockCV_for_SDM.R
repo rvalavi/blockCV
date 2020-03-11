@@ -1,5 +1,10 @@
 ## ---- eval=FALSE---------------------------------------------------------
+#  # install stable version from CRAN
+#  install.packages("blockCV", dependencies = TRUE)
+#  
+#  # install latest update from GitHub
 #  remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
+#  
 
 ## ---- results="hide", warning=FALSE, message=FALSE-----------------------
 # loading the package
@@ -207,7 +212,7 @@ print(0.8664762)
 #  # remove extra column (ID)
 #  mydata <- mydata[,-1]
 #  
-#  # extract the foldIDs in SpatialBlock object
+#  # extract the fold indices from buffering object
 #  # created in the previous section
 #  # the folds (list) works for all three blocking strategies
 #  folds <- bf1$folds
@@ -254,7 +259,8 @@ print(0.8664762)
 #  
 #  # 2. Defining the folds for DataSplitTable
 #  # note that biomodTable should be used here not folds
-#  DataSplitTable <- sb$biomodTable # use generated folds from spatialBlock in previous section
+#  # use generated folds from spatialBlock in previous section
+#  DataSplitTable <- sb$biomodTable
 #  
 #  # 3. Defining Models Options using default options.
 #  myBiomodOption <- BIOMOD_ModelingOptions()
