@@ -310,7 +310,7 @@ spatialBlock <- function(speciesData,
       }
       subBlocksDF <- merge(x = subBlocksDF, y = foldDF, by = "blocks", all.x = TRUE)
     } else if(selection=='predefined'){
-      foldDF <- data.frame(blocks = seq_len(nrowBlocks), folds = blocks[ , foldsCol, drop = TRUE])
+      foldDF <- data.frame(blocks = seq_len(nrowBlocks), folds = subBlocks[ , foldsCol, drop = TRUE])
       subBlocksDF <- merge(x = subBlocksDF, y = foldDF, by = "blocks", all.x = TRUE)
     }
     # creat records table

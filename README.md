@@ -57,9 +57,9 @@ library(blockCV)
 # spatial blocking by specified range and random assignment
 sb <- spatialBlock(speciesData = pa_data, # sf or SpatialPoints
                    species = "Species", # the response column (binomial or multi-class)
-                   rasterLayer = myrasters, # a raster for backgoround (optional)
-                   theRange = 70000, # size of the blocks
-                   k = 5, # the number of folds
+                   rasterLayer = myrasters, # a raster for background (optional)
+                   theRange = 70000, # size of the blocks in meters
+                   k = 5, # number of folds
                    selection = "random",
                    iteration = 100, # find evenly dispersed folds
                    biomod2Format = TRUE)
@@ -70,7 +70,7 @@ sb <- spatialBlock(speciesData = pa_data, # sf or SpatialPoints
 ```r
 # investigate spatial autocorrelation in raster covariates
 # this helps to choose a suitable size for spatial blocks
-spatialAutoRange(rasterLayer = myrasters, # raster file
+spatialAutoRange(rasterLayer = myrasters, # rasterStack file
                  sampleNumber = 5000, # number of cells to be used
                  doParallel = TRUE,
                  showPlots = TRUE)
