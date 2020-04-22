@@ -1,3 +1,6 @@
+# version 2.1.3
+* fix the warning for spatialBlock function on geographic coordinate system
+
 # version 2.1.2
 * predefined folds from user-defined blocks are noe accepted
 * add seed argument to spatialBlock to have consistent results where needed

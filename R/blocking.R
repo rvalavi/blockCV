@@ -265,7 +265,7 @@ spatialBlock <- function(speciesData,
                                      total=iteration, clear=FALSE, width=75) # add progress bar
   }
   ## do the intersection once and outside of the loop
-  subBlocksDF <- as.data.frame(sf::st_intersects(speciesData, subBlocks))
+  subBlocksDF <- as.data.frame(sf::st_intersects(sf::st_geometry(speciesData), sf::st_geometry(subBlocks)))
   names(subBlocksDF) <- c("records", "blocks")
   # randomly remove the repeated records occurred on the edges of blocks
   if(nrow(subBlocksDF) > nrow(speciesData)){
