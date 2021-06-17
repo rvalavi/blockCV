@@ -1,22 +1,22 @@
 [general]
 creator=R package 'raster'
-created=2019-09-22 01:55:58
+created=2021-06-17 11:03:13
 [georeference]
-nrows=610
-ncols=306
-xmin=254015.825161
-ymin=7821167.848281
-xmax=498815.825161
-ymax=8309167.848281
-projection=+proj=utm +zone=55 +south +ellps=GRS80 +units=m +no_defs
+nrows=620
+ncols=316
+xmin=250015.825161281
+ymin=7817167.84822722
+xmax=502815.825161281
+ymax=8313167.84822722
+projection=+proj=utm +zone=55 +south +datum=WGS84 +units=m +no_defs
 [data]
-datatype=INT2U
+datatype=FLT4S
 byteorder=little
 nbands=10
 bandorder=BIL
-minvalue=16:70:24:8:8:0:170:3:0:0
-maxvalue=25:117:32:18:69:68:203:100:80:100
-nodatavalue=65535
+minvalue=16:69.9999999999651:24.0000000082288:8.00000000006461:8:0:170.000000008754:3:-3.4880940244296e-10:0
+maxvalue=25.0000000000291:116.999999966044:32.0000000000326:18.0000000000291:68.9999998943263:67.9999998779988:203:100:79.9999998306663:100
+nodatavalue=-3.4e+38
 [legend]
 legendtype=
 values=

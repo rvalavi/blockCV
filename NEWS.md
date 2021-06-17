@@ -1,3 +1,8 @@
+# version 2.1.4
+* fixed CRAN error for ggplot guide 
+* added rgdal as a suggest
+* changed the crs of raster data in the package to avoid datum warnings
+
 # version 2.1.3
 * fix the warning for spatialBlock function on geographic coordinate system
 

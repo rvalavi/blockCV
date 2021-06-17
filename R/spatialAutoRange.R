@@ -238,7 +238,7 @@ spatialAutoRange <- function(rasterLayer,
       ggplot2::theme_bw() +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle=75, hjust=1)) +
       ggplot2::ggtitle("Autocorrelation range", subtitle=paste("Based on", ptnum, "sample points"))+
-      ggplot2::guides(fill = FALSE) +
+      ggplot2::guides(fill = "none") +
       ggplot2::geom_hline(yintercept=theRange2, color='red', size=0.9, linetype=2) +
       ggplot2::annotate("text", x=floor(nrow(modelInfo)/3),
                         y =  (theRange2 + (max(modelInfo$range)/20)),
@@ -252,7 +252,7 @@ spatialAutoRange <- function(rasterLayer,
   p2 <- ggplot2::ggplot() +
     ggplot2::geom_raster(data = map_df, ggplot2::aes_string(y="Northing", x="Easting", fill="MAP")) +
     ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
-    ggplot2::guides(fill = FALSE) +
+    ggplot2::guides(fill = "none") +
     ggplot2::geom_sf(data = subBlocks,
                      color ="red",
                      fill ="orangered4",

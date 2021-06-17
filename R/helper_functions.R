@@ -139,8 +139,8 @@ standardize <- function(x){
 normalize <- function(x){
   stzRaster <- raster::stack()
   for(i in 1:raster::nlayers(x)){
-    meanR <- mean(raster::values(x[[i]]), na.rm=TRUE)
-    sdR <- stats::sd(raster::values(x[[i]]), na.rm=TRUE)
+    meanR <- raster::cellStats(x[[i]], stat="mean", na.rm=TRUE)
+    sdR <- raster::cellStats(x[[i]], stat="sd", na.rm=TRUE)
     stzRaster <- raster::stack(stzRaster, ((x[[i]] - meanR) / sdR))
   }
   return(stzRaster)
