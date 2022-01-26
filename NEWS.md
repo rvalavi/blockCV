@@ -1,3 +1,6 @@
+# version 2.1.5
+* fix unmatching crs for random spatial block
+
 # version 2.1.4
 * fixed CRAN error for ggplot guide 
 * added rgdal as a suggest

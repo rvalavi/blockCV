@@ -228,6 +228,8 @@ spatialBlock <- function(speciesData,
                        xOffset = xOffset,
                        yOffset = yOffset,
                        checkerboard = chpattern)
+      # make sure crs matches
+      sf::st_crs(net) <- sf::st_crs(speciesData)
       subBlocks <- net[speciesData,] # subset the blocks
       if(!is.null(border)){
         subBlocks <- sf::st_crop(subBlocks, border)
