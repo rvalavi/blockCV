@@ -9,6 +9,7 @@ rasterNet <- function(x,
                       checkerboard = FALSE,
                       maxpixels = 1e5){
   if(methods::is(x, "sf")){
+    xcrs <- sf::st_crs(x)
     x <- sf::as_Spatial(x)
   }
   ext <- raster::extent(x)
@@ -96,7 +97,11 @@ rasterNet <- function(x,
       rasterNet <- raster::intersect(rasterNet, x)
     }
   }
-  return(sf::st_as_sf(rasterNet))
+  out <- sf::st_as_sf(rasterNet)
+  if(exists("xcrs")){
+    sf::st_crs(out) <- xcrs
+  }
+  return(out)
 }
 
 
