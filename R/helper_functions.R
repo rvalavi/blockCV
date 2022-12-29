@@ -99,6 +99,19 @@ rasterNet <- function(x,
   return(sf::st_as_sf(rasterNet))
 }
 
+systematicNum <- function(layer, num=5){
+  n <- nrow(layer)
+  if(n %% num == 0){
+    a <- n/num
+    c <- rep(1:num, a)
+  } else {
+    a <- floor(n/num)
+    b <- n %% num
+    c <- c(rep(1:num, a), 1:b)
+  }
+  return(c)
+}
+
 
 fitvario <- function(r, spdata, rdata, sn){
   if(is.null(spdata)){
@@ -114,19 +127,6 @@ fitvario <- function(r, spdata, rdata, sn){
   return(fittedVar)
 }
 
-
-systematicNum <- function(layer, num=5){
-  n <- nrow(layer)
-  if(n %% num == 0){
-    a <- n/num
-    c <- rep(1:num, a)
-  } else {
-    a <- floor(n/num)
-    b <- n %% num
-    c <- c(rep(1:num, a), 1:b)
-  }
-  return(c)
-}
 
 standardize <- function(x){
   stzRaster <- raster::stack()
