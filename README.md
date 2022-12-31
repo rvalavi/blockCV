@@ -10,20 +10,30 @@
 
 ### Spatial and environmental blocking for k-fold and LOO cross-validation   
    
-In a nutshell, package **blockCV** provides functions to build train and test data sets using three general strategies: *buffers*, *spatial* and *environmental* blocks. It offers several options for how those blocks are constructed and how blocks are allocated to cross-validation folds. It includes a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the chosen predictor variables to inform the choice of the block and buffer size. In addition, visualization tools further aid the selection of block size and provide an understanding of the spread of species data across generated folds. 
+In a nutshell, package **blockCV** provides functions to build train and test data sets using three general strategies: *buffers*, *spatial* and *environmental* blocks. It offers several options for how those blocks are constructed and how blocks are allocated to cross-validation folds. It includes a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the chosen predictor variables or the response variable (e.g. binary or continuous responses) to inform the choice of the block and buffer size. In addition, visualization tools further aid the selection of block size and provide an understanding of the spread of sample points across generated folds. 
 
 
 ## Features
 Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
 
-* There are three blocking methods: **buffers**, **spatial** and **environmental** blocks
+* There are three blocking methods: **buffers**, **spatial** and **clustering** blocks
 * The assignment of the spatial blocks to cross-validation folds can be done in three different ways: **random**, **systematic** and **checkerboard** pattern
 * The spatial blocks can be assigned to cross-validation folds to have **evenly distributed records** for **binary** (e.g. species presence-absence/background) or **multi-class** responses (e.g. land cover classes for remote sensing image classification) 
 * The position of the spatial blocks can be modified 
 * The buffering function can account for *presence-absence* and *presence-background* data types 
-* The variables are standardized to avoid wide range variables to dominate the environmental blocks 
 * Using geostatistical techniques to inform the choice of a suitable distance band by which to separate the data sets 
 
+## New updates of version 3
+* Function names have changed, all starting with `cv_*` now
+* Spatial blocks now support hexagonal (default now), square, and user-defined blocks
+* Clustering function now works both on *environmental* rasters and *spatial coordinates* of the sample points
+* The `cv_spatial_autocor` function now calculates spatial autocorrelation range for either the response (i.e. the binary or continuous data) or a set of continuous raster covariates (as before)
+* The new `cv_plot` function can be used to plot the folds of all blocking strategy
+* The newly developed function ********.
+* 
+
+
+**Note**: All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) are still working but they will be removed in future versions. Please update your code with the new naming.
 
 ## Installation
 To install the package from GitHub use:
@@ -54,17 +64,29 @@ The following is an example of using spatial block cross-validation for evaluati
 library(blockCV)
 
 # spatial blocking by specified range and random assignment
-sb <- spatialBlock(speciesData = pa_data, # sf or SpatialPoints
-                   species = "Species", # the response column (binomial or multi-class)
-                   rasterLayer = myrasters, # a raster for background (optional)
-                   theRange = 70000, # size of the blocks in meters
-                   k = 5, # number of folds
-                   selection = "random",
-                   iteration = 100, # find evenly dispersed folds
-                   biomod2Format = TRUE)
+sb <- cv_spatial(x = pa_data, # sf or SpatialPoints of sample data
+                 column = "occ", # the response column (binomial or multi-class)
+                 r = myrasters, # a raster for background (optional)
+                 size = 70000, # size of the blocks in metres
+                 k = 5, # number of folds
+                 selection = "random", # random blocks-to-fold
+                 iteration = 100, # find evenly dispersed folds
+                 biomod2 = TRUE) # also create folds for biomod2
 
 ```
-![](https://i.ibb.co/F84b7W8/spatial-block.jpg)
+![](https://i.ibb.co/WGfrF7B/Rplot1.png)
+
+```r
+# now plot the create folds
+cv_plot(cv = sb,
+        x = pa_data, # optionall add sample points
+        r = myrasters, # optionall add a raster background
+        nrow = 2)
+
+```
+![](https://i.ibb.co/1MYWj8n/Rplot01.png)
+
+
 
 ```r
 # investigate spatial autocorrelation in raster covariates
