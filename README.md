@@ -67,7 +67,7 @@ library(blockCV)
 sb <- cv_spatial(x = pa_data, # sf or SpatialPoints of sample data
                  column = "occ", # the response column (binomial or multi-class)
                  r = myrasters, # a raster for background (optional)
-                 size = 70000, # size of the blocks in metres
+                 size = 450000, # size of the blocks in metres
                  k = 5, # number of folds
                  selection = "random", # random blocks-to-fold
                  iteration = 100, # find evenly dispersed folds
@@ -77,38 +77,47 @@ sb <- cv_spatial(x = pa_data, # sf or SpatialPoints of sample data
 ![](https://i.ibb.co/WGfrF7B/Rplot1.png)
 
 ```r
+# create spatial clusters
+set.seed(1)
+sc <- cv_cluster(x = pa_data, 
+                 column = "occ", # optionally count data in folds
+                 k = 5)
+
+```
+
+```r
 # now plot the create folds
-cv_plot(cv = sb,
-        x = pa_data, # optionall add sample points
-        r = myrasters, # optionall add a raster background
+cv_plot(cv = sc, # a blockCV object
+        x = pa_data, # sample points
+        r = myrasters[[1]], # optionally add a raster background
+        points_alpha = 0.5,
         nrow = 2)
 
 ```
-![](https://i.ibb.co/1MYWj8n/Rplot01.png)
+![](https://i.ibb.co/dGrF9xp/Rplot02.png)
+# ![](https://i.ibb.co/1MYWj8n/Rplot01.png)
 
 
 
 ```r
-# investigate spatial autocorrelation in raster covariates
+# investigate spatial autocorrelation in the landscape
 # this helps to choose a suitable size for spatial blocks
-spatialAutoRange(rasterLayer = myrasters, # rasterStack file
-                 sampleNumber = 5000, # number of cells to be used
-                 doParallel = TRUE,
-                 showPlots = TRUE)
+cv_spatial_autocor(r = myrasters, # a SpatRaster object or path to files
+                   num_sample = 5000, # number of cells to be used
+                   plot = TRUE)
 ```
-![](https://i.ibb.co/XXMkBSx/spatial-Auto-Range.jpg)
+
 
 
 ```r
 # alternatively, you can manually choose the size of spatial blocks 
-rangeExplorer(rasterLayer = myrasters,
-              speciesData = pa_data, # response data (optional)
-              species = "Species" # the responcse column (optional)
-              minRange = 30000, # limit the search domain
-              maxRange = 100000)
+cv_block_size(r = myrasters[[1]],
+              x = pa_data, # optionally add sample points
+              column = "occ",
+              min_size = 100000,
+              max_size = 500000)
 
 ```
-![](https://i.ibb.co/Vtz1vVz/ezgif-com-gif-maker.gif)
 
 
 
