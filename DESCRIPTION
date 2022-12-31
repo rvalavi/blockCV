@@ -1,8 +1,8 @@
 Package: blockCV
 Type: Package
 Title: Spatial and Environmental Blocking for K-Fold Cross-Validation
-Version: 2.1.4
-Date: 2021-06-17
+Version: 3.0
+Date: 2023-01-01
 Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "valavi.r@gmail.com"),
              person("Jane", "Elith", role = "aut",
@@ -13,7 +13,7 @@ Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "gurutzeta.guillera@unimelb.edu.au"))
 URL: https://github.com/rvalavi/blockCV
 Maintainer: Roozbeh Valavi <valavi.r@gmail.com>
-Description: Creating spatially or environmentally separated folds for cross-validation to provide a robust error estimation in spatially structured environments; Investigating and visualising the effective range of spatial autocorrelation in continuous raster covariates to find an initial realistic distance band to separate training and testing datasets spatially described in Valavi, R. et al. (2019) <doi:10.1111/2041-210X.13107>.
+Description: Creating spatially or environmentally separated folds for cross-validation to provide a robust error estimation in spatially structured environments; Investigating and visualising the effective range of spatial autocorrelation in continuous raster covariates and point samples to find an initial realistic distance band to separate training and testing datasets spatially described in Valavi, R. et al. (2019) <doi:10.1111/2041-210X.13107>.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

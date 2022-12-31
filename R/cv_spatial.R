@@ -3,48 +3,33 @@ cv_spatial <- function(
     column = NULL,
     r = NULL,
     k = 5L,
-
     hexagon = TRUE,
     flat_top = FALSE,
-
-    cell_size = NULL,
+    size = NULL,
     rows_cols = c(10, 10),
-
     selection = "random",
     iteration = 50L,
-
     user_blocks = NULL,
     folds_column = NULL,
-
     deg_to_metre = 111325,
     biomod2 = TRUE,
-
     # xOffset = 0,
     # yOffset = 0,
     offset = c(0, 0),
 
     seed = NULL,
-
     progress = TRUE,
     print = TRUE,
-    plot = TRUE
+    plot = TRUE,
+    ... # other arguments for cv_plot
 ){
 
   # pre-run checks ----------------------------------------------------------
 
+  # check for availability of ggplot2
   if(plot){
-    # check for availability of ggplot2
     pkg <- c("ggplot2")
-    pkgna <- names(which(sapply(sapply(pkg, find.package, quiet = TRUE), length) == 0))
-    if(length(pkgna) > 0){
-      message("This function requires ", pkg, " package for plotting.", "\nWould you like to install it now?\n1: yes\n2: no")
-      user <- readline(prompt = paste0("Selection: "))
-      if(tolower(user) %in% c("1", "yes", "y")){
-        utils::install.packages(pkgna)
-      } else{
-        stop("Please install ggplot2 package or set plot = FALSE.")
-      }
-    }
+    .pkg_checks(pkg)
   }
 
   if(!is.element(selection, c("systematic", "random", "checkerboard", "predefined"))){
@@ -141,8 +126,9 @@ cv_spatial <- function(
   )
 
   if(progress){
-    pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
-                                     total=iteration, clear=FALSE, width=75) # add progress bar
+    # pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
+    #                                  total=iteration, clear=FALSE, width=75)
+    pb <- txtProgressBar(min = 0, max = iteration, style = 3)
   }
 
   # creating blocks ---------------------------------------------------------
@@ -151,22 +137,20 @@ cv_spatial <- function(
     # select the object to make grid
     x_obj <- if(is.null(r)) x else r
 
-    if(is.null(cell_size)){
+    if(is.null(size)){
       blocks <- sf::st_make_grid(x_obj, n=rev(rows_cols), square=!hexagon, what="polygons", flat_topped=flat_top)
     } else{
       # convert metres to degrees
-      if(sf::st_is_longlat(x_obj)) cell_size <- cell_size / deg_to_metre
-      blocks <- sf::st_make_grid(x_obj, cellsize=cell_size, square=!hexagon, what="polygons", flat_topped=flat_top)
+      if(sf::st_is_longlat(x_obj)) size <- size / deg_to_metre
+      blocks <- sf::st_make_grid(x_obj, cellsize=size, square=!hexagon, what="polygons", flat_topped=flat_top)
     }
   } else{
     blocks <- sf::st_geometry(user_blocks)
   }
 
-
   ## subset the blocks by x
   sub_blocks <- blocks[x]
   blocks_len <- length(sub_blocks)
-
 
   # The iteration must be a natural number
   tryCatch(
@@ -296,7 +280,8 @@ cv_spatial <- function(
         iter <- i
       }
       if(progress){ # if iteration is higher than 5?
-        pb$tick() # update progress bar
+        # pb$tick() # update progress bar
+        setTxtProgressBar(pb, i)
       }
     } else{
       break
@@ -339,9 +324,10 @@ cv_spatial <- function(
 
   # plot with the cv_plot function
   if(plot){
-    p1 <- cv_ggplot(
+    p1 <- cv_plot(
       cv = final_objs,
-      r = switch(!is.null(r), r, NULL)
+      r = switch(!is.null(r), r, NULL),
+      ...
     )
     plot(p1)
   }
