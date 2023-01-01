@@ -1,4 +1,21 @@
-
+#' Title
+#'
+#' @param cv
+#' @param x
+#' @param r
+#' @param nrow
+#' @param ncol
+#' @param num_plots
+#' @param max_pixels
+#' @param raster_colors
+#' @param points_colors
+#' @param points_alpha
+#' @param label_size
+#'
+#' @return
+#' @export
+#'
+#' @examples
 cv_plot <- function(
     cv,
     x,

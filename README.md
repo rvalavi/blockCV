@@ -24,16 +24,17 @@ Compared to other available packages, **blockCV** provides more strategies and c
 * Using geostatistical techniques to inform the choice of a suitable distance band by which to separate the data sets 
 
 ## New updates of version 3
-* Function names have changed, all starting with `cv_*` now
+* Function names have changed, all starting with `cv_` now
+* The three main blocking functions are now: `cv_spatial`, `cv_buffer`, and `cv_cluster`
 * Spatial blocks now support hexagonal (default), rectangular, and user-defined blocks
 * Clustering function now works both on *environmental* rasters, and *spatial coordinates* of the sample points
 * The `cv_spatial_autocor` function now calculates spatial autocorrelation range for either the response (i.e. the binary or continuous data) or a set of continuous raster covariates (as before)
 * The new `cv_plot` function can be used to plot the folds of all blocking strategy with ggplot facets
 * The newly developed function ******** is implemented
-* The `terra` package operates for raster operations with support for `stars` and `raster` formats
+* The `terra` package operates for raster operations with support for `stars` and `raster` objects
+* ...
 
-
-**Note**: All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) are still working but they will be removed in future versions. Please update your code with the new naming.
+**Note**: All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) still work, but they will be removed in future versions. Please update your code with the new functions.
 
 ## Installation
 To install the package from GitHub use:
@@ -46,15 +47,6 @@ Or installing from CRAN:
 ```r
 install.packages("blockCV", dependencies = TRUE)
 ```
-
-## Vignette
-To see the vignette of the package use:
-
-```r
-browseVignettes("blockCV")
-```
-The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
-
 
 ## Basic usage
 The following is an example of using spatial block cross-validation for evaluation of species distribution modelling. You can find a comprehensive tutorial in the vignette of the package.
@@ -97,7 +89,6 @@ cv_plot(cv = sc, # a blockCV object
 
 ```
 ![](https://i.ibb.co/dGrF9xp/Rplot02.png)
-# https://i.ibb.co/1MYWj8n/Rplot01.png
 
 
 
@@ -121,6 +112,13 @@ cv_block_size(r = myrasters[[1]],
 
 ```
 
+## Vignette
+To see the vignette of the package use:
+
+```r
+browseVignettes("blockCV")
+```
+The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
 
 
 ## Citation

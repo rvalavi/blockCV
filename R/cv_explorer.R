@@ -9,6 +9,19 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 }
 
 
+
+#' Title
+#'
+#' @param r
+#' @param x
+#' @param column
+#' @param min_size
+#' @param max_size
+#'
+#' @return
+#' @export
+#'
+#' @examples
 cv_block_size <- function(r,
                           x = NULL,
                           column = NULL,

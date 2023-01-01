@@ -1,3 +1,78 @@
+#' Use environmental or spatial clustering to separate train and test folds
+#'
+#' This function uses clustering methods to specify sets of similar environmental
+#' conditions based on the input covariates, or cluster of spatial coordinates of the sample data.
+#' Sample data (i.e. species data) corresponding to any of
+#' these groups or clusters are assigned to a fold. Clustering is done
+#' using \code{\link[stats]{kmeans}} for both approaches. The only requirement is \code{x} that leads to
+#' a clustering of the confidantes of sample data. Otherwise, by providing \code{r}, environmental
+#' clustering is done.
+#'
+#' As k-means algorithms use Euclidean distance to estimate clusters, the input raster covariates should be quantitative variables.
+#' Since variables with wider ranges of values might dominate the clusters and bias the environmental clustering (Hastie et al., 2009),
+#' all the input rasters are first scaled and centred (\code{scale = TRUE}) within the function.
+#'
+#' If \code{raster_cluster = TRUE}, the clustering is done in the raster space. In this approach the clusters will be consistent throughout the region
+#' and different sample datasets in the same region (for comparison). However, this may result in a cluster(s)
+#' that covers none of the species records (the spatial location of response samples),
+#' especially when species data is not dispersed throughout the region or the number of clusters (k or folds) is high. In this
+#' case, the number of folds is less than specified \code{k}. If \code{raster_cluster = FALSE}, the clustering will be done in
+#' species points and the number of the folds will be the same as \code{k}.
+#'
+#' Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster
+#' value should be deleted prior to the analysis or another raster layer must be provided.
+#'
+#' @inheritParams cv_spatial
+#' @param column character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
+#'  response i.e. 0s and 1s) is stored. This is only used to see whether all the folds contain all the classes in the final report.
+#' @param r a terra SpatRaster object of covariates to identify environmental groups. If provided, clustering will be done
+#' in environmental space rather than spatial coordinates of sample points.
+#' @param scale logical; whether to scale the input rasters (recommended) for clustering.
+#' @param raster_cluster logical; if \code{TRUE}, the clustering is done over the entire raster layer,
+#' otherwise it will be over the extracted raster values of the sample points. See details for more information.
+#' @param num_sample integer; the number of samples from raster layers to build the clusters (when \code{raster_cluster = FALSE}).
+#'
+#' @seealso \code{\link{cv_buffer}} and \code{\link{cv_spatial}}
+#'
+#' @references Hastie, T., Tibshirani, R., & Friedman, J. (2009). The elements of statistical learning: Data mining, inference, and prediction ( 2nd ed., Vol. 1).
+#'
+#' @return An object of class S3. A list of objects including:
+#'    \itemize{
+#'     \item{folds_list - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
+#'     \item{folds_ids - a vector of values indicating the number of the fold for each observation (each number corresponds to the same point in x)}
+#'     \item{biomod_table - a matrix with the folds to be used in \pkg{biomod2} package}
+#'     \item{k - number of the folds}
+#'     \item{column - the name of the column if provided}
+#'     \item{type - indicates whether spatial or environmental clustering was done.}
+#'     \item{records - a table with the number of points in each category of training and testing}
+#'     }
+#' @export
+#'
+#' @examples
+#' library(blockCV)
+#'
+#' # import presence-absence species data
+#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' # make an sf object from data.frame
+#' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
+#'
+#' # load raster data
+#' files <- list.files("inst/extdata/au", full.names = TRUE)
+#' rasters <- terra::rast(files)
+#'
+#' # spatial clustering
+#' eb1 <- cv_cluster(x = pa_data,
+#'                   column = "occ", # optional; name of the column with response
+#'                   k = 5,
+#'                   scale = TRUE)
+#'
+#' # environmental clustering
+#' eb2 <- cv_cluster(r = rasters, # if provided will be used for environmental clustering
+#'                   x = pa_data,
+#'                   column = "occ", # optional; name of the column with response
+#'                   k = 5,
+#'                   scale = TRUE)
+#'
 cv_cluster <- function(x,
                        column = NULL,
                        r = NULL,
@@ -148,13 +223,14 @@ cv_cluster <- function(x,
     biomod_table = switch(biomod2, as.matrix(biomod_table), NULL),
     k = k,
     column = column,
-    type = ifelse(is.null(r), "Spatial Cluster", "Covariate Cluster"),
+    type = ifelse(is.null(r), "Spatial Cluster", "Environmental Cluster"),
     records = train_test_table
   )
 
   if(print) print(train_test_table)
   # specify the output class
   class(final_objs) <- c("cv_cluster")
+
   return(final_objs)
 }
 

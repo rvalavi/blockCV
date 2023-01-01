@@ -30,7 +30,7 @@
 #' not separated spatially. Blocking with a buffering strategy overcomes this issue (see \code{\link{cv_buffer}}).
 #'
 #'
-#' @param x a simple features (sf) or SpatialPoints object  of spatial sample data (e.g., species data or ground truth sample for image classifucation).
+#' @param x a simple features (sf) or SpatialPoints object  of spatial sample data (e.g., species data or ground truth sample for image classification).
 #' @param column character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
 #'  response i.e. 0s and 1s) is stored to find balanced records in cross-validation folds. If \code{column = NULL}
 #' the response variable classes will be treated the same and only training and testing records will be counted.

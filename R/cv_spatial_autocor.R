@@ -1,12 +1,88 @@
-
+#' Measure spatial autocorrelation in spatial response data or predictor raster files
+#'
+#' This function provides a quantitative basis for choosing block size. The spatial autocorrelation in either the
+#' spatial sample points or all continuous predictor variables available as raster layers is assessed and reported.
+#' The response (as defined be \code{column}) in spatial sample points can be binary such as species distribution data,
+#' or continuous response like soil organic carbon. The function estimates spatial autocorrelation \emph{ranges} of all input
+#' raster layers or the response data. This is the range over which observations are independent and is determined by
+#' constructing the empirical variogram, a fundamental geostatistical tool for measuring spatial autocorrelation.
+#' The empirical variogram models the structure of spatial autocorrelation by measuring variability between all possible
+#' pairs of points (O'Sullivan and Unwin, 2010). Results are plotted. See the details section for further information.
+#'
+#' The input raster layers should be continuous for computing the variograms and estimating the range of spatial
+#' autocorrelation. The input rasters should also have a specified coordinate reference system. However, if the reference
+#' system is not specified, the function attempts to guess it based on the extent of the map. It assumes an un-projected
+#' reference system for layers with extent lying between -180 and 180.
+#'
+#' Variograms are calculated based on the distances between pairs of points, so un-projected rasters (in degrees) will
+#' not give an accurate result (especially over large latitudinal extents). For un-projected rasters, \emph{the great circle distance}
+#' (rather than Euclidean distance) is used to calculate the spatial distances between pairs of points. To
+#' enable more accurate estimate, it is recommended to transform un-projected maps (geographic coordinate
+#' system / latitude-longitude) to a projected metric reference system (e.g. UTM or Lambert) where it is possible.
+#' See \code{\link[automap]{autofitVariogram}} from \pkg{automap} and \code{\link[gstat]{variogram}} from \pkg{gstat} packages
+#' for further information.
+#'
+#' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species binary or continuous date).
+#' @param column character; indicating the name of the column in which response variable (e.g. species data as a binary
+#'  response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range.
+#' @param r a terra SpatRaster object. If provided (and \code{x} is missing), it will be use for to calculate range.
+#' @param num_sample integer; the number of sample points of each raster layer to fit variogram models. It is 5000 by default,
+#' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
+#' @param deg_to_metre integer. The conversion rate of metres to degree.
+#' @param plot logical; whether to plot the results.
+#' @param progress logical; whether to shows a progress bar.
+#' @param ... additional option for \code{\link{cv_plot}}
+#'
+#' @references O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
+#'
+#' Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
+#' or phylogenetic structure. Ecography. 40: 913-929.
+#'
+#' @return An object of class S3. A list object including:
+#'     \itemize{
+#'     \item{range - the suggested range, which is the median of all calculated ranges in case of 'r'.}
+#'     \item{range_table - a table of input covariates names and their autocorrelation range}
+#'     \item{plots - the output plot (the plot is shown by default)}
+#'     \item{num_sample - number sample of 'r' used for analysis}
+#'     \item{variograms - fitted variograms for all layers}
+#'     }
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' library(blockCV)
+#'
+#' # import presence-absence species data
+#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' # make an sf object from data.frame
+#' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
+#'
+#' # load raster data
+#' files <- list.files("inst/extdata/au", full.names = TRUE)
+#' rasters <- terra::rast(files)
+#'
+#' # spatial autocorrelation of a binary response
+#' range1 <- cv_spatial_autocor(x = pa_data,
+#'                              column = "occ", # binary repose; presence-absence species data
+#'                              plot = TRUE)
+#'
+#'
+#' # spatial autocorrelation of continuous raster files
+#' range2 <- cv_spatial_autocor(r = rasters,
+#'                              num_sample = 5000,
+#'                              plot = TRUE)
+#'
+#' # show the result
+#' summary(range2)
+#' }
 cv_spatial_autocor <- function(x,
-                               r,
                                column = NULL,
+                               r,
                                num_sample = 5000L,
                                deg_to_metre = 111325,
-                               # parallel = FALSE,
                                plot = TRUE,
                                progress = TRUE,
+                               # parallel = FALSE,
                                ... # extra arguments for cv_plot
 ){
 
@@ -138,7 +214,7 @@ cv_spatial_autocor <- function(x,
   }
 
   # order them for plotting
-  vario_data <- vario_data[order(vario_data$range), ] # save range and sill of all layers
+  vario_data <- vario_data[order(vario_data$range), ]
 
   x_obj <- if(missing(x)) sf::st_as_sf(samp_point) else x
 
@@ -158,8 +234,8 @@ cv_spatial_autocor <- function(x,
   class(plot_data) <- "cv_spatial"
 
   if(nlayer > 1){
-    ptnum <- ifelse(missing(x), num_sample, nrow(x))
-    p1 <- .make_bar_plot(vario_data, the_range, ptnum)
+    # ptnum <- ifelse(missing(x), num_sample, nrow(x))
+    p1 <- .make_bar_plot(vario_data, the_range, num_sample)
   }
 
   # plot the spatial blocks
