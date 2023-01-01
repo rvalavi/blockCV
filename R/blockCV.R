@@ -11,13 +11,16 @@
 #' using \emph{buffers}, \emph{spatial} and \emph{environmental} blocks (Valavi et al., 2019).
 #' It provides several options for how those blocks are constructed.
 #' It also has a function that applies geostatistical techniques to investigate the existing
-#' level of spatial autocorrelation in the covariates to inform the choice of a suitable  distance band by which to separate the data sets.
-#' In addition, some visualization tools are provided to help the user choose the block size and explore generated folds. The package has been
-#' written with \emph{species distribution modelling} in mind, and the functions allow for a number of common scenarios (including presence-absence
+#' level of spatial autocorrelation in the covariates and spatial sample points to inform the choice of a
+#' suitable distance band by which to separate the data sets.
+#' In addition, some visualization tools are provided to help the user choose the block size and
+#' explore generated folds. The package has been written with \emph{species distribution modelling} in mind,
+#' and the functions allow for a number of common scenarios (including presence-absence
 #' and presence-background species data, rare and common species, raster data for predictor variables).
-#' Although it can be applied to any spatial modelling e.g. multi-class responses for remote sensing image classification.
+#' Although it can be applied to any spatial modelling e.g. multi-class responses for remote sensing image classification
+#' or continuous variables such as soil organic carbon content.
 #'
-#' @seealso \code{\link{spatialBlock}}, \code{\link{buffering}} and \code{\link{envBlock}} for blocking strategies.
+#' @seealso \code{\link{cv_spatial}}, \code{\link{cv_buffer}} and \code{\link{cv_cluster}} for blocking strategies.
 #'
 #' @references Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
 #' or phylogenetic structure. Ecography. 40: 913-929.
@@ -29,5 +32,5 @@
 #' @name blockCV
 #' @docType package
 #' @author Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita
-#' @import sf raster progress
+#' @import sf
 NULL

@@ -1,3 +1,120 @@
+#' Use spatial blocks to separate train and test folds
+#'
+#' This function creates spatially separated folds based on a distance to number of row and/or column.
+#' It assigns blocks to the training and testing folds  \strong{randomly},  \strong{systematically} or
+#' in a \strong{checkerboard pattern}. The distance (\code{size})
+#' should be in \strong{metres}, regardless of the unit of the reference system of
+#' the input data (for more information see the details section). By default,
+#' the function creates blocks according to the extent and shape of the spatial sample data (\code{x} e.g. the species occurrence),
+#' Alternatively, blocks can be created based on \code{r} assuming that the user has considered the
+#' landscape for the given species and case study.
+#' Blocks can also be offset so the origin is not at the outer corner of the rasters.
+#' Instead of providing a distance, the blocks can also be created by specifying a number of rows and/or
+#' columns and divide the study area into vertical or horizontal bins, as presented in Wenger & Olden (2012) and Bahn & McGill (2012).
+#' Finally, the blocks can be specified by a user-defined spatial polygon layer.
+#'
+#' To keep the consistency, all the functions use \strong{metres} as their unit. In this function, when the input map
+#' has geographic coordinate system (decimal degrees), the block size is calculated based on dividing \code{size} by
+#' \code{deg_to_metre} (111325 as default, the standard distance of a degree in metres, on the Equator) to change
+#'  the unit to degree.
+#'
+#' The \code{offset} can be used to change the spatial position of the blocks. It can also be used to
+#' assess the sensitivity of analysis results to shifting in the blocking arrangements.
+#' These options are available when \code{size} is defined. By default the region is
+#' located in the middle of the blocks and by setting the offsets, the blocks will shift.
+#'
+#' Roberts et. al. (2017) suggest that blocks should be substantially bigger than the range of spatial
+#' autocorrelation (in model residual) to obtain realistic error estimates, while a buffer with the size of
+#' the spatial autocorrelation range would result in a good estimation of error. This is because of the so-called
+#' edge effect (O'Sullivan & Unwin, 2014), whereby points located on the edges of the blocks of opposite sets are
+#' not separated spatially. Blocking with a buffering strategy overcomes this issue (see \code{\link{cv_buffer}}).
+#'
+#'
+#' @param x a simple features (sf) or SpatialPoints object  of spatial sample data (e.g., species data or ground truth sample for image classifucation).
+#' @param column character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
+#'  response i.e. 0s and 1s) is stored to find balanced records in cross-validation folds. If \code{column = NULL}
+#' the response variable classes will be treated the same and only training and testing records will be counted.
+#' This is used for binary (e.g. presence-absence/background) or multi-class responses (e.g. land cover classes for
+#' remote sensing image classification), and \emph{you can ignore it when the response variable is
+#' continuous or count data}.
+#' @param r a terra SpatRaster object (optional). If provided, its extent will be used to specify the blocks.
+#' It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.
+#' @param k integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.
+#' @param hexagon logical. Creates hexagonal (default) spatial blocks. If \code{FALSE}, square blocks is created.
+#' @param flat_top logical. Creating hexagonal blocks with topped flat.
+#' @param size numeric value of the specified range by which blocks are created and training/testing data are separated.
+#' This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}
+#' and \code{\link{cv_block_size}} functions.
+#' @param rows_cols integer vector. Two integers to define the blocks based on row and column e.g. \code{c(10, 10)} or \code{c(5, 1)}.
+#' @param selection type of assignment of blocks into folds. Can be \strong{random} (default), \strong{systematic}, \strong{checkerboard}, or \strong{predefined}.
+#' The checkerboard does not work with hexagonal and user-defined spatial blocks. If the \code{selection = 'predefined'}, user-defined
+#' blocks and \code{folds_column} must be supplied.
+#' @param iteration integer value. The number of attempts to create folds with balanced records. Only works when \code{selection = "random"}.
+#' @param user_blocks an sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
+#' the species (response) points. If \code{selection = 'predefined'}, this argument and \strong{folds_column} must be supplied.
+#' @param folds_column character. Indicating the name of the column (in \code{user_blocks}) in which the associated folds are stored.
+#' This argument is necessary if you choose the 'predefined' selection.
+#' @param deg_to_metre integer. The conversion rate of metres to degree. See the details section for more information.
+#' @param biomod2 logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
+#' a \emph{DataSplitTable} for cross-validation.
+#' @param offset this option is currently un-available.
+#' @param seed integer; a random seed for reproducibility.
+#' @param progress logical; whether to shows a progress bar for random fold selection.
+#' @param print logical; whether to print the report of the records per fold.
+#' @param plot logical; whether to plot the final blocks with fold numbers in ggplot.
+#' You can re-create this with \code{\link{cv_plot}}
+#' @param ... additional option for \code{\link{cv_plot}}
+#'
+#'
+#' @seealso \code{\link{cv_buffer}} and \code{\link{cv_cluster}}; \code{\link{cv_spatial_autocor}} and \code{\link{cv_block_size}} for selecting block size
+#' @seealso For \emph{DataSplitTable} see \code{\link[biomod2]{BIOMOD_cv}} in \pkg{biomod2} package
+#'
+#' @references Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321-331.
+#'
+#' O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
+#'
+#' Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
+#' or phylogenetic structure. Ecography. 40: 913-929.
+#'
+#' Wenger, S.J., Olden, J.D., (2012). Assessing transferability of ecological models: an underappreciated aspect of statistical
+#' validation. Methods Ecol. Evol. 3, 260-267.
+#'
+#' @return An object of class S3. A list of objects including:
+#'    \itemize{
+#'     \item{folds_list - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
+#'     \item{folds_ids - a vector of values indicating the number of the fold for each observation (each number corresponds to the same point in species data)}
+#'     \item{biomod_table - a matrix with the folds to be used in \pkg{biomod2} package}
+#'     \item{k - number of the folds}
+#'     \item{column - the name of the column if provided}
+#'     \item{blocks - SpatialPolygon of the blocks}
+#'     \item{records - a table with the number of points in each category of training and testing}
+#'     }
+#' @export
+#'
+#' @examples
+#' library(blockCV)
+#'
+#' # import presence-absence species data
+#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' # make an sf object from data.frame
+#' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
+#'
+#' # hexagonal spatial blocking by specified size and random assignment
+#' sb1 <- cv_spatial(x = pa_data,
+#'                   column = "occ",
+#'                   size = 450000,
+#'                   k = 5,
+#'                   selection = "random",
+#'                   iteration = 50)
+#'
+#' # spatial blocking by row/column and systematic fold assignment
+#' sb2 <- cv_spatial(x = pa_data,
+#'                   column = "occ",
+#'                   rows_cols = c(8, 10),
+#'                   k = 5,
+#'                   hexagon = FALSE,
+#'                   selection = "systematic")
+#'
 cv_spatial <- function(
     x,
     column = NULL,
@@ -13,10 +130,7 @@ cv_spatial <- function(
     folds_column = NULL,
     deg_to_metre = 111325,
     biomod2 = TRUE,
-    # xOffset = 0,
-    # yOffset = 0,
-    offset = c(0, 0),
-
+    offset = c(0, 0), # this is not yet implementated
     seed = NULL,
     progress = TRUE,
     print = TRUE,

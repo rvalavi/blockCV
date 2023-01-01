@@ -25,12 +25,12 @@ Compared to other available packages, **blockCV** provides more strategies and c
 
 ## New updates of version 3
 * Function names have changed, all starting with `cv_*` now
-* Spatial blocks now support hexagonal (default now), square, and user-defined blocks
-* Clustering function now works both on *environmental* rasters and *spatial coordinates* of the sample points
+* Spatial blocks now support hexagonal (default), rectangular, and user-defined blocks
+* Clustering function now works both on *environmental* rasters, and *spatial coordinates* of the sample points
 * The `cv_spatial_autocor` function now calculates spatial autocorrelation range for either the response (i.e. the binary or continuous data) or a set of continuous raster covariates (as before)
-* The new `cv_plot` function can be used to plot the folds of all blocking strategy
-* The newly developed function ********.
-* 
+* The new `cv_plot` function can be used to plot the folds of all blocking strategy with ggplot facets
+* The newly developed function ******** is implemented
+* The `terra` package operates for raster operations with support for `stars` and `raster` formats
 
 
 **Note**: All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) are still working but they will be removed in future versions. Please update your code with the new naming.
@@ -65,7 +65,7 @@ library(blockCV)
 
 # spatial blocking by specified range and random assignment
 sb <- cv_spatial(x = pa_data, # sf or SpatialPoints of sample data
-                 column = "occ", # the response column (binomial or multi-class)
+                 column = "occ", # the response column (binary or multi-class)
                  r = myrasters, # a raster for background (optional)
                  size = 450000, # size of the blocks in metres
                  k = 5, # number of folds
@@ -76,11 +76,13 @@ sb <- cv_spatial(x = pa_data, # sf or SpatialPoints of sample data
 ```
 ![](https://i.ibb.co/WGfrF7B/Rplot1.png)
 
+Or create spatial clusters for k-fold cross-validation:
+
 ```r
 # create spatial clusters
 set.seed(1)
 sc <- cv_cluster(x = pa_data, 
-                 column = "occ", # optionally count data in folds
+                 column = "occ", # optionally count data in folds (binary or multi-class)
                  k = 5)
 
 ```
@@ -95,7 +97,7 @@ cv_plot(cv = sc, # a blockCV object
 
 ```
 ![](https://i.ibb.co/dGrF9xp/Rplot02.png)
-# ![](https://i.ibb.co/1MYWj8n/Rplot01.png)
+# https://i.ibb.co/1MYWj8n/Rplot01.png
 
 
 
