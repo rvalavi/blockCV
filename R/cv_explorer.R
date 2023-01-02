@@ -12,38 +12,47 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 
 #' Title
 #'
-#' @param r
-#' @param x
-#' @param column
-#' @param min_size
-#' @param max_size
+#' @inheritParams cv_spatial
+#' @param x a simple features (sf) or SpatialPoints object of spatial sample data. If \code{r} is supplied, this
+#' is only added to the plot. Otherwise, the extent of \code{x} is used for creating the blocks.
+#' @param column character (optional). Indicating the name of the column in which response variable (e.g.
+#' species data as a binary response i.e. 0s and 1s) is stored to be shown on the plot.
+#' @param min_size numeric; the minimum size of the blocks (in metres) to explore.
+#' @param max_size numeric; the maximum size of the blocks (in metres) to explore.
 #'
-#' @return
+#' @return an interactive shiny session
 #' @export
 #'
 #' @examples
-cv_block_size <- function(r,
+#' library(blockCV)
+#'
+#' # import presence-absence species data
+#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
+#'
+#' # load raster data
+#' path <- system.file("inst/extdata/au/", "bio_5.tif", package = "blockCV")
+#' myraster <- terra::rast(path)
+#'
+#' # manually choose the size of spatial blocks
+#' cv_block_size(r = myraster,
+#'               x = pa_data,
+#'               column = "occ",
+#'               min_size = 2e5,
+#'               max_size = 9e5)
+#'
+cv_block_size <- function(r, # priority
                           x = NULL,
                           column = NULL,
                           min_size = NULL,
                           max_size = NULL){
   # check for required packages
   pkg <- c("ggplot2", "shiny")
-  .pkg_checks(pkg)
+  .pkg_check(pkg)
 
   # check x is an sf object
   if(!is.null(x)){
-    if(!methods::is(x, "sf")){
-      tryCatch(
-        {
-          x <- sf::st_as_sf(x)
-        },
-        error = function(cond) {
-          message("'x' is not convertible to an sf object!")
-          message("'x' must be an sf or spatial* object.")
-        }
-      )
-    }
+    x <- .x_check(x)
   }
   # is column in x?
   if(!is.null(x) && !is.null(column)){
@@ -54,17 +63,8 @@ cv_block_size <- function(r,
 
   # change the r to terra object
   if(!missing(r)){
-    if(!methods::is(r, "SpatRaster")){
-      tryCatch(
-        {
-          r <- terra::rast(r)
-        },
-        error = function(cond) {
-          message("'r' is not convertible to a terra SpatRaster object!")
-          message("'r' must be a SpatRaster, stars, Raster* object, or (multiple) path to raster files on disk.")
-        }
-      )
-    }
+    r <- .r_check(r)
+    r <- r[[1]]
   }
 
   # define the object for analysis

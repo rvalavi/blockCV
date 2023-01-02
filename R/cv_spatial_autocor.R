@@ -33,6 +33,8 @@
 #' @param progress logical; whether to shows a progress bar.
 #' @param ... additional option for \code{\link{cv_plot}}
 #'
+#' @seealso \code{\link{cv_block_size}}
+#'
 #' @references O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 #'
 #' Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
@@ -58,7 +60,8 @@
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
 #' # load raster data
-#' files <- list.files("inst/extdata/au", full.names = TRUE)
+#' path <- system.file("inst/extdata/au/", package = "blockCV")
+#' files <- list.files(path, full.names = TRUE)
 #' rasters <- terra::rast(files)
 #'
 #' # spatial autocorrelation of a binary response
@@ -88,21 +91,11 @@ cv_spatial_autocor <- function(x,
 
   # check for availability of required packages
   pkg <- c("ggplot2", "cowplot", "automap", "terra")
-  .pkg_checks(pkg)
+  .pkg_check(pkg)
 
   # check x is an sf object
   if(!missing(x)){
-    if(!methods::is(x, "sf")){
-      tryCatch(
-        {
-          x <- sf::st_as_sf(x)
-        },
-        error = function(cond) {
-          message("'x' is not convertible to an sf object!")
-          message("'x' must be an sf or spatial* object.")
-        }
-      )
-    }
+    x <- .x_check(x)
   }
 
   # x and column must be provided
@@ -119,17 +112,7 @@ cv_spatial_autocor <- function(x,
 
   # change the r to terra object
   if(!missing(r)){
-    if(!methods::is(r, "SpatRaster")){
-      tryCatch(
-        {
-          r <- terra::rast(r)
-        },
-        error = function(cond) {
-          message("'r' is not convertible to a terra SpatRaster object!")
-          message("'r' must be a SpatRaster, stars, Raster* object, or (multiple) path to raster files on disk.")
-        }
-      )
-    }
+    r <- .r_check(r)
   }
 
   if(!missing(r) && missing(x)){

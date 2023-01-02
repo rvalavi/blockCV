@@ -32,7 +32,7 @@ Compared to other available packages, **blockCV** provides more strategies and c
 * The new `cv_plot` function can be used to plot the folds of all blocking strategy with ggplot facets
 * The newly developed function ******** is implemented
 * The `terra` package operates for raster operations with support for `stars` and `raster` objects
-* ...
+* The new `cv_extrapolate` provides measures on possible extrapolation to testing folds
 
 **Note**: All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) still work, but they will be removed in future versions. Please update your code with the new functions.
 
@@ -48,6 +48,15 @@ Or installing from CRAN:
 install.packages("blockCV", dependencies = TRUE)
 ```
 
+## Vignette
+To see the vignette of the package use:
+
+```r
+browseVignettes("blockCV")
+```
+The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
+
+
 ## Basic usage
 The following is an example of using spatial block cross-validation for evaluation of species distribution modelling. You can find a comprehensive tutorial in the vignette of the package.
 
@@ -61,6 +70,7 @@ sb <- cv_spatial(x = pa_data, # sf or SpatialPoints of sample data
                  r = myrasters, # a raster for background (optional)
                  size = 450000, # size of the blocks in metres
                  k = 5, # number of folds
+                 hexagon = TRUE, # use hexagonal blocks - defualt
                  selection = "random", # random blocks-to-fold
                  iteration = 100, # find evenly dispersed folds
                  biomod2 = TRUE) # also create folds for biomod2
@@ -72,7 +82,7 @@ Or create spatial clusters for k-fold cross-validation:
 
 ```r
 # create spatial clusters
-set.seed(1)
+set.seed(6)
 sc <- cv_cluster(x = pa_data, 
                  column = "occ", # optionally count data in folds (binary or multi-class)
                  k = 5)
@@ -107,19 +117,14 @@ cv_spatial_autocor(r = myrasters, # a SpatRaster object or path to files
 cv_block_size(r = myrasters[[1]],
               x = pa_data, # optionally add sample points
               column = "occ",
-              min_size = 100000,
-              max_size = 500000)
+              min_size = 2e5,
+              max_size = 9e5)
 
 ```
 
-## Vignette
-To see the vignette of the package use:
-
-```r
-browseVignettes("blockCV")
-```
-The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
-
+## Issues
+Please report issues at: 
+[https://github.com/rvalavi/blockCV/issues](https://github.com/rvalavi/blockCV/issues)
 
 ## Citation
 To cite package **blockCV** in publications, please use:

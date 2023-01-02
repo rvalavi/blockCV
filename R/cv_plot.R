@@ -1,21 +1,43 @@
-#' Title
+#' Visualising folds created by blockCV in ggplot
 #'
-#' @param cv
-#' @param x
-#' @param r
-#' @param nrow
-#' @param ncol
-#' @param num_plots
-#' @param max_pixels
-#' @param raster_colors
-#' @param points_colors
-#' @param points_alpha
-#' @param label_size
+#' This function visualises the folds create by blockCV. It also accepts a raster
+#' layer to be used as background.
 #'
-#' @return
+#' @param cv a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster} or \code{cv_buffer}
+#' @param x a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
+#' the \code{cv} object. This could be empty when \code{cv} is a \code{cv_spatial} object.
+#' @param r a terra SpatRaster object (optional). If provided, it will be used as background of the plots.
+#' It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.
+#' @param nrow integer; number of rows for facet plot
+#' @param ncol integer; number of columns for facet plot
+#' @param num_plots a vector of indices; for a cv_* with <= 10 folds it shows all the folds (e.g. \code{1:10}),
+#' if the number of folds is higher, 10 folds are shown randomly. You can choose any of folds to be shown
+#' e.g. \code{1:3} or \code{c(2, 7, 16, 22)}
+#' @param max_pixels integer; maximum number of pixels used for plotting \code{r}
+#' @param raster_colors a character vector of colours for raster background e.g. \code{terrain.colors(20)}
+#' @param points_colors two colours to be used for train and test points
+#' @param points_alpha the opacity of points
+#' @param label_size integer; size of fold labels when a \code{cv_spatial} object is used.
+#'
+#' @return a ggplot object
 #' @export
 #'
 #' @examples
+#' library(blockCV)
+#'
+#' # import presence-absence species data
+#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
+#'
+#' # spatial clustering
+#' sc <- cv_cluster(x = pa_data, k = 5)
+#'
+#' # now plot the create folds
+#' cv_plot(cv = sc,
+#'         x = pa_data, # sample points
+#'         nrow = 2,
+#'         points_alpha = 0.5)
+#'
 cv_plot <- function(
     cv,
     x,
@@ -31,7 +53,7 @@ cv_plot <- function(
 ){
   # check for availability of ggplot2
   pkg <- c("ggplot2")
-  .pkg_checks(pkg)
+  .pkg_check(pkg)
 
   if(!class(cv) %in% c("cv_spatial", "cv_cluster", "cv_buffer")){
     stop("'cv' must be a blockCV cv_* object.")
@@ -39,33 +61,13 @@ cv_plot <- function(
 
   # check x is an sf object
   if(!missing(x)){
-    if(!methods::is(x, "sf")){
-      tryCatch(
-        {
-          x <- sf::st_as_sf(x)
-        },
-        error = function(cond) {
-          message("'x' is not convertible to an sf object!")
-          message("'x' must be an sf or spatial* object.")
-        }
-      )
-    }
+    x <- .x_check(x)
   }
 
   # change the r to terra object
   if(!is.null(r)){
-    if(!methods::is(r, "SpatRaster")){
-      tryCatch(
-        {
-          r <- terra::rast(r)
-          r <- r[[1]]
-        },
-        error = function(cond) {
-          message("'r' is not convertible to a terra SpatRaster object!")
-          message("'r' must be a SpatRaster, stars, Raster* object, or path to a raster file on disk.")
-        }
-      )
-    }
+    r <- .r_check(r)
+    r <- r[[1]]
   }
 
   # make geom_tile for raster plots

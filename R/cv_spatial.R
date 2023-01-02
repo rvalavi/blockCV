@@ -1,7 +1,7 @@
 #' Use spatial blocks to separate train and test folds
 #'
 #' This function creates spatially separated folds based on a distance to number of row and/or column.
-#' It assigns blocks to the training and testing folds  \strong{randomly},  \strong{systematically} or
+#' It assigns blocks to the training and testing folds \strong{randomly}, \strong{systematically} or
 #' in a \strong{checkerboard pattern}. The distance (\code{size})
 #' should be in \strong{metres}, regardless of the unit of the reference system of
 #' the input data (for more information see the details section). By default,
@@ -16,7 +16,7 @@
 #' To keep the consistency, all the functions use \strong{metres} as their unit. In this function, when the input map
 #' has geographic coordinate system (decimal degrees), the block size is calculated based on dividing \code{size} by
 #' \code{deg_to_metre} (111325 as default, the standard distance of a degree in metres, on the Equator) to change
-#'  the unit to degree.
+#' the unit to degree.
 #'
 #' The \code{offset} can be used to change the spatial position of the blocks. It can also be used to
 #' assess the sensitivity of analysis results to shifting in the blocking arrangements.
@@ -30,9 +30,9 @@
 #' not separated spatially. Blocking with a buffering strategy overcomes this issue (see \code{\link{cv_buffer}}).
 #'
 #'
-#' @param x a simple features (sf) or SpatialPoints object  of spatial sample data (e.g., species data or ground truth sample for image classification).
+#' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species data or ground truth sample for image classification).
 #' @param column character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
-#'  response i.e. 0s and 1s) is stored to find balanced records in cross-validation folds. If \code{column = NULL}
+#' response i.e. 0s and 1s) is stored to find balanced records in cross-validation folds. If \code{column = NULL}
 #' the response variable classes will be treated the same and only training and testing records will be counted.
 #' This is used for binary (e.g. presence-absence/background) or multi-class responses (e.g. land cover classes for
 #' remote sensing image classification), and \emph{you can ignore it when the response variable is
@@ -143,39 +143,21 @@ cv_spatial <- function(
   # check for availability of ggplot2
   if(plot){
     pkg <- c("ggplot2")
-    .pkg_checks(pkg)
+    .pkg_check(pkg)
   }
 
   if(!is.element(selection, c("systematic", "random", "checkerboard", "predefined"))){
     stop("The selection argument must be 'random', 'systematic', 'checkerboard', or 'predefined'.")
   }
+  # turn off progress for other selection
+  if(selection != "random") progress <- FALSE
 
   # check x is an sf object
-  if(!methods::is(x, "sf")){
-    tryCatch(
-      {
-        x <- sf::st_as_sf(x)
-      },
-      error = function(cond) {
-        message("'x' is not convertible to an sf object!")
-        message("'x' must be an sf or spatial* object.")
-      }
-    )
-  }
+  x <- .x_check(x)
 
   # check for user_blocks format
   if(!is.null(user_blocks)){
-    if(!methods::is(user_blocks, "sf")){
-      tryCatch(
-        {
-          user_blocks <- sf::st_as_sf(user_blocks)
-        },
-        error = function(cond) {
-          message("'user_blocks' is not convertible to an sf object!")
-          message("'user_blocks' must be an sf or spatial* object.")
-        }
-      )
-    }
+    user_blocks <- .x_check(user_blocks, name = user_blocks)
   }
 
   # is column in x?
@@ -201,18 +183,8 @@ cv_spatial <- function(
 
   # change the r to terra object
   if(!is.null(r)){
-    if(!methods::is(r, "SpatRaster")){
-      tryCatch(
-        {
-          r <- terra::rast(r)
-          r <- r[[1]]
-        },
-        error = function(cond) {
-          message("'r' is not convertible to a terra SpatRaster object!")
-          message("'r' must be a SpatRaster, stars, Raster* object, or path to raster a file on disk.")
-        }
-      )
-    }
+    r <- .r_check(r)
+    r <- r[[1]]
   }
 
   # if hex; selection muse random or systematic
@@ -240,8 +212,6 @@ cv_spatial <- function(
   )
 
   if(progress){
-    # pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
-    #                                  total=iteration, clear=FALSE, width=75)
     pb <- txtProgressBar(min = 0, max = iteration, style = 3)
   }
 
@@ -394,7 +364,6 @@ cv_spatial <- function(
         iter <- i
       }
       if(progress){ # if iteration is higher than 5?
-        # pb$tick() # update progress bar
         setTxtProgressBar(pb, i)
       }
     } else{

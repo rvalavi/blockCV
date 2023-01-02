@@ -57,21 +57,23 @@
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
 #' # load raster data
-#' files <- list.files("inst/extdata/au", full.names = TRUE)
+#' path <- system.file("inst/extdata/au/", package = "blockCV")
+#' files <- list.files(path, full.names = TRUE)
 #' rasters <- terra::rast(files)
 #'
 #' # spatial clustering
-#' eb1 <- cv_cluster(x = pa_data,
-#'                   column = "occ", # optional; name of the column with response
-#'                   k = 5,
-#'                   scale = TRUE)
+#' set.seed(6)
+#' sc <- cv_cluster(x = pa_data,
+#'                  column = "occ", # optional; name of the column with response
+#'                  k = 5)
 #'
 #' # environmental clustering
-#' eb2 <- cv_cluster(r = rasters, # if provided will be used for environmental clustering
-#'                   x = pa_data,
-#'                   column = "occ", # optional; name of the column with response
-#'                   k = 5,
-#'                   scale = TRUE)
+#' set.seed(6)
+#' ec <- cv_cluster(r = rasters, # if provided will be used for environmental clustering
+#'                  x = pa_data,
+#'                  column = "occ", # optional; name of the column with response
+#'                  k = 5,
+#'                  scale = TRUE)
 #'
 cv_cluster <- function(x,
                        column = NULL,
@@ -84,17 +86,7 @@ cv_cluster <- function(x,
                        print = TRUE){
 
   # check x is an sf object
-  if(!methods::is(x, "sf")){
-    tryCatch(
-      {
-        x <- sf::st_as_sf(x)
-      },
-      error = function(cond) {
-        message("'x' is not convertible to an sf object!")
-        message("'x' must be an sf or spatial* object.")
-      }
-    )
-  }
+  x <- .x_check(x)
 
   # is column in x?
   if(!is.null(column)){
@@ -106,17 +98,7 @@ cv_cluster <- function(x,
 
   # change the r to terra object
   if(!is.null(r)){
-    if(!methods::is(r, "SpatRaster")){
-      tryCatch(
-        {
-          r <- terra::rast(r)
-        },
-        error = function(cond) {
-          message("'r' is not convertible to a terra SpatRaster object!")
-          message("'r' must be a SpatRaster, stars, Raster* object, or (multiple) path to raster files on disk.")
-        }
-      )
-    }
+    r <- .r_check(r)
   }
 
   if(!is.null(r)){

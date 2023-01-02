@@ -9,7 +9,7 @@
 #'
 #' When working with presence-background (presence and pseudo-absence) species distribution
 #' data (should be specified by \code{presence_background = TRUE} argument), only presence records are used
-#' for specifying the folds. Consider a target presence point. The buffer is defined around this target point,
+#' for specifying the folds (recommended). Consider a target presence point. The buffer is defined around this target point,
 #' using the specified range (\code{size}). The testing fold comprises the target presence point and all background
 #' points within the buffer (this is the default. If \code{add_background = FALSE} the background
 #' points are ignored). Any non-target presence points inside the buffer are excluded.
@@ -75,17 +75,7 @@ cv_buffer <- function(x,
                       progress = TRUE){
 
   # check x is an sf object
-  if(!methods::is(x, "sf")){
-    tryCatch(
-      {
-        x <- sf::st_as_sf(x)
-      },
-      error = function(cond) {
-        message("'x' is not convertible to an sf object!")
-        message("'x' must be an sf or spatial* object.")
-      }
-    )
-  }
+  x <- .x_check(x)
 
   # x's CRS must be defined
   if(is.na(sf::st_crs(x))){
