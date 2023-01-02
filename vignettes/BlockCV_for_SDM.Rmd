@@ -11,6 +11,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(eval=FALSE,echo = TRUE, tidy = TRUE, tidy.opts = list(width.cutoff = 80), fig.align="center", message = FALSE, warning = FALSE)
+```
+
 ## Introduction
 
 Simple random selection of training and testing folds in the structured environment leads to an underestimation of error in the evaluation of spatial predictions and may result in inappropriate model selection (Telford and Birks, 2009; Roberts et al., 2017). The use of spatial and environmental blocks to separate training and testing sets has been suggested as a good strategy for realistic error estimation in datasets with dependence structures, and more generally as a robust method for estimating the predictive performance of models used to predict mapped distributions (Roberts et al., 2017). Package `blockCV` provides functions to separate train and test sets using *buffers*, *spatial* and *environmental* blocks. It provides several options for how those blocks are constructed. It also has a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the covariates to inform the choice of a suitable  distance band by which to separate the data sets. In addition, some visualization tools are provided to help the user choose the block size and explore generated folds. The package has been written with **Species Distribution Modelling (SDM)** in mind, and the functions allow for a number of common scenarios (including presence-absence and presence-background species data, rare and common species, raster data for predictor variables). Although it can be applied to any spatial modelling e.g. multi-class responses for remote sensing image classification.
@@ -95,7 +99,7 @@ To keep the consistency with other functions, the distance (`theRange`) should b
    
 The `xOffset` and `yOffset` can be used to shift the spatial position of the blocks in horizontal and vertical axes, respectively. This only works when the block have been built based on `theRange`. The `blocks` argument allows users to define an external spatial polygon as blocking layer. The polygon layer must cover all the species points. In addition, blocks can be masked by species spatial data. This option keeps the blocks that cover species data and remove the rest.
    
-```{r eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
+```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 # spatial blocking by specified range with random assignment
 sb <- spatialBlock(speciesData = pa_data,
                    species = "Species",
@@ -111,7 +115,7 @@ sb <- spatialBlock(speciesData = pa_data,
 ```
 
 
-```{r eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
+```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 # spatial blocking by rows and columns with checkerboard assignment
 sb2 <- spatialBlock(speciesData = pb_data, # presence-background data
                     species = "Species",
@@ -126,7 +130,7 @@ sb2 <- spatialBlock(speciesData = pb_data, # presence-background data
 
 The assignment of folds to each block can also be done in a systematic manner using `selection = "systematic"` argument. 
 
-```{r eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
+```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 # spatial blocking by rows with systematic assignment
 sb3 <- spatialBlock(speciesData = pa_data,
                     species = "Species",
@@ -201,7 +205,7 @@ eb <- envBlock(rasterLayer = awt,
 ## The effective range of spatial autocorrelation
 To support a first choice of block size, prior to any model fitting, package `blockCV` includes the option for the user to look at the existing autocorrelation in the predictors, as an indication of landscape spatial structure in their study area. The tool does not suggest any absolute solution to the problem, but serves as a guide to the user. The function works by automatically fitting variograms to each continuous raster and finding the effective range of spatial autocorrelation. Variogram is a fundamental geostatistical tool for measuring spatial autocorrelation. It does so by assessing variability between all pairs of points (O’Sullivan and Unwin, 2010). It provides information about *the effective range of spatial autocorrelation* which is the range over which observations are independent.
 
-```{r, eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
+```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
 sac <- spatialAutoRange(rasterLayer = awt,
                         sampleNumber = 5000,
                         doParallel = TRUE,
@@ -220,7 +224,7 @@ class(sac)
    
 To see the details of the fitted variograms:
 
-```{r, eval=TRUE}
+```{r}
 # summary statistics of the output
 summary(sac)
 ```

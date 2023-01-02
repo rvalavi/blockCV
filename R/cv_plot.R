@@ -10,13 +10,12 @@
 #' It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.
 #' @param nrow integer; number of rows for facet plot
 #' @param ncol integer; number of columns for facet plot
-#' @param num_plots a vector of indices; for a cv_* with <= 10 folds it shows all the folds (e.g. \code{1:10}),
-#' if the number of folds is higher, 10 folds are shown randomly. You can choose any of folds to be shown
-#' e.g. \code{1:3} or \code{c(2, 7, 16, 22)}
+#' @param num_plots a vector of indices of folds; by default the first 10 are shown (if available).
+#' You can choose any of the folds to be shown e.g. \code{1:3} or \code{c(2, 7, 16, 22)}
 #' @param max_pixels integer; maximum number of pixels used for plotting \code{r}
-#' @param raster_colors a character vector of colours for raster background e.g. \code{terrain.colors(20)}
-#' @param points_colors two colours to be used for train and test points
-#' @param points_alpha the opacity of points
+#' @param raster_colors character; a character vector of colours for raster background e.g. \code{terrain.colors(20)}
+#' @param points_colors character; two colours to be used for train and test points
+#' @param points_alpha numeric; the opacity of points
 #' @param label_size integer; size of fold labels when a \code{cv_spatial} object is used.
 #'
 #' @return a ggplot object
@@ -44,7 +43,7 @@ cv_plot <- function(
     r = NULL,
     nrow = NULL,
     ncol = NULL,
-    num_plots = sample(length(cv$folds_list), min(length(cv$folds_list), 10)),
+    num_plots = 1:10,
     max_pixels = 3e5,
     raster_colors = gray.colors(10, alpha = 1),
     points_colors = c("#E69F00", "#56B4E9"),

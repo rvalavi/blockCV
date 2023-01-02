@@ -10,7 +10,12 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 
 
 
-#' Title
+#' Explore spatial block size
+#'
+#' This function assists selection of block size. It allows the user to visualise the blocks
+#' interactively, viewing the impact of block size on number and arrangement of blocks in
+#' the landscape (and optionally on the distribution of species data in those blocks).
+#' Slide to the selected block size, and click \emph{Apply Changes} to change the block size.
 #'
 #' @inheritParams cv_spatial
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data. If \code{r} is supplied, this
@@ -24,6 +29,8 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' @export
 #'
 #' @examples
+#' \donttest{
+#' if(interactive()){
 #' library(blockCV)
 #'
 #' # import presence-absence species data
@@ -40,6 +47,9 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #'               column = "occ",
 #'               min_size = 2e5,
 #'               max_size = 9e5)
+#'
+#' }
+#' }
 #'
 cv_block_size <- function(r, # priority
                           x = NULL,

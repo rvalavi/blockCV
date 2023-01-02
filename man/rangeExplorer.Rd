@@ -2,7 +2,7 @@
 % Please edit documentation in R/explorer.R
 \name{rangeExplorer}
 \alias{rangeExplorer}
-\title{Explore spatial block size}
+\title{Explore the generated folds}
 \usage{
 rangeExplorer(
   rasterLayer,
@@ -28,22 +28,16 @@ spatial block size.}
 
 \item{maxRange}{A numeric value to set the maximum possible range for creating spatial blocks. It is used to limit the searching
 domain of spatial block size.}
+
+\item{blocks}{An SpatialBlock, EnvironmentalBlock or BufferedBlock object.}
 }
 \value{
-An interactive map with blocks (and optionally species data) superimposed. Note that this can also be opened in a
-web browser window. When you return to the R console, press "Esc" to return to the prompt.
+An interactive map showing folds and the species data, that can be used  to explore folds. Note that this can also
+be opened in a web browser window. When you return to the R console, press "Esc" to return to the prompt.
 }
 \description{
-This function assists selection of block size. It allows the user to visualise the blocks interactively,
-viewing the impact of block size on number and arrangement of blocks in the landscape (and optionally on
-the distribution of species data in those blocks). \strong{Slide} to the slected block size, and click \strong{Apply Changes}
-to change the block size.
-}
-\details{
-The only required argument for this function is the \code{rasterLayer}. The rest are optional. If the \code{rangeTable}
-is provided, the minimum, maximum and initial ranges for searching the size of spatial blocks will be selected
-based on the spatial autocorrelation range of covariates. It is also possible to restrict the allowable range
-of block sizes by using the \code{minRange} and \code{maxRanege} arguments.
+A function for visualising the generated folds on a map, and allowing interactive exploration of the data in the folds,
+using the \pkg{RStudio Shiny} app.
 }
 \examples{
 \donttest{
@@ -56,18 +50,44 @@ PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
 # make a sf object from data.frame
 pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
 
-rangeExplorer(rasterLayer = awt) # the only mandatory input
+# spatial blocking by specified range and random assignment
+sb <- spatialBlock(speciesData = pa_data,
+                   species = "Species",
+                   rasterLayer = awt,
+                   theRange = 70000,
+                   k = 5,
+                   selection = "random",
+                   iteration = 100)
 
-# add species data to add them on the map
-rangeExplorer(rasterLayer = awt,
-              speciesData = pa_data,
-              species = "Species",
-              rangeTable = NULL,
-              minRange = 30000, # limit the search domain
-              maxRange = 100000)
+foldExplorer(sb, awt, pa_data)
+
+# buffering with presence-absence data
+bf <- buffering(speciesData= pa_data,
+                species= "Species", # to count the number of presences and absences
+                theRange= 70000,
+                spDataType = "PA",
+                progress = TRUE)
+
+foldExplorer(bf, awt, pa_data)
+
+# environmental clustering
+eb <- envBlock(rasterLayer = awt,
+               speciesData = pa_data,
+               species = "Species",
+               k = 5)
+
+foldExplorer(eb, awt, pa_data)
+
 }
 }
+
+Explore spatial block size
+
+This function is deprecated and will be removed in future updates! Please use \code{\link{cv_block_size}} instead!
+
 }
 \seealso{
-\code{\link{spatialBlock}}; \code{\link{spatialAutoRange}} for the \code{rangeTable}
+\code{\link{spatialBlock}}, \code{\link{buffering}} and \code{\link{envBlock}}
+
+\code{\link{cv_block_size}}
 }

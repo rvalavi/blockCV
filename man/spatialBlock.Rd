@@ -104,83 +104,8 @@ An object of class S3. A list of objects including:
     }
 }
 \description{
-This function creates spatially separated folds based on a pre-specified distance. It assigns blocks to the training and
-testing folds  \strong{randomly},  \strong{systematically} or in a  \strong{checkerboard pattern}. The distance (\code{theRange})
-should be in \strong{metres}, regardless of the unit of the reference system of
-the input data (for more information see the details section). By default,
-the function creates blocks according to the extent and shape of the study area, assuming that the user has considered the
-landscape for the given species and case study. Alternatively, blocks can solely be created based on species spatial data.
-Blocks can also be offset so the origin is not at the outer
-corner of the rasters. Instead of providing a distance, the blocks can also be created by specifying a number of rows and/or
-columns and divide the study area into vertical or horizontal bins, as presented in Wenger & Olden (2012) and Bahn & McGill (2012).
-Finally, the blocks can be specified by a user-defined spatial polygon layer.
-}
-\details{
-To keep the consistency, all the functions use \strong{metres} as their unit. In this function, when the input map
-has geographic coordinate system (decimal degrees), the block size is calculated based on deviding \code{theRange} by
-111325 (the standard distance of a degree in metres, on the Equator) to change the unit to degree. This value is optional
-and can be changed by user via \code{degMetre} argument.
-
-The \code{xOffset} and \code{yOffset} can be used to change the spatial position of the blocks. It can also be used to
-assess the sensitivity of analysis results to shifting in the blocking arrangements. These options are available when \code{theRange}
-is defined. By default the region is located in the middle of the blocks and by setting the offsets, the blocks will shift.
-
-Roberts et. al. (2017) suggest that blocks should be substantially bigger than the range of spatial
-autocorrelation (in model residual) to obtain realistic error estimates, while a buffer with the size of
-the spatial autocorrelation range would result in a good estimation of error. This is because of the so-called
-edge effect (O'Sullivan & Unwin, 2014), whereby points located on the edges of the blocks of opposite sets are
-not separated spatially. Blocking with a buffering strategy overcomes this issue (see \code{\link{buffering}}).
-}
-\examples{
-\donttest{
-
-# load package data
-library(sf)
-
-awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-# import presence-absence species data
-PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-# make a sf object from data.frame
-pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
-
-# spatial blocking by specified range and random assignment
-sb1 <- spatialBlock(speciesData = pa_data,
-                    species = "Species",
-                    theRange = 70000,
-                    k = 5,
-                    selection = "random",
-                    iteration = 100,
-                    numLimit = NULL,
-                    biomod2Format = TRUE,
-                    xOffset = 0.3, # shift the blocks horizontally
-                    yOffset = 0)
-
-# spatial blocking by row/column and systematic fold assignment
-sb2 <- spatialBlock(speciesData = pa_data,
-                    species = "Species",
-                    rasterLayer = awt,
-                    rows = 5,
-                    cols = 8,
-                    k = 5,
-                    selection = "systematic",
-                    biomod2Format = TRUE)
-
-}
-}
-\references{
-Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321-331.
-
-O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
-
-Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
-or phylogenetic structure. Ecography. 40: 913-929.
-
-Wenger, S.J., Olden, J.D., (2012). Assessing transferability of ecological models: an underappreciated aspect of statistical
-validation. Methods Ecol. Evol. 3, 260-267.
+This function is deprecated and will be removed in future updates! Please use \code{\link{cv_spatial}} instead!
 }
 \seealso{
-\code{\link{spatialAutoRange}} and \code{\link{rangeExplorer}} for selecting block size; \code{\link{buffering}}
-and \code{\link{envBlock}} for alternative blocking strategies; \code{\link{foldExplorer}} for visualisation of the generated folds.
-
-For \emph{DataSplitTable} see \code{\link[biomod2]{BIOMOD_cv}} in \pkg{biomod2} package
+\code{\link{cv_spatial}}
 }

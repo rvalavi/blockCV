@@ -16,11 +16,14 @@ Package \strong{'blockCV'} provides functions to separate train and test sets
 using \emph{buffers}, \emph{spatial} and \emph{environmental} blocks (Valavi et al., 2019).
 It provides several options for how those blocks are constructed.
 It also has a function that applies geostatistical techniques to investigate the existing
-level of spatial autocorrelation in the covariates to inform the choice of a suitable  distance band by which to separate the data sets.
-In addition, some visualization tools are provided to help the user choose the block size and explore generated folds. The package has been
-written with \emph{species distribution modelling} in mind, and the functions allow for a number of common scenarios (including presence-absence
+level of spatial autocorrelation in the covariates and spatial sample points to inform the choice of a
+suitable distance band by which to separate the data sets.
+In addition, some visualization tools are provided to help the user choose the block size and
+explore generated folds. The package has been written with \emph{species distribution modelling} in mind,
+and the functions allow for a number of common scenarios (including presence-absence
 and presence-background species data, rare and common species, raster data for predictor variables).
-Although it can be applied to any spatial modelling e.g. multi-class responses for remote sensing image classification.
+Although it can be applied to any spatial modelling e.g. multi-class responses for remote sensing image classification
+or continuous variables such as soil organic carbon content.
 }
 \references{
 Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
@@ -31,7 +34,7 @@ Telford, R.J., Birks, H.J.B., (2009). Evaluation of transfer functions in spatia
 Valavi, R., Elith, J., Lahoz-Monfort, J. J., & Guillera-Arroita, G. (2019). blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods in Ecology and Evolution, 10(2), 225-232. doi:10.1111/2041-210X.13107.
 }
 \seealso{
-\code{\link{spatialBlock}}, \code{\link{buffering}} and \code{\link{envBlock}} for blocking strategies.
+\code{\link{cv_spatial}}, \code{\link{cv_buffer}} and \code{\link{cv_cluster}} for blocking strategies.
 }
 \author{
 Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita

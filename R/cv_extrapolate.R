@@ -1,20 +1,49 @@
-#' Title
+#' Compute measures to evaluate possible extrapolation in testing folds
 #'
-#' @param cv
-#' @param x
-#' @param r
-#' @param num_plot
-#' @param mess
-#' @param jitter_width
-#' @param points_size
-#' @param points_alpha
-#' @param points_colors
-#' @param progress
+#' This function computes multivariate environmental similarity surface (MESS) as described
+#' in Elith et al. (2010). MESS represents how similar a point in a testing fold is to a training
+#' fold (as a reference set of points), with respect to a set of predictor variables in \code{r}.
+#' The negative values are the sites where at least one variable has a value that is outside
+#' the range of environments over the reference set, so these are novel environments.
 #'
-#' @return
+#' @inheritParams cv_spatial
+#' @param x a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
+#' the \code{cv} object.
+#' @param r a terra SpatRaster object of environmental predictor that are going to be used for modelling. This
+#' is used to calculate similarity between the training and testing points.
+#' @param num_plot a vector of indices of folds.
+#' @param mess logical; whether to compute MESS.
+#' @param jitter_width numeric; the width of jitter points.
+#' @param points_size numeric; the size of points.
+#' @param points_alpha numeric; the opacity of points
+#' @param points_colors character; a character vector of colours for points
+#'
+#' @return a ggplot object
 #' @export
 #'
 #' @examples
+#' library(blockCV)
+#'
+#' # import presence-absence species data
+#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' # make an sf object from data.frame
+#' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
+#'
+#' # load raster data
+#' path <- system.file("inst/extdata/au/", package = "blockCV")
+#' files <- list.files(path, full.names = TRUE)
+#' rasters <- terra::rast(files)
+#'
+#' # hexagonal spatial blocking by specified size and random assignment
+#' sb <- cv_spatial(x = pa_data,
+#'                  column = "occ",
+#'                  size = 450000,
+#'                  k = 5,
+#'                  iteration = 1)
+#'
+#' # compute extrapolation
+#' cv_extrapolate(cv = sb, r = rasters, x = pa_data)
+#'
 cv_extrapolate <- function(cv,
                            x,
                            r,

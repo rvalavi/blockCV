@@ -113,35 +113,35 @@ systematicNum <- function(layer, num=5){
 }
 
 
-fitvario <- function(r, spdata, rdata, sn){
-  if(is.null(spdata)){
-    rasterPoints <- raster::rasterToPoints(rdata[[r]], spatial = TRUE)
-    set.seed(2017)
-    points <- rasterPoints[sample(nrow(rasterPoints), sn, replace = FALSE),]
-    names(points) <- "target"
-  } else{
-    points <- raster::extract(rdata[[r]], spdata, na.rm = TRUE, sp = TRUE)
-    names(points)[ncol(points)] <- "target"
-  }
-  fittedVar <- automap::autofitVariogram(target~1, points)
-  return(fittedVar)
-}
-
-
-standardize <- function(x){
-  stzRaster <- raster::stack()
-  for(i in 1:raster::nlayers(x)){
-    stzRaster <- raster::stack(stzRaster, (x[[i]] - raster::minValue(x[[i]])) / (raster::maxValue(x[[i]]) - raster::minValue(x[[i]])))
-  }
-  return(stzRaster)
-}
-
-normalize <- function(x){
-  stzRaster <- raster::stack()
-  for(i in 1:raster::nlayers(x)){
-    meanR <- raster::cellStats(x[[i]], stat="mean", na.rm=TRUE)
-    sdR <- raster::cellStats(x[[i]], stat="sd", na.rm=TRUE)
-    stzRaster <- raster::stack(stzRaster, ((x[[i]] - meanR) / sdR))
-  }
-  return(stzRaster)
-}
+# fitvario <- function(r, spdata, rdata, sn){
+#   if(is.null(spdata)){
+#     rasterPoints <- raster::rasterToPoints(rdata[[r]], spatial = TRUE)
+#     set.seed(2017)
+#     points <- rasterPoints[sample(nrow(rasterPoints), sn, replace = FALSE),]
+#     names(points) <- "target"
+#   } else{
+#     points <- raster::extract(rdata[[r]], spdata, na.rm = TRUE, sp = TRUE)
+#     names(points)[ncol(points)] <- "target"
+#   }
+#   fittedVar <- automap::autofitVariogram(target~1, points)
+#   return(fittedVar)
+# }
+#
+#
+# standardize <- function(x){
+#   stzRaster <- raster::stack()
+#   for(i in 1:raster::nlayers(x)){
+#     stzRaster <- raster::stack(stzRaster, (x[[i]] - raster::minValue(x[[i]])) / (raster::maxValue(x[[i]]) - raster::minValue(x[[i]])))
+#   }
+#   return(stzRaster)
+# }
+#
+# normalize <- function(x){
+#   stzRaster <- raster::stack()
+#   for(i in 1:raster::nlayers(x)){
+#     meanR <- raster::cellStats(x[[i]], stat="mean", na.rm=TRUE)
+#     sdR <- raster::cellStats(x[[i]], stat="sd", na.rm=TRUE)
+#     stzRaster <- raster::stack(stzRaster, ((x[[i]] - meanR) / sdR))
+#   }
+#   return(stzRaster)
+# }

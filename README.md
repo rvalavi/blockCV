@@ -13,17 +13,17 @@
 In a nutshell, package **blockCV** provides functions to build train and test data sets using three general strategies: *buffers*, *spatial* and *environmental* blocks. It offers several options for how those blocks are constructed and how blocks are allocated to cross-validation folds. It includes a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the chosen predictor variables or the response variable (e.g. binary or continuous responses) to inform the choice of the block and buffer size. In addition, visualization tools further aid the selection of block size and provide an understanding of the spread of sample points across generated folds. 
 
 
-## Features
+## Main features
 Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
 
 * There are three blocking methods: **buffers**, **spatial** and **clustering** blocks
-* The assignment of the spatial blocks to cross-validation folds can be done in three different ways: **random**, **systematic** and **checkerboard** pattern
-* The spatial blocks can be assigned to cross-validation folds to have **evenly distributed records** for **binary** (e.g. species presence-absence/background) or **multi-class** responses (e.g. land cover classes for remote sensing image classification) 
-* The position of the spatial blocks can be modified 
+* Several ways to construct spatial blocks
+* The assignment of the spatial blocks to cross-validation folds can be done in three different ways: **random**, **systematic** and **checkerboard pattern**
+* The spatial blocks can be assigned to cross-validation folds to have *evenly distributed records* for *binary* (e.g. species presence-absence/background) or *multi-class* responses (e.g. land cover classes for remote sensing image classification) 
 * The buffering function can account for *presence-absence* and *presence-background* data types 
 * Using geostatistical techniques to inform the choice of a suitable distance band by which to separate the data sets 
 
-## New updates of version 3
+## New updates of version 3.x
 * Function names have changed, all starting with `cv_` now
 * The three main blocking functions are now: `cv_spatial`, `cv_buffer`, and `cv_cluster`
 * Spatial blocks now support hexagonal (default), rectangular, and user-defined blocks
@@ -36,8 +36,9 @@ Compared to other available packages, **blockCV** provides more strategies and c
 
 **Note**: All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) still work, but they will be removed in future versions. Please update your code with the new functions.
 
+
 ## Installation
-To install the package from GitHub use:
+To install the latest update of the package from GitHub use:
 
 ```r
 remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
