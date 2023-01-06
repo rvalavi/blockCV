@@ -21,12 +21,12 @@ cv_spatial_autocor(
 \item{column}{character; indicating the name of the column in which response variable (e.g. species data as a binary
 response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range.}
 
-\item{r}{a terra SpatRaster object. If provided (and \code{x} is missing), it will be use for to calculate range.}
+\item{r}{a terra SpatRaster object. If provided (and \code{x} is missing), it will be used for to calculate range.}
 
 \item{num_sample}{integer; the number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).}
 
-\item{deg_to_metre}{integer. The conversion rate of metres to degree.}
+\item{deg_to_metre}{integer. The conversion rate of degrees to metres.}
 
 \item{plot}{logical; whether to plot the results.}
 
@@ -73,18 +73,18 @@ for further information.
 library(blockCV)
 
 # import presence-absence species data
-points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 # make an sf object from data.frame
 pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
 # load raster data
-path <- system.file("inst/extdata/au/", package = "blockCV")
+path <- system.file("extdata/au/", package = "blockCV")
 files <- list.files(path, full.names = TRUE)
 rasters <- terra::rast(files)
 
-# spatial autocorrelation of a binary response
+# spatial autocorrelation of a binary/continuous response
 range1 <- cv_spatial_autocor(x = pa_data,
-                             column = "occ", # binary repose; presence-absence species data
+                             column = "occ", # binary or continuous data
                              plot = TRUE)
 
 

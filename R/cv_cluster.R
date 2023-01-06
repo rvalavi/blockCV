@@ -49,15 +49,16 @@
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' library(blockCV)
 #'
 #' # import presence-absence species data
-#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 #' # make an sf object from data.frame
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
 #' # load raster data
-#' path <- system.file("inst/extdata/au/", package = "blockCV")
+#' path <- system.file("extdata/au/", package = "blockCV")
 #' files <- list.files(path, full.names = TRUE)
 #' rasters <- terra::rast(files)
 #'
@@ -75,6 +76,7 @@
 #'                  k = 5,
 #'                  scale = TRUE)
 #'
+#' }
 cv_cluster <- function(x,
                        column = NULL,
                        r = NULL,
@@ -96,18 +98,14 @@ cv_cluster <- function(x,
     }
   }
 
-  # change the r to terra object
   if(!is.null(r)){
+    # check r
     r <- .r_check(r)
-  }
-
-  if(!is.null(r)){
+    # check r layers
     if(terra::nlyr(r) < 1){
       stop("'r' is not a valid raster.")
     }
-  }
-
-  if(!is.null(r)){
+    # scale?
     if(scale){
       tryCatch(
         {

@@ -28,12 +28,12 @@
 #'
 #'
 #' @inheritParams cv_spatial
-#' @param column character. Indicating the name of the column in which response variable (e.g. species data as a binary
-#'  response i.e. 0s and 1s) is stored. This is required when \code{presence_background = TRUE}.
-#' @param presence_background logical; whether to treat data as presence-background species data. All other data
-#' types (continuous, count or multi-class responses) this option should be \code{FALSE}.
+#' @param column character; indicating the name of the column in which response variable (e.g. species data as a binary
+#'  response i.e. 0s and 1s) is stored. This is required when \code{presence_background = TRUE}, otherwise optional.
+#' @param presence_background logical; whether to treat data as presence-background species data. For all other data
+#' types (continuous, count or multi-class responses), this option should be \code{FALSE}.
 #' @param add_background logical; add background points to the test set when \code{presence_background = TRUE}. We do not
-#' recommend this option as recommended by Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
+#' recommend according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 #' the background pints to testing points.
 #' @param progress logical; whether to shows a progress bar.
 #'
@@ -54,10 +54,11 @@
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' library(blockCV)
 #'
 #' # import presence-absence species data
-#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 #' # make an sf object from data.frame
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
@@ -67,6 +68,7 @@
 #'                   size = 250000, # size in metres (no matter the crs)
 #'                   presence_background = FALSE)
 #'
+#' }
 cv_buffer <- function(x,
                       column = NULL,
                       size,
@@ -109,9 +111,7 @@ cv_buffer <- function(x,
       clen <- length(cl)
       train_test_table <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
       names(train_test_table) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
-      if(progress){
-        pb <- txtProgressBar(min = 0, max = n, style = 3)
-      }
+      if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
       j <- 0
       for(i in prI){ # loop through presences
         j <- j + 1
@@ -129,9 +129,7 @@ cv_buffer <- function(x,
         countest <- table(x[test_set ,column, drop = TRUE])
         train_test_table[j, which(cl %in% names(countrain))] <- countrain
         train_test_table[j, clen + which(cl %in% names(countest))] <- countest
-        if(progress){
-          setTxtProgressBar(pb, i)
-        }
+        if(progress) utils::setTxtProgressBar(pb, i)
       }
     } else{
       n <- nrow(x)
@@ -139,9 +137,7 @@ cv_buffer <- function(x,
       clen <- length(cl)
       train_test_table <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
       names(train_test_table) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
-      if(progress){
-        pb <- txtProgressBar(min = 0, max = n, style = 3)
-      }
+      if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
       for(i in seq_len(n)){
         train_set <- which(dmatrix[i, ] > distuni)
         test_set <- i
@@ -150,26 +146,20 @@ cv_buffer <- function(x,
         countest <- table(x[test_set ,column, drop = TRUE])
         train_test_table[i, which(cl %in% names(countrain))] <- countrain
         train_test_table[i, clen + which(cl %in% names(countest))] <- countest
-        if(progress){
-          setTxtProgressBar(pb, i)
-        }
+        if(progress) utils::setTxtProgressBar(pb, i)
       }
     }
   } else{ # data with no column column
     n <- nrow(x)
-    train_test_table <- base::data.frame(train=rep(0, n), test=0)
-    if(progress){
-      pb <- txtProgressBar(min = 0, max = n, style = 3)
-    }
+    train_test_table <- base::data.frame(train = rep(0, n), test = 0)
+    if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
     for(i in seq_len(n)){
       train_set <- which(dmatrix[i, ] > distuni)
       test_set <- i
       fold_list[[i]] <- assign(paste0("fold", i), list(train_set, test_set))
       train_test_table$train[i] <- length(train_set)
       train_test_table$test[i] <- length(test_set)
-      if(progress){
-        setTxtProgressBar(pb, i)
-      }
+      if(progress) utils::setTxtProgressBar(pb, i)
     }
   }
   final_objs <- list(folds_list = fold_list,
@@ -178,6 +168,7 @@ cv_buffer <- function(x,
                      size = size,
                      presence_background = presence_background,
                      records = train_test_table)
+
   class(final_objs) <- c("cv_buffer")
   return(final_objs)
 }

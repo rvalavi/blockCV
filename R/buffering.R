@@ -37,12 +37,31 @@ buffering <- function(speciesData,
 
   message("This function is deprecated! Please use 'cv_buffer' instead.")
 
+  # check x is an sf object
+  x <- .x_check(x, name = "speciesData")
+
+  # x's CRS must be defined
+  if(is.na(sf::st_crs(x))){
+    stop("The coordinate reference system of 'speciesData' must be defined.")
+  }
+  # is column in x?
+  if(!is.null(column)){
+    if(!column %in% colnames(x)){
+      warning(sprintf("There is no column named '%s' in 'speciesData'.\n", column))
+      column <- NULL
+    }
+  }
+
+  if(is.null(column) && presence_background) stop("'species' must be provided for presence-background data.")
+
+
   out <- cv_buffer(x = speciesData,
                    column = species,
                    size = theRange,
                    presence_background = ifelse(spDataType == "PA", FALSE, TRUE),
                    add_background = addBG,
                    progress = progress)
+
 
   theList <- list(
     folds = out$folds_list,

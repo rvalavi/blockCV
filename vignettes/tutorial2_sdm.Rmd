@@ -1,0 +1,29 @@
+---
+title: "2- Block cross-validation for species distribution modelling"
+author: "Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{2- Block cross-validation for species distribution modelling}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(eval=FALSE,echo = TRUE, tidy = TRUE, tidy.opts = list(width.cutoff = 80), fig.align="center", message = FALSE, warning = FALSE)
+```
+
+## Making blocks
+
+
+## Fitting with Random Forests
+
+
+## Using `blockCV` for `sdm` package
+
+
+## Using `blockCV` for `biomod2` package
+
+

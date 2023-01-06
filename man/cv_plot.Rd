@@ -49,13 +49,14 @@ a ggplot object
 }
 \description{
 This function visualises the folds create by blockCV. It also accepts a raster
-layer to be used as background.
+layer to be used as background in the output plot.
 }
 \examples{
+\donttest{
 library(blockCV)
 
 # import presence-absence species data
-points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
 # spatial clustering
@@ -67,4 +68,5 @@ cv_plot(cv = sc,
         nrow = 2,
         points_alpha = 0.5)
 
+}
 }

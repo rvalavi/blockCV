@@ -126,10 +126,11 @@ edge effect (O'Sullivan & Unwin, 2014), whereby points located on the edges of t
 not separated spatially. Blocking with a buffering strategy overcomes this issue (see \code{\link{cv_buffer}}).
 }
 \examples{
+\donttest{
 library(blockCV)
 
 # import presence-absence species data
-points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 # make an sf object from data.frame
 pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
@@ -149,6 +150,7 @@ sb2 <- cv_spatial(x = pa_data,
                   hexagon = FALSE,
                   selection = "systematic")
 
+}
 }
 \references{
 Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321-331.

@@ -237,32 +237,8 @@
     names(points) <- "target"
   }
   fit_vario <- automap::autofitVariogram(target~1, points)
-  if(progress) setTxtProgressBar(pb, i)
+  if(progress) utils::setTxtProgressBar(pb, i)
 
   return(fit_vario)
 }
 
-
-# # auto-fit variogram models
-# .fit_variogram <- function(i,
-#                            rr = NULL,
-#                            xx = NULL,
-#                            column = NULL,
-#                            rnames = NULL, # names(r),
-#                            rcrs = NULL, # terra::crs(r),
-#                            progress = FALSE){
-#   if(is.null(xx)){
-#     points <- rr[, c("x", "y", rnames[i])]
-#     points <- sf::st_as_sf(points, coords=c("x", "y"), crs=rcrs)
-#     points <- sf::as_Spatial(points)
-#     names(points) <- "target"
-#   } else{
-#     points <- xx[column]
-#     points <- sf::as_Spatial(points)
-#     names(points) <- "target"
-#   }
-#   fit_vario <- automap::autofitVariogram(target~1, points)
-#   if(progress) setTxtProgressBar(pb, i)
-#
-#   return(fit_vario)
-# }

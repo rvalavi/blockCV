@@ -51,6 +51,8 @@ spatialAutoRange <- function(rasterLayer,
 
   message("This function is deprecated! Please use 'cv_spatial_autocor' instead.")
 
+  if(missing(rasterLayer)) stop("'rasterLayer' must br provided!")
+
   out <- cv_spatial_autocor(x,
                             column = NULL,
                             r = rasterLayer,

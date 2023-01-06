@@ -40,6 +40,8 @@ envBlock <- function(rasterLayer,
 
   message("This function is deprecated! Please use 'cv_cluster' instead.")
 
+  if(missing(rasterLayer)) stop("'rasterLayer' must br provided!")
+
   out <- cv_cluster(x = speciesData,
                     column = species,
                     r = rasterLayer,

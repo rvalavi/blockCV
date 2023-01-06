@@ -22,15 +22,16 @@
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' library(blockCV)
 #'
 #' # import presence-absence species data
-#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 #' # make an sf object from data.frame
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
 #' # load raster data
-#' path <- system.file("inst/extdata/au/", package = "blockCV")
+#' path <- system.file("extdata/au/", package = "blockCV")
 #' files <- list.files(path, full.names = TRUE)
 #' rasters <- terra::rast(files)
 #'
@@ -44,6 +45,7 @@
 #' # compute extrapolation
 #' cv_extrapolate(cv = sb, r = rasters, x = pa_data)
 #'
+#' }
 cv_extrapolate <- function(cv,
                            x,
                            r,
@@ -58,7 +60,6 @@ cv_extrapolate <- function(cv,
   # check required packages
   pkg <- c("ggplot2", "dismo")
   .pkg_check(pkg)
-
   # check x is an sf object
   x <- .x_check(x)
   # change the r to terra object
@@ -87,21 +88,18 @@ cv_extrapolate <- function(cv,
   if(max(num_plot) > k){
     num_plot <- num_plot[num_plot <= k]
   }
-
   # extract the raster values
   points <- terra::extract(r, x, ID = FALSE)
-
   # to set as nrow for df; cv_buffer has only one target points unless P-BG
   n <- nrow(points)
   if(class(cv) == "cv_buffer"){
     n <- ifelse(cv$presence_background, nrow(points), 1)
   }
-
+  # number of predictors
   m <- ncol(points)
   df <- data.frame(id = seq_len(n))
-
-  if(progress) pb <- txtProgressBar(min = 0, max = length(num_plot), style = 3)
-
+  # add progress bar
+  if(progress) pb <- utils::txtProgressBar(min = 0, max = length(num_plot), style = 3)
   # calculate MESS for testing data
   for(i in num_plot){
     df[, paste("Fold", i, sep = "")] <- NA
@@ -114,10 +112,8 @@ cv_extrapolate <- function(cv,
       mmes <- apply(mes, 1, min, na.rm = TRUE)
     }
     df[1:length(mmes), paste("Fold", i, sep = "")] <- mmes
-    if(progress) setTxtProgressBar(pb, i)
+    if(progress) utils::setTxtProgressBar(pb, i)
   }
-
-
   fold_names <- paste("Fold", num_plot, sep = "")
   # reshape for plotting
   mes_reshp <- stats::reshape(df,
@@ -133,14 +129,14 @@ cv_extrapolate <- function(cv,
   if(class(cv) == "cv_buffer") mes_reshp$folds <- as.numeric(substr(mes_reshp$folds, 5, 20))
   # get the max value for color legend
   maxabs <- max(abs(mes_reshp$value))
-
+  # define point colors
   cols <- c("#D53E4F", "#FC8D59", "#FEE08B", "#FFFFBF", "#E6F598", "#99D594", "#3288BD")
   if(is.null(points_colors)) points_colors <- cols else points_colors
-
+  # provide alternatives for class(cv)
   goem_buffer <- ggplot2::geom_point(size = points_size, alpha = points_alpha)
   geom_other <- ggplot2::geom_jitter(width = jitter_width, size = points_size, alpha = points_alpha)
   geom_vio <- ggplot2::geom_violin(fill = NA)
-
+  # which geom to choose
   geom_exta <- if(class(cv) == "cv_buffer") goem_buffer else geom_other
 
   p1 <- ggplot2::ggplot(data = mes_reshp,

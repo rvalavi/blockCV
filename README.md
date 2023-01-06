@@ -14,8 +14,6 @@ In a nutshell, package **blockCV** provides functions to build train and test da
 
 
 ## Main features
-Compared to other available packages, **blockCV** provides more strategies and control over fold generation including:
-
 * There are three blocking methods: **buffers**, **spatial** and **clustering** blocks
 * Several ways to construct spatial blocks
 * The assignment of the spatial blocks to cross-validation folds can be done in three different ways: **random**, **systematic** and **checkerboard pattern**
@@ -31,7 +29,7 @@ Compared to other available packages, **blockCV** provides more strategies and c
 * The `cv_spatial_autocor` function now calculates spatial autocorrelation range for either the response (i.e. the binary or continuous data) or a set of continuous raster covariates (as before)
 * The new `cv_plot` function can be used to plot the folds of all blocking strategy with ggplot facets
 * The newly developed function ******** is implemented
-* The `terra` package operates for raster operations with support for `stars` and `raster` objects
+* The `terra` package is now used for all raster processing with support for `stars` and `raster` formats
 * The new `cv_extrapolate` provides measures on possible extrapolation to testing folds
 
 **Note**: All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) still work, but they will be removed in future versions. Please update your code with the new functions.
@@ -49,12 +47,15 @@ Or installing from CRAN:
 install.packages("blockCV", dependencies = TRUE)
 ```
 
-## Vignette
-To see the vignette of the package use:
+## Vignettes
+To see the vignettes of the package use:
 
-```r
-browseVignettes("blockCV")
-```
+1- blockCV introduction: how to create block corss-validation folds
+
+2- Block cross-validation for species distribution modelling
+
+3- Using blockCV with `caret` and `tidymodels`
+
 The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
 
 

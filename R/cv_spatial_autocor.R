@@ -25,10 +25,10 @@
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species binary or continuous date).
 #' @param column character; indicating the name of the column in which response variable (e.g. species data as a binary
 #'  response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range.
-#' @param r a terra SpatRaster object. If provided (and \code{x} is missing), it will be use for to calculate range.
+#' @param r a terra SpatRaster object. If provided (and \code{x} is missing), it will be used for to calculate range.
 #' @param num_sample integer; the number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 #' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
-#' @param deg_to_metre integer. The conversion rate of metres to degree.
+#' @param deg_to_metre integer. The conversion rate of degrees to metres.
 #' @param plot logical; whether to plot the results.
 #' @param progress logical; whether to shows a progress bar.
 #' @param ... additional option for \code{\link{cv_plot}}
@@ -55,18 +55,18 @@
 #' library(blockCV)
 #'
 #' # import presence-absence species data
-#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 #' # make an sf object from data.frame
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
 #' # load raster data
-#' path <- system.file("inst/extdata/au/", package = "blockCV")
+#' path <- system.file("extdata/au/", package = "blockCV")
 #' files <- list.files(path, full.names = TRUE)
 #' rasters <- terra::rast(files)
 #'
-#' # spatial autocorrelation of a binary response
+#' # spatial autocorrelation of a binary/continuous response
 #' range1 <- cv_spatial_autocor(x = pa_data,
-#'                              column = "occ", # binary repose; presence-absence species data
+#'                              column = "occ", # binary or continuous data
 #'                              plot = TRUE)
 #'
 #'
@@ -174,7 +174,7 @@ cv_spatial_autocor <- function(x,
   # )
   # # future::plan("sequential")
 
-  if(missing(x) && progress) pb <- txtProgressBar(min = 0, max = nlayer, style = 3)
+  if(missing(x) && progress) pb <- utils::txtProgressBar(min = 0, max = nlayer, style = 3)
 
   # fitting wariogram models
   vario_list <- lapply(
@@ -217,7 +217,6 @@ cv_spatial_autocor <- function(x,
   class(plot_data) <- "cv_spatial"
 
   if(nlayer > 1){
-    # ptnum <- ifelse(missing(x), num_sample, nrow(x))
     p1 <- .make_bar_plot(vario_data, the_range, num_sample)
   }
 
@@ -235,11 +234,7 @@ cv_spatial_autocor <- function(x,
 
 
   if(plot){
-    if(nlayer > 1){
-      plot(cowplot::plot_grid(p1, p2))
-    } else{
-      plot(p2)
-    }
+    if(nlayer > 1) plot(cowplot::plot_grid(p1, p2)) else plot(p2)
   }
 
   final_list <- list(range = the_range,

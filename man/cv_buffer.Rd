@@ -16,18 +16,18 @@ cv_buffer(
 \arguments{
 \item{x}{a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species data or ground truth sample for image classification).}
 
-\item{column}{character. Indicating the name of the column in which response variable (e.g. species data as a binary
-response i.e. 0s and 1s) is stored. This is required when \code{presence_background = TRUE}.}
+\item{column}{character; indicating the name of the column in which response variable (e.g. species data as a binary
+response i.e. 0s and 1s) is stored. This is required when \code{presence_background = TRUE}, otherwise optional.}
 
 \item{size}{numeric value of the specified range by which blocks are created and training/testing data are separated.
 This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}
 and \code{\link{cv_block_size}} functions.}
 
-\item{presence_background}{logical; whether to treat data as presence-background species data. All other data
-types (continuous, count or multi-class responses) this option should be \code{FALSE}.}
+\item{presence_background}{logical; whether to treat data as presence-background species data. For all other data
+types (continuous, count or multi-class responses), this option should be \code{FALSE}.}
 
 \item{add_background}{logical; add background points to the test set when \code{presence_background = TRUE}. We do not
-recommend this option as recommended by Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
+recommend according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 the background pints to testing points.}
 
 \item{progress}{logical; whether to shows a progress bar.}
@@ -72,10 +72,11 @@ the procedure is like presence-absence data. All other data types (continuous, c
 done by \code{presence_background = FALSE}.
 }
 \examples{
+\donttest{
 library(blockCV)
 
 # import presence-absence species data
-points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 # make an sf object from data.frame
 pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
@@ -85,6 +86,7 @@ bloo <- cv_buffer(x = pa_data,
                   size = 250000, # size in metres (no matter the crs)
                   presence_background = FALSE)
 
+}
 }
 \references{
 Radosavljevic, A., & Anderson, R. P. (2014). Making better Maxent models of species

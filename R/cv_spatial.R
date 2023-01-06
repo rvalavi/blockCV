@@ -92,10 +92,11 @@
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' library(blockCV)
 #'
 #' # import presence-absence species data
-#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 #' # make an sf object from data.frame
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
@@ -115,6 +116,7 @@
 #'                   hexagon = FALSE,
 #'                   selection = "systematic")
 #'
+#' }
 cv_spatial <- function(
     x,
     column = NULL,
@@ -149,8 +151,9 @@ cv_spatial <- function(
   if(!is.element(selection, c("systematic", "random", "checkerboard", "predefined"))){
     stop("The selection argument must be 'random', 'systematic', 'checkerboard', or 'predefined'.")
   }
-  # turn off progress for other selection
+  # turn off progress if...
   if(selection != "random") progress <- FALSE
+  if(iteration < 3) progress <- FALSE
 
   # check x is an sf object
   x <- .x_check(x)
@@ -212,7 +215,7 @@ cv_spatial <- function(
   )
 
   if(progress){
-    pb <- txtProgressBar(min = 0, max = iteration, style = 3)
+    pb <- utils::txtProgressBar(min = 0, max = iteration, style = 3)
   }
 
   # creating blocks ---------------------------------------------------------
@@ -364,7 +367,7 @@ cv_spatial <- function(
         iter <- i
       }
       if(progress){ # if iteration is higher than 5?
-        setTxtProgressBar(pb, i)
+        utils::setTxtProgressBar(pb, i)
       }
     } else{
       break

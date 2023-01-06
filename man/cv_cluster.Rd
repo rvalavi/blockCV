@@ -76,15 +76,16 @@ Note that the input raster layer should cover all the species points, otherwise 
 value should be deleted prior to the analysis or another raster layer must be provided.
 }
 \examples{
+\donttest{
 library(blockCV)
 
 # import presence-absence species data
-points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 # make an sf object from data.frame
 pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
 # load raster data
-path <- system.file("inst/extdata/au/", package = "blockCV")
+path <- system.file("extdata/au/", package = "blockCV")
 files <- list.files(path, full.names = TRUE)
 rasters <- terra::rast(files)
 
@@ -102,6 +103,7 @@ ec <- cv_cluster(r = rasters, # if provided will be used for environmental clust
                  k = 5,
                  scale = TRUE)
 
+}
 }
 \references{
 Hastie, T., Tibshirani, R., & Friedman, J. (2009). The elements of statistical learning: Data mining, inference, and prediction ( 2nd ed., Vol. 1).

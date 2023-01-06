@@ -6,6 +6,13 @@
 \usage{
 foldExplorer(blocks, rasterLayer, speciesData)
 }
+\arguments{
+\item{blocks}{deprecated!}
+
+\item{rasterLayer}{deprecated!}
+
+\item{speciesData}{deprecated!}
+}
 \description{
 This function is deprecated! Please use \code{\link{cv_plot}} function for plotting the folds.
 }

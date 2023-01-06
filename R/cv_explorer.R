@@ -2,6 +2,9 @@
 #'
 #' This function is deprecated! Please use \code{\link{cv_plot}} function for plotting the folds.
 #'
+#' @param blocks deprecated!
+#' @param rasterLayer deprecated!
+#' @param speciesData deprecated!
 foldExplorer <- function(blocks, rasterLayer, speciesData){
   stop(
     "This function is deprecated! Please use `cv_plot` function for plotting the folds."
@@ -34,16 +37,11 @@ foldExplorer <- function(blocks, rasterLayer, speciesData){
 #' library(blockCV)
 #'
 #' # import presence-absence species data
-#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
-#' # load raster data
-#' path <- system.file("inst/extdata/au/", "bio_5.tif", package = "blockCV")
-#' myraster <- terra::rast(path)
-#'
 #' # manually choose the size of spatial blocks
-#' cv_block_size(r = myraster,
-#'               x = pa_data,
+#' cv_block_size(x = pa_data,
 #'               column = "occ",
 #'               min_size = 2e5,
 #'               max_size = 9e5)
