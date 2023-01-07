@@ -2,7 +2,7 @@
 #'
 #' This function is deprecated and will be removed in future updates! Please use \code{\link{cv_block_size}} instead!
 #'
-#' @param raster layer for make plot
+#' @param rasterLayer raster layer for make plot
 #' @param speciesData a simple features (sf) or SpatialPoints object containing species data (response variable). If provided, the species data will be shown on the map.
 #' @param species character value indicating the name of the field in which the species data (response variable e.g. 0s and 1s) are stored.
 #' If provided, species presence and absence data will be shown in different colours.
@@ -23,6 +23,19 @@ rangeExplorer <- function(rasterLayer,
                           maxRange=NULL){
 
   message("This function is deprecated! Please use 'cv_block_size' instead.")
+  # check x is an sf object
+  speciesData <- .x_check(speciesData, name = "speciesData")
+
+  # is column in x?
+  if(!is.null(species)){
+    if(!species %in% colnames(speciesData)){
+      warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
+      species <- NULL
+    }
+  }
+
+  # check r
+  rasterLayer <- .r_check(rasterLayer, name = "rasterLayer")
 
   cv_block_size(r = rasterLayer, # priority
                 x = speciesData,

@@ -50,7 +50,8 @@ It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.}
 This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}
 and \code{\link{cv_block_size}} functions.}
 
-\item{rows_cols}{integer vector. Two integers to define the blocks based on row and column e.g. \code{c(10, 10)} or \code{c(5, 1)}.}
+\item{rows_cols}{integer vector. Two integers to define the blocks based on row and
+column e.g. \code{c(10, 10)} or \code{c(5, 1)}. Hexagonal blocks uses only the first one.}
 
 \item{selection}{type of assignment of blocks into folds. Can be \strong{random} (default), \strong{systematic}, \strong{checkerboard}, or \strong{predefined}.
 The checkerboard does not work with hexagonal and user-defined spatial blocks. If the \code{selection = 'predefined'}, user-defined
@@ -69,7 +70,8 @@ This argument is necessary if you choose the 'predefined' selection.}
 \item{biomod2}{logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 a \emph{DataSplitTable} for cross-validation.}
 
-\item{offset}{this option is currently un-available.}
+\item{offset}{two number between 0 and 1 to shift blocks by that proportion of block size.
+This option only works when \code{size} is provided.}
 
 \item{seed}{integer; a random seed for reproducibility.}
 
@@ -78,9 +80,9 @@ a \emph{DataSplitTable} for cross-validation.}
 \item{print}{logical; whether to print the report of the records per fold.}
 
 \item{plot}{logical; whether to plot the final blocks with fold numbers in ggplot.
-You can re-create this with \code{\link{cv_plot}}}
+You can re-create this with \code{\link{cv_plot}}.}
 
-\item{...}{additional option for \code{\link{cv_plot}}}
+\item{...}{additional option for \code{\link{cv_plot}}.}
 }
 \value{
 An object of class S3. A list of objects including:
@@ -89,6 +91,7 @@ An object of class S3. A list of objects including:
     \item{folds_ids - a vector of values indicating the number of the fold for each observation (each number corresponds to the same point in species data)}
     \item{biomod_table - a matrix with the folds to be used in \pkg{biomod2} package}
     \item{k - number of the folds}
+    \item{size - input size, if not null}
     \item{column - the name of the column if provided}
     \item{blocks - SpatialPolygon of the blocks}
     \item{records - a table with the number of points in each category of training and testing}

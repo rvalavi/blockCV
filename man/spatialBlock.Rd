@@ -9,11 +9,11 @@ spatialBlock(
   species = NULL,
   rasterLayer = NULL,
   theRange = NULL,
-  rows = NULL,
-  cols = NULL,
+  rows = 10,
+  cols = 10,
   k = 5L,
   selection = "random",
-  iteration = 100L,
+  iteration = 50L,
   blocks = NULL,
   foldsCol = NULL,
   numLimit = 0L,
@@ -62,9 +62,7 @@ the species (response) points. If the selection = 'predefined', this argument (a
 \item{foldsCol}{Character. Indicating the name of the column (in user-defined blocks) in which the associated folds are stored.
 This argument is necessary if you choose the 'predefined' selection.}
 
-\item{numLimit}{Integer value. The minimum number of points in each training and testing folds.
-If \code{numLimit = 0}, the most evenly dispersed number of records is chosen (given the number of iteration).
-This option no longer accepts NULL as input. If it is set to NULL, 0 is used instead.}
+\item{numLimit}{deprecated option.}
 
 \item{maskBySpecies}{Since version 1.1, this option is always set to \code{TRUE}.}
 

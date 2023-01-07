@@ -6,7 +6,7 @@
 #' The negative values are the sites where at least one variable has a value that is outside
 #' the range of environments over the reference set, so these are novel environments.
 #'
-#' @inheritParams cv_spatial
+#' @inheritParams cv_plot
 #' @param x a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
 #' the \code{cv} object.
 #' @param r a terra SpatRaster object of environmental predictor that are going to be used for modelling. This
@@ -17,6 +17,7 @@
 #' @param points_size numeric; the size of points.
 #' @param points_alpha numeric; the opacity of points
 #' @param points_colors character; a character vector of colours for points
+#' @inheritParams cv_spatial
 #'
 #' @return a ggplot object
 #' @export
@@ -92,7 +93,7 @@ cv_extrapolate <- function(cv,
   points <- terra::extract(r, x, ID = FALSE)
   # to set as nrow for df; cv_buffer has only one target points unless P-BG
   n <- nrow(points)
-  if(class(cv) == "cv_buffer"){
+  if(methods::is(cv, "cv_buffer")){
     n <- ifelse(cv$presence_background, nrow(points), 1)
   }
   # number of predictors
@@ -106,7 +107,7 @@ cv_extrapolate <- function(cv,
     train <- folds_list[[i]][[1]]
     test <- folds_list[[i]][[2]]
     mes <- sapply(1:m, function(j) dismo:::.messi3(points[test, j], points[train, j]))
-    if(class(cv) == "cv_buffer"){
+    if(methods::is(cv, "cv_buffer")){
       mmes <- min(mes)
     } else{
       mmes <- apply(mes, 1, min, na.rm = TRUE)
@@ -125,8 +126,8 @@ cv_extrapolate <- function(cv,
                               timevar = "folds"
   )
   # remove NAs
-  mes_reshp <- mes_reshp[complete.cases(mes_reshp), ]
-  if(class(cv) == "cv_buffer") mes_reshp$folds <- as.numeric(substr(mes_reshp$folds, 5, 20))
+  mes_reshp <- mes_reshp[stats::complete.cases(mes_reshp), ]
+  if(methods::is(cv, "cv_buffer")) mes_reshp$folds <- as.numeric(substr(mes_reshp$folds, 5, 25))
   # get the max value for color legend
   maxabs <- max(abs(mes_reshp$value))
   # define point colors
@@ -137,13 +138,13 @@ cv_extrapolate <- function(cv,
   geom_other <- ggplot2::geom_jitter(width = jitter_width, size = points_size, alpha = points_alpha)
   geom_vio <- ggplot2::geom_violin(fill = NA)
   # which geom to choose
-  geom_exta <- if(class(cv) == "cv_buffer") goem_buffer else geom_other
+  geom_exta <- if(methods::is(cv, "cv_buffer")) goem_buffer else geom_other
 
   p1 <- ggplot2::ggplot(data = mes_reshp,
                         ggplot2::aes_string(x = "folds", y =  "value", col = "value")) +
     ggplot2::geom_hline(yintercept = 0, color = "grey50", linetype = 2) +
     geom_exta +
-    switch(class(cv) != "cv_buffer", geom_vio, NULL) +
+    switch(!methods::is(cv, "cv_buffer"), geom_vio, NULL) +
     ggplot2::scale_color_gradientn(colours = points_colors,
                                    limits = c(-maxabs, maxabs),
                                    na.value = "#BEBEBE03") +

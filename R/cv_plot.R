@@ -1,7 +1,7 @@
 #' Visualising folds created by blockCV in ggplot
 #'
 #' This function visualises the folds create by blockCV. It also accepts a raster
-#' layer to be used as background.
+#' layer to be used as background in the output plot.
 #'
 #' @param cv a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster} or \code{cv_buffer}
 #' @param x a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
@@ -18,14 +18,16 @@
 #' @param points_alpha numeric; the opacity of points
 #' @param label_size integer; size of fold labels when a \code{cv_spatial} object is used.
 #'
+#' @importFrom grDevices gray.colors
 #' @return a ggplot object
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' library(blockCV)
 #'
 #' # import presence-absence species data
-#' points <- read.csv(system.file("inst/extdata/", "species.csv", package = "blockCV"))
+#' points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
 #' # spatial clustering
@@ -37,6 +39,7 @@
 #'         nrow = 2,
 #'         points_alpha = 0.5)
 #'
+#' }
 cv_plot <- function(
     cv,
     x,
@@ -83,7 +86,7 @@ cv_plot <- function(
     geom_rast_col <- ggplot2::scale_fill_gradientn(colours = raster_colors)
   }
   # make geom_sf for spatial blocks
-  if(class(cv) == "cv_spatial"){
+  if(methods::is(cv, "cv_spatial")){
     blocks <- cv$blocks
     geom_poly <- ggplot2::geom_sf(data = sf::st_geometry(blocks),
                                   inherit.aes = FALSE,
@@ -97,11 +100,11 @@ cv_plot <- function(
     x_long <- .x_to_long(x, cv, num_plot = num_plots)
   } else{
     # stop if x is missing for buffer and cluster
-    if(class(cv) != "cv_spatial") stop("'x' is required for plotting cv_cluster and cv_buffer.")
+    if(!methods::is(cv, "cv_spatial")) stop("'x' is required for plotting cv_cluster and cv_buffer.")
   }
 
   if(missing(x)){
-    if(class(cv) == "cv_spatial"){
+    if(methods::is(cv, "cv_spatial")){
 
       p1 <- ggplot2::ggplot(data = blocks) +
         switch(!is.null(r), geom_rast, NULL) +
@@ -124,7 +127,7 @@ cv_plot <- function(
     p1 <- ggplot2::ggplot(data = x_long) +
       switch(!is.null(r), geom_rast, NULL) +
       switch(!is.null(r), geom_rast_col, NULL) +
-      switch(class(cv) == "cv_spatial", geom_poly, NULL) +
+      switch(methods::is(cv, "cv_spatial"), geom_poly, NULL) +
       ggplot2::geom_sf(ggplot2::aes_string(col = "value"),
                        alpha = points_alpha) +
       ggplot2::scale_color_manual(values = points_colors, na.value = "#BEBEBE03") +

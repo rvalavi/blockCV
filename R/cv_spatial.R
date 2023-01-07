@@ -45,7 +45,8 @@
 #' @param size numeric value of the specified range by which blocks are created and training/testing data are separated.
 #' This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}
 #' and \code{\link{cv_block_size}} functions.
-#' @param rows_cols integer vector. Two integers to define the blocks based on row and column e.g. \code{c(10, 10)} or \code{c(5, 1)}.
+#' @param rows_cols integer vector. Two integers to define the blocks based on row and
+#' column e.g. \code{c(10, 10)} or \code{c(5, 1)}. Hexagonal blocks uses only the first one.
 #' @param selection type of assignment of blocks into folds. Can be \strong{random} (default), \strong{systematic}, \strong{checkerboard}, or \strong{predefined}.
 #' The checkerboard does not work with hexagonal and user-defined spatial blocks. If the \code{selection = 'predefined'}, user-defined
 #' blocks and \code{folds_column} must be supplied.
@@ -57,13 +58,14 @@
 #' @param deg_to_metre integer. The conversion rate of metres to degree. See the details section for more information.
 #' @param biomod2 logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 #' a \emph{DataSplitTable} for cross-validation.
-#' @param offset this option is currently un-available.
+#' @param offset two number between 0 and 1 to shift blocks by that proportion of block size.
+#' This option only works when \code{size} is provided.
 #' @param seed integer; a random seed for reproducibility.
 #' @param progress logical; whether to shows a progress bar for random fold selection.
 #' @param print logical; whether to print the report of the records per fold.
 #' @param plot logical; whether to plot the final blocks with fold numbers in ggplot.
-#' You can re-create this with \code{\link{cv_plot}}
-#' @param ... additional option for \code{\link{cv_plot}}
+#' You can re-create this with \code{\link{cv_plot}}.
+#' @param ... additional option for \code{\link{cv_plot}}.
 #'
 #'
 #' @seealso \code{\link{cv_buffer}} and \code{\link{cv_cluster}}; \code{\link{cv_spatial_autocor}} and \code{\link{cv_block_size}} for selecting block size
@@ -85,6 +87,7 @@
 #'     \item{folds_ids - a vector of values indicating the number of the fold for each observation (each number corresponds to the same point in species data)}
 #'     \item{biomod_table - a matrix with the folds to be used in \pkg{biomod2} package}
 #'     \item{k - number of the folds}
+#'     \item{size - input size, if not null}
 #'     \item{column - the name of the column if provided}
 #'     \item{blocks - SpatialPolygon of the blocks}
 #'     \item{records - a table with the number of points in each category of training and testing}
@@ -132,7 +135,7 @@ cv_spatial <- function(
     folds_column = NULL,
     deg_to_metre = 111325,
     biomod2 = TRUE,
-    offset = c(0, 0), # this is not yet implementated
+    offset = c(0, 0),
     seed = NULL,
     progress = TRUE,
     print = TRUE,
@@ -225,11 +228,34 @@ cv_spatial <- function(
     x_obj <- if(is.null(r)) x else r
 
     if(is.null(size)){
+      # select only row for hexagonal blocks
+      if(hexagon) rows_cols <- rows_cols[1]
       blocks <- sf::st_make_grid(x_obj, n=rev(rows_cols), square=!hexagon, what="polygons", flat_topped=flat_top)
     } else{
       # convert metres to degrees
       if(sf::st_is_longlat(x_obj)) size <- size / deg_to_metre
-      blocks <- sf::st_make_grid(x_obj, cellsize=size, square=!hexagon, what="polygons", flat_topped=flat_top)
+      # prepare the offset values
+      offset <- size * (abs(offset) %% 1)
+      if(length(offset) < 2) offset[2] <- 0
+      xm <- as.numeric(sf::st_bbox(x_obj)[1])
+      ym <- as.numeric(sf::st_bbox(x_obj)[2])
+      xoff <- xm - offset[1]
+      yoff <- ym - offset[2]
+
+      tryCatch(
+        {
+          blocks <- sf::st_make_grid(x_obj,
+                                     cellsize = size,
+                                     offset = c(xoff, yoff),
+                                     square = !hexagon,
+                                     what = "polygons",
+                                     flat_topped = flat_top)
+        },
+        error = function(cond) {
+          message("Could not create spatial blocks! possibly because of using a very small block size.")
+          message("Remember, size is in metres not the unit of the CRS.")
+        }
+      )
     }
   } else{
     blocks <- sf::st_geometry(user_blocks)
@@ -402,6 +428,7 @@ cv_spatial <- function(
                      folds_ids = fold_vect,
                      biomod_table = switch(biomod2, as.matrix(biomod_table), NULL),
                      k = k,
+                     size = size,
                      column = column,
                      blocks = sub_blocks,
                      records = train_test_table)

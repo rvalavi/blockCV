@@ -21,15 +21,15 @@
 }
 
 # check for r
-.r_check <- function(r){
+.r_check <- function(r, name = "r"){
   if(!methods::is(r, "SpatRaster")){
     tryCatch(
       {
         r <- terra::rast(r)
       },
       error = function(cond) {
-        message("'r' is not convertible to a terra SpatRaster object!")
-        message("'r' must be a SpatRaster, stars, Raster* object, or path to raster a file on disk.")
+        message(sprintf("'%s' is not convertible to a terra SpatRaster object!", name))
+        message(sprintf("'%s' must be a SpatRaster, stars, Raster* object, or path to raster a file on disk.", name))
       }
     )
   }
@@ -148,7 +148,7 @@
     num_plot <- num_plot[num_plot <= k]
   }
   # get the length of unique ids
-  if(class(cv) == "cv_buffer"){
+  if(methods::is(cv, "cv_buffer")){
     len <- length(unique(unlist(cv$folds_list)))
   } else{
     len <- length(unlist(folds_list[[1]]))
@@ -195,19 +195,42 @@
 
 # make a bar plot for cv_spatial_autocor
 .make_bar_plot <- function(vario_data, the_range, ptnum){
-  p <- ggplot2::ggplot() +
-    ggplot2::geom_bar(
-      ggplot2::aes(x=stats::reorder(factor(get("layers")), get("range")), y=get("range"), fill=get("range")),
-      stat="identity",data=vario_data,) +
-    ggplot2::labs(x = "Layers", y = "Range (m)") +
+  # change the scale to km
+  vario_data$range <- vario_data$range / 1000
+  the_range <- the_range / 1000
+
+  p <- ggplot2::ggplot(
+    data = vario_data,
+    ggplot2::aes(y = get("range"),
+                 x = stats::reorder(factor(get("layers")),
+                                    get("range"),
+                                    decreasing = FALSE),
+                 color = get("range"))
+    ) +
+    # ggplot2::geom_bar(
+    #   ggplot2::aes(x = stats::reorder(factor(get("layers")), get("range")),
+    #                y = get("range"),
+    #                fill = get("range")),
+    #   stat = "identity", data = vario_data,) +
+    ggplot2::geom_point(size = 4) +
+    ggplot2::geom_segment(
+      ggplot2::aes_string(x = "layers",
+                          xend = "layers",
+                          y = 0,
+                          yend = "range"),
+      size = 1.5
+    ) +
+    ggplot2::labs(x = "Raster layers", y = "Range (km)") +
     ggplot2::theme_bw() +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle=75, hjust=1)) +
-    ggplot2::ggtitle("Autocorrelation range", subtitle=paste("Based on", ptnum, "sample points"))+
-    ggplot2::guides(fill = "none") +
-    ggplot2::geom_hline(yintercept=the_range, color='red', size=0.9, linetype=2) +
-    ggplot2::annotate("text", x=floor(nrow(vario_data)/3),
-                      y =  (the_range + (max(vario_data$range)/20)),
-                      label="Block size", color='red')
+    ggplot2::ggtitle("Autocorrelation range", subtitle = paste("Based on", ptnum, "sample points"))+
+    ggplot2::guides(color = "none") +
+    ggplot2::geom_hline(yintercept = the_range, color = 'red', size = 0.5, linetype = 2) +
+    ggplot2::annotate("text", x = floor(nrow(vario_data) / 3),
+                      y =  (the_range + (max(vario_data$range) / 20)),
+                      angle = 270,
+                      label = "Block size",
+                      color = 'red') +
+    ggplot2::coord_flip()
 
   return(p)
 }

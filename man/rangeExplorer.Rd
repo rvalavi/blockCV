@@ -14,6 +14,8 @@ rangeExplorer(
 )
 }
 \arguments{
+\item{rasterLayer}{raster layer for make plot}
+
 \item{speciesData}{a simple features (sf) or SpatialPoints object containing species data (response variable). If provided, the species data will be shown on the map.}
 
 \item{species}{character value indicating the name of the field in which the species data (response variable e.g. 0s and 1s) are stored.
@@ -26,8 +28,6 @@ spatial block size.}
 
 \item{maxRange}{a numeric value to set the maximum possible range for creating spatial blocks. It is used to limit the searching
 domain of spatial block size.}
-
-\item{raster}{layer for make plot}
 }
 \description{
 This function is deprecated and will be removed in future updates! Please use \code{\link{cv_block_size}} instead!

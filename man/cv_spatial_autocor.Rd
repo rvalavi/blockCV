@@ -5,9 +5,9 @@
 \title{Measure spatial autocorrelation in spatial response data or predictor raster files}
 \usage{
 cv_spatial_autocor(
+  r,
   x,
   column = NULL,
-  r,
   num_sample = 5000L,
   deg_to_metre = 111325,
   plot = TRUE,
@@ -16,12 +16,12 @@ cv_spatial_autocor(
 )
 }
 \arguments{
+\item{r}{a terra SpatRaster object. If provided (and \code{x} is missing), it will be used for to calculate range.}
+
 \item{x}{a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species binary or continuous date).}
 
 \item{column}{character; indicating the name of the column in which response variable (e.g. species data as a binary
 response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range.}
-
-\item{r}{a terra SpatRaster object. If provided (and \code{x} is missing), it will be used for to calculate range.}
 
 \item{num_sample}{integer; the number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).}

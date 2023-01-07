@@ -41,12 +41,43 @@ envBlock <- function(rasterLayer,
   message("This function is deprecated! Please use 'cv_cluster' instead.")
 
   if(missing(rasterLayer)) stop("'rasterLayer' must br provided!")
+  if(missing(speciesData)) stop("'speciesData' must br provided!")
+
+  # check x is an sf object
+  speciesData <- .x_check(speciesData, name = "speciesData")
+
+  # is column in x?
+  if(!is.null(species)){
+    if(!species %in% colnames(speciesData)){
+      warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
+      species <- NULL
+    }
+  }
+
+  # check r
+  rasterLayer <- .r_check(rasterLayer, name = "rasterLayer")
+  # check r layers
+  if(terra::nlyr(rasterLayer) < 1){
+    stop("'rasterLayer' is not a valid raster.")
+  }
+  # scale?
+  if(scale){
+    tryCatch(
+      {
+        rasterLayer <- terra::scale(rasterLayer)
+      },
+      error = function(cond) {
+        message("Scaling the raster failed!")
+      }
+    )
+  }
+
 
   out <- cv_cluster(x = speciesData,
                     column = species,
                     r = rasterLayer,
                     k = k,
-                    scale = TRUE,
+                    scale = ifelse(standardization == "none", FALSE, TRUE),
                     raster_cluster = rasterBlock,
                     num_sample = sampleNumber,
                     biomod2 = biomod2Format,

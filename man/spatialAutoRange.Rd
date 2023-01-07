@@ -30,11 +30,9 @@ however it can be increased by user to represent their region well (relevant to 
 variograms are created based on species locations. This option is not recommended if the species data is not
 evenly distributed across the whole study area and/or the number of records is low.}
 
-\item{doParallel}{Logical. Run in parallel when more than one raster layer is available. Given multiple CPU cores, it is
-recommended to set it to \code{TRUE} when there is a large number of rasters to process.}
+\item{doParallel}{deprecated option!}
 
-\item{nCores}{Integer. Number of CPU cores to run in parallel. If \code{nCores = NULL} half of available cores in your
-machine will be used.}
+\item{nCores}{deprecated option!}
 
 \item{showPlots}{Logical. Show final plot of spatial blocks and autocorrelation ranges.}
 
@@ -45,8 +43,7 @@ calculated based on deviding the calculated \emph{range} by this value to conver
 
 \item{maxpixels}{Number of random pixels to select the blocks over the study area.}
 
-\item{plotVariograms}{Logical. Plot fitted variograms. This can also be done after the analysis.
-It is \code{FALSE} by default.}
+\item{plotVariograms}{deprecated option!}
 
 \item{progress}{Logical. Shows progress bar. It works only when \code{doParallel = FALSE}.}
 }

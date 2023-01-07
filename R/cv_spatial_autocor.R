@@ -22,10 +22,10 @@
 #' See \code{\link[automap]{autofitVariogram}} from \pkg{automap} and \code{\link[gstat]{variogram}} from \pkg{gstat} packages
 #' for further information.
 #'
+#' @param r a terra SpatRaster object. If provided (and \code{x} is missing), it will be used for to calculate range.
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species binary or continuous date).
 #' @param column character; indicating the name of the column in which response variable (e.g. species data as a binary
 #'  response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range.
-#' @param r a terra SpatRaster object. If provided (and \code{x} is missing), it will be used for to calculate range.
 #' @param num_sample integer; the number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 #' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
 #' @param deg_to_metre integer. The conversion rate of degrees to metres.
@@ -78,9 +78,9 @@
 #' # show the result
 #' summary(range2)
 #' }
-cv_spatial_autocor <- function(x,
+cv_spatial_autocor <- function(r,
+                               x,
                                column = NULL,
-                               r,
                                num_sample = 5000L,
                                deg_to_metre = 111325,
                                plot = TRUE,
@@ -210,7 +210,7 @@ cv_spatial_autocor <- function(x,
   }
 
   # make an object for plotting
-  vis_block <- sf::st_make_grid(x_obj, cellsize = round(size), what = "polygons")
+  vis_block <- sf::st_make_grid(x_obj, cellsize = round(size), square = FALSE, what = "polygons")
   vis_block <- sf::st_sf(vis_block[x_obj])
   vis_block$folds <- 1:nrow(vis_block)
   plot_data <- list(blocks = vis_block)

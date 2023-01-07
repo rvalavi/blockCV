@@ -1,4 +1,7 @@
-## ---- eval=FALSE---------------------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
+knitr::opts_chunk$set(eval=FALSE,echo = TRUE, tidy = TRUE, tidy.opts = list(width.cutoff = 80), fig.align="center", message = FALSE, warning = FALSE)
+
+## ---- eval=FALSE--------------------------------------------------------------
 #  # install stable version from CRAN
 #  install.packages("blockCV", dependencies = TRUE)
 #  
@@ -6,88 +9,88 @@
 #  remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
 #  
 
-## ---- results="hide", warning=FALSE, message=FALSE-----------------------
-# loading the package
-library(blockCV)
+## ---- results="hide", warning=FALSE, message=FALSE----------------------------
+#  # loading the package
+#  library(blockCV)
+#  
 
+## ---- fig.height=5, fig.width=7.2, warning=FALSE, message=FALSE---------------
+#  # loading raster library
+#  library(raster)
+#  library(sf)
+#  
+#  # import raster data
+#  awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
+#  
 
-## ---- fig.height=5, fig.width=7.2, warning=FALSE, message=FALSE----------
-# loading raster library
-library(raster)
-library(sf)
+## ---- fig.height=4.5, fig.width=7.1-------------------------------------------
+#  # import presence-absence species data
+#  PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
+#  # make a SpatialPointsDataFrame object from data.frame
+#  pa_data <- st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
+#  # see the first few rows
+#  pa_data
+#  
+#  # plot species data on the map
+#  plot(awt[[1]]) # plot raster data
+#  plot(pa_data[which(pa_data$Species==1), ], pch = 16, col="red", add=TRUE) # add presence points
+#  plot(pa_data[which(pa_data$Species==0), ], pch = 16, col="blue", add=TRUE) # add absence points
+#  legend(x=500000, y=8250000, legend=c("Presence","Absence"), col=c(2, 4), pch=c(16,16), bty="n")
+#  
 
-# import raster data
-awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
+## -----------------------------------------------------------------------------
+#  # import presence-background species data
+#  PB <- read.csv(system.file("extdata", "PB.csv", package = "blockCV"))
+#  # make a SpatialPointsDataFrame object from data.frame
+#  pb_data <- st_as_sf(PB, coords = c("x", "y"), crs = crs(awt))
+#  # number of presence and background records
+#  table(pb_data$Species)
+#  
 
+## ---- warning=FALSE, message=FALSE, fig.height=5, fig.width=7-----------------
+#  # spatial blocking by specified range with random assignment
+#  sb <- spatialBlock(speciesData = pa_data,
+#                     species = "Species",
+#                     rasterLayer = awt,
+#                     theRange = 70000, # size of the blocks
+#                     k = 5,
+#                     selection = "random",
+#                     iteration = 100, # find evenly dispersed folds
+#                     biomod2Format = TRUE,
+#                     xOffset = 0, # shift the blocks horizontally
+#                     yOffset = 0)
+#  
 
-## ---- fig.height=4.5, fig.width=7.1--------------------------------------
-# import presence-absence species data
-PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-# make a SpatialPointsDataFrame object from data.frame
-pa_data <- st_as_sf(PA, coords = c("x", "y"), crs = crs(awt))
-# see the first few rows
-pa_data
+## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
+#  # spatial blocking by rows and columns with checkerboard assignment
+#  sb2 <- spatialBlock(speciesData = pb_data, # presence-background data
+#                      species = "Species",
+#                      rasterLayer = awt,
+#                      rows = 5,
+#                      cols = 6,
+#                      k = 5,
+#                      selection = "systematic",
+#                      biomod2Format = TRUE)
+#  
 
-# plot species data on the map
-plot(awt[[1]]) # plot raster data
-plot(pa_data[which(pa_data$Species==1), ], pch = 16, col="red", add=TRUE) # add presence points
-plot(pa_data[which(pa_data$Species==0), ], pch = 16, col="blue", add=TRUE) # add absence points
-legend(x=500000, y=8250000, legend=c("Presence","Absence"), col=c(2, 4), pch=c(16,16), bty="n")
+## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
+#  # spatial blocking by rows with systematic assignment
+#  sb3 <- spatialBlock(speciesData = pa_data,
+#                      species = "Species",
+#                      rasterLayer = awt,
+#                      rows = 6,
+#                      selection = "checkerboard",
+#                      biomod2Format = TRUE)
+#  
 
+## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
+#  # adding points on saptialBlock plot
+#  library(ggplot2)
+#  
+#  sb$plots + geom_sf(data = pa_data, alpha = 0.5)
+#  
 
-## ------------------------------------------------------------------------
-# import presence-background species data
-PB <- read.csv(system.file("extdata", "PB.csv", package = "blockCV"))
-# make a SpatialPointsDataFrame object from data.frame
-pb_data <- st_as_sf(PB, coords = c("x", "y"), crs = crs(awt))
-# number of presence and background records
-table(pb_data$Species)
-
-
-## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
-# spatial blocking by specified range with random assignment
-sb <- spatialBlock(speciesData = pa_data,
-                   species = "Species",
-                   rasterLayer = awt,
-                   theRange = 70000, # size of the blocks
-                   k = 5,
-                   selection = "random",
-                   iteration = 100, # find evenly dispersed folds
-                   biomod2Format = TRUE,
-                   xOffset = 0, # shift the blocks horizontally
-                   yOffset = 0)
-
-
-## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
-# spatial blocking by rows and columns with checkerboard assignment
-sb2 <- spatialBlock(speciesData = pb_data, # presence-background data
-                    species = "Species",
-                    rasterLayer = awt,
-                    rows = 5,
-                    cols = 6,
-                    k = 5,
-                    selection = "systematic",
-                    biomod2Format = TRUE)
-
-
-## ----eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
-# spatial blocking by rows with systematic assignment
-sb3 <- spatialBlock(speciesData = pa_data,
-                    species = "Species",
-                    rasterLayer = awt,
-                    rows = 6,
-                    selection = "checkerboard",
-                    biomod2Format = TRUE)
-
-
-## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7-------------
-# adding points on saptialBlock plot
-library(ggplot2)
-
-sb$plots + geom_sf(data = pa_data, alpha = 0.5)
-
-
-## ----eval=FALSE, warning=FALSE, message=FALSE----------------------------
+## ----eval=FALSE, warning=FALSE, message=FALSE---------------------------------
 #  # buffering with presence-absence data
 #  bf1 <- buffering(speciesData = pa_data,
 #                   theRange = 70000,
@@ -95,7 +98,7 @@ sb$plots + geom_sf(data = pa_data, alpha = 0.5)
 #                   spDataType = "PA", # presence-absence  data type
 #                   progress = TRUE)
 
-## ----eval=FALSE----------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  # buffering with presence-background data
 #  bf2 <- buffering(speciesData = pb_data, # presence-background data
 #                   theRange = 70000,
@@ -105,7 +108,7 @@ sb$plots + geom_sf(data = pa_data, alpha = 0.5)
 #                   progress = TRUE)
 #  
 
-## ----eval=FALSE, warning=FALSE, message=FALSE----------------------------
+## ----eval=FALSE, warning=FALSE, message=FALSE---------------------------------
 #  # environmental clustering
 #  eb <- envBlock(rasterLayer = awt,
 #                 speciesData = pa_data,
@@ -115,34 +118,34 @@ sb$plots + geom_sf(data = pa_data, alpha = 0.5)
 #                 rasterBlock = FALSE,
 #                 numLimit = 50)
 
-## ---- eval=TRUE, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2----
-sac <- spatialAutoRange(rasterLayer = awt,
-                        sampleNumber = 5000,
-                        doParallel = TRUE,
-                        showPlots = TRUE)
+## ---- warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2---------------
+#  sac <- spatialAutoRange(rasterLayer = awt,
+#                          sampleNumber = 5000,
+#                          doParallel = TRUE,
+#                          showPlots = TRUE)
+#  
 
+## -----------------------------------------------------------------------------
+#  # class of the output result
+#  class(sac)
 
-## ------------------------------------------------------------------------
-# class of the output result
-class(sac)
+## -----------------------------------------------------------------------------
+#  # summary statistics of the output
+#  summary(sac)
 
-## ---- eval=TRUE----------------------------------------------------------
-# summary statistics of the output
-summary(sac)
-
-## ---- eval=FALSE, fig.height=4, fig.width=7------------------------------
+## ---- eval=FALSE, fig.height=4, fig.width=7-----------------------------------
 #  library(automap)
 #  
 #  plot(sac$variograms[[1]])
 #  
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  # explore generated folds
 #  foldExplorer(blocks = sb,
 #               rasterLayer = awt,
 #               speciesData = pa_data)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  # explore the block size
 #  rangeExplorer(rasterLayer = awt) # the only mandatory input
 #  
@@ -154,7 +157,7 @@ summary(sac)
 #                minRange = 30000, # limit the search domain
 #                maxRange = 100000)
 
-## ---- eval=FALSE, fig.height=4, fig.width=7------------------------------
+## ---- eval=FALSE, fig.height=4, fig.width=7-----------------------------------
 #  # loading the libraries
 #  library(maxnet)
 #  library(precrec)
@@ -195,12 +198,12 @@ summary(sac)
 #  print(mean(AUCs))
 #  
 
-## ---- echo=FALSE---------------------------------------------------------
-# The model fitting is not run to save the vignette generation time
-# this AUC is based on the actual run
-print(0.8664762)
+## ---- echo=FALSE--------------------------------------------------------------
+#  # The model fitting is not run to save the vignette generation time
+#  # this AUC is based on the actual run
+#  print(0.8664762)
 
-## ---- eval=FALSE, fig.height=3.7, fig.width=7----------------------------
+## ---- eval=FALSE, fig.height=3.7, fig.width=7---------------------------------
 #  # loading the libraries
 #  library(randomForest)
 #  library(precrec)
@@ -236,7 +239,7 @@ print(0.8664762)
 #  autoplot(precrec_obj)
 #  
 
-## ----warning=FALSE, message=FALSE, eval=FALSE----------------------------
+## ----warning=FALSE, message=FALSE, eval=FALSE---------------------------------
 #  # loading the library
 #  library(biomod2)
 #  # species occurrences
@@ -276,7 +279,7 @@ print(0.8664762)
 #                                       modeling.id="test")
 #  
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  # 5. Model evaluation
 #  # get all models evaluation
 #  myBiomodModelEval <- get_evaluations(myBiomodModelOut)

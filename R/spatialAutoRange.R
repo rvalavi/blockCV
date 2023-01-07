@@ -12,12 +12,9 @@
 #' evenly distributed across the whole study area and/or the number of records is low.
 #' @param showPlots Logical. Show final plot of spatial blocks and autocorrelation ranges.
 #' @param maxpixels Number of random pixels to select the blocks over the study area.
-#' @param plotVariograms Logical. Plot fitted variograms. This can also be done after the analysis.
-#' It is \code{FALSE} by default.
-#' @param doParallel Logical. Run in parallel when more than one raster layer is available. Given multiple CPU cores, it is
-#' recommended to set it to \code{TRUE} when there is a large number of rasters to process.
-#' @param nCores Integer. Number of CPU cores to run in parallel. If \code{nCores = NULL} half of available cores in your
-#' machine will be used.
+#' @param plotVariograms deprecated option!
+#' @param doParallel deprecated option!
+#' @param nCores deprecated option!
 #' @param progress Logical. Shows progress bar. It works only when \code{doParallel = FALSE}.
 #' @param degMetre Numeric. The conversion rate of metres to degree. This is for constructing spatial
 #' blocks for visualisation. When the input map is in geographic coordinate system (decimal degrees), the block size is
@@ -53,9 +50,14 @@ spatialAutoRange <- function(rasterLayer,
 
   if(missing(rasterLayer)) stop("'rasterLayer' must br provided!")
 
-  out <- cv_spatial_autocor(x,
-                            column = NULL,
-                            r = rasterLayer,
+  # check r
+  rasterLayer <- .r_check(rasterLayer, name = "rasterLayer")
+  # check r layers
+  if(terra::nlyr(rasterLayer) < 1){
+    stop("'rasterLayer' is not a valid raster.")
+  }
+
+  out <- cv_spatial_autocor(r = rasterLayer,
                             num_sample = sampleNumber,
                             deg_to_metre = degMetre,
                             plot = showPlots,

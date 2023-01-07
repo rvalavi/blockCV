@@ -24,6 +24,7 @@ You can find more information about blocking strategies of **blockCV** package a
 This document presents the main functions of the package and illustrates its usage with three examples: modelling using **randomForest**, **maxnet** (new implementation of Maxent software in R) and  **biomod2** packages.
 
 ## Installation
+
 The **`blockCV`** is available in CRAN and the latest update can also be downloaded from GitHub. It is recommended to install the dependencies of the package. To install the package use:
 
 ```{r, eval=FALSE}
