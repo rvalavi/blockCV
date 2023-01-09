@@ -3,17 +3,19 @@ title: "2- Block cross-validation for species distribution modelling"
 author: "Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita"
 date: "`r Sys.Date()`"
 output: 
-  rmarkdown::html_vignette:
-    fig_caption: yes
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{2- Block cross-validation for species distribution modelling}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(eval=FALSE,echo = TRUE, tidy = TRUE, tidy.opts = list(width.cutoff = 80), fig.align="center", message = FALSE, warning = FALSE)
-```
+This document presents the main functions of the package and illustrates its usage with three examples: modelling using **randomForest**, **maxnet** (new implementation of Maxent software in R) and  **biomod2** packages.
 
 ## Making blocks
 

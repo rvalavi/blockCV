@@ -9,7 +9,7 @@ spatialAutoRange(
   sampleNumber = 5000L,
   border = NULL,
   speciesData = NULL,
-  doParallel = FALSE,
+  doParallel = NULL,
   nCores = NULL,
   showPlots = TRUE,
   degMetre = 111325,

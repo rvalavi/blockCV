@@ -210,7 +210,7 @@ cv_spatial_autocor <- function(r,
   }
 
   # make an object for plotting
-  vis_block <- sf::st_make_grid(x_obj, cellsize = round(size), square = FALSE, what = "polygons")
+  vis_block <- sf::st_make_grid(x_obj, cellsize = round(size), what = "polygons")
   vis_block <- sf::st_sf(vis_block[x_obj])
   vis_block$folds <- 1:nrow(vis_block)
   plot_data <- list(blocks = vis_block)

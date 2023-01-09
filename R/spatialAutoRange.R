@@ -37,7 +37,7 @@ spatialAutoRange <- function(rasterLayer,
                              sampleNumber = 5000L,
                              border = NULL,
                              speciesData = NULL,
-                             doParallel = FALSE,
+                             doParallel = NULL,
                              nCores = NULL,
                              showPlots = TRUE,
                              degMetre = 111325,
@@ -48,7 +48,7 @@ spatialAutoRange <- function(rasterLayer,
 
   message("This function is deprecated! Please use 'cv_spatial_autocor' instead.")
 
-  if(missing(rasterLayer)) stop("'rasterLayer' must br provided!")
+  if(missing(rasterLayer)) stop("'rasterLayer' must be provided!")
 
   # check r
   rasterLayer <- .r_check(rasterLayer, name = "rasterLayer")

@@ -412,6 +412,7 @@ cv_spatial <- function(
     fold_vect <- fold_vect2
     biomod_table <- biomod_table2
   }
+  cat("\n")
   if(print) print(train_test_table)
 
   if(any(train_test_table < 1)){

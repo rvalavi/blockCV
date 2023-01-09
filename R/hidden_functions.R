@@ -61,37 +61,7 @@
   # compute centroids
   cent <- sf::st_centroid(blocks)
   xy <- as.data.frame(sf::st_coordinates(cent))
-  # get the dimension of blocks
-  # nx <- length(unique(xy$X))
-  # ny <- length(unique(xy$Y))
-  # get the order of y dimension
-  # ids <- seq_len(len)
-  # ids_y <- ids[order(xy$Y)]
-  # xy$ids <- seq_len(len)
-  # xy <- xy[order(xy$Y), ]
-  # generate fold ids
-  # z <- c()
-  # if(checkerboard){
-  #   if(nx %% 2){
-  #     z <- rep(1:2, length.out = len)
-  #   } else{
-  #     for(i in 1:ny){
-  #       if(i %% 2){
-  #         z <- c(z, rep(1:2, length.out = nx))
-  #       } else{
-  #         z <- c(z, rep(2:1, length.out = nx))
-  #       }
-  #     }
-  #   }
-  # } else{
-  #   z <- rep(1:n, length.out = len)
-  # }
-  # # reorder folds by y dimension
-  # z <- z[order(ids_y)]
-  # xy <- xy[order(xy$Y), ]
-  # xy$z <- z
-  # add them to the blocks
-
+  # to avoid problem of digits precision
   xy$X <- as.factor(xy$X)
   xy$Y <- as.factor(xy$Y)
   # get the dimension of blocks
@@ -120,7 +90,6 @@
 
   blocks <- sf::st_sf(blocks)
   blocks$block_id <- 1:nrow(blocks)
-  # blocks$folds <- z
   xy <- xy[order(xy$ids), ]
   blocks$folds <- xy$z
 
@@ -139,7 +108,7 @@
       num_plot <- sort(num_plot)
     },
     error = function(cond) {
-      message("'num_plot' must be a natural numbers.")
+      message("'num_plot' must be natural numbers.")
     }
   )
   # length of the folds

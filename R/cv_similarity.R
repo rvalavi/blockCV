@@ -1,4 +1,4 @@
-#' Compute measures to evaluate possible extrapolation in testing folds
+#' Compute similarity measures to evaluate possible extrapolation in testing folds
 #'
 #' This function computes multivariate environmental similarity surface (MESS) as described
 #' in Elith et al. (2010). MESS represents how similar a point in a testing fold is to a training
@@ -44,19 +44,19 @@
 #'                  iteration = 1)
 #'
 #' # compute extrapolation
-#' cv_extrapolate(cv = sb, r = rasters, x = pa_data)
+#' cv_similarity(cv = sb, r = rasters, x = pa_data)
 #'
 #' }
-cv_extrapolate <- function(cv,
-                           x,
-                           r,
-                           num_plot = seq_along(cv$folds_list),
-                           mess = TRUE,
-                           jitter_width = 0.1,
-                           points_size = 2,
-                           points_alpha = 0.7,
-                           points_colors = NULL,
-                           progress = TRUE){
+cv_similarity <- function(cv,
+                          x,
+                          r,
+                          num_plot = seq_along(cv$folds_list),
+                          mess = TRUE,
+                          jitter_width = 0.1,
+                          points_size = 2,
+                          points_alpha = 0.7,
+                          points_colors = NULL,
+                          progress = TRUE){
 
   # check required packages
   pkg <- c("ggplot2", "dismo")

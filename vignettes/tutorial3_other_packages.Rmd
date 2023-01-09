@@ -3,17 +3,18 @@ title: "3- Spatial cross-validation for modelling with `caret` and `tidymodels`"
 author: "Roozbeh Valavi"
 date: "`r Sys.Date()`"
 output: 
-  rmarkdown::html_vignette:
-    fig_caption: yes
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{3- Spatial cross-validation for modelling with `caret` and `tidymodels`}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(eval=FALSE,echo = TRUE, tidy = TRUE, tidy.opts = list(width.cutoff = 80), fig.align="center", message = FALSE, warning = FALSE)
-```
 
 ## Making CV folds
 
