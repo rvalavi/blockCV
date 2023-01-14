@@ -1,6 +1,5 @@
 library(blockCV)
 
-context("Test the availablbe data in the package")
 
 test_that("test that the data exist", {
 
@@ -20,10 +19,9 @@ test_that("test that the data is corrrect", {
 
   expect_true(exists("pa"))
   expect_true(nrow(pa) > 100)
-  # expect_equal(dim(pa), c(254, 3))
-  expect_is(pa, "data.frame")
+  expect_s3_class(pa, "data.frame")
   expect_true(exists("r"))
   expect_equal(terra::nlyr(r), 4)
-  expect_is(r, "SpatRaster")
+  expect_s4_class(r, "SpatRaster")
 
 })

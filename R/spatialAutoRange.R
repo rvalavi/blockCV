@@ -33,6 +33,10 @@
 #'     }
 #'
 #' @export
+#'
+#' @examples
+#' \donttest{
+#' }
 spatialAutoRange <- function(rasterLayer,
                              sampleNumber = 5000L,
                              border = NULL,
