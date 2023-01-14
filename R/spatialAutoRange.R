@@ -6,7 +6,7 @@
 #' @param rasterLayer A raster object of covariates to find spatial autocorrelation range.
 #' @param sampleNumber Integer. The number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 #' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
-#' @inheritParams spatialBlock
+#' @param border deprecated option!
 #' @param speciesData A spatial or sf object (optional). If provided, the \code{sampleNumber} is ignored and
 #' variograms are created based on species locations. This option is not recommended if the species data is not
 #' evenly distributed across the whole study area and/or the number of records is low.
@@ -57,11 +57,27 @@ spatialAutoRange <- function(rasterLayer,
     stop("'rasterLayer' is not a valid raster.")
   }
 
-  out <- cv_spatial_autocor(r = rasterLayer,
-                            num_sample = sampleNumber,
-                            deg_to_metre = degMetre,
-                            plot = showPlots,
-                            progress = progress)
+  # check x is an sf object
+  if(!is.null(speciesData)){
+    speciesData <- .x_check(speciesData, name = "speciesData")
+
+    df <- terra::extract(rasterLayer, speciesData, ID = FALSE)
+    speciesData <- cbind(speciesData, df)
+
+    out <- cv_spatial_autocor(x = speciesData,
+                              column = names(df),
+                              deg_to_metre = degMetre,
+                              plot = showPlots,
+                              progress = progress)
+  } else{
+
+    out <- cv_spatial_autocor(r = rasterLayer,
+                              num_sample = sampleNumber,
+                              deg_to_metre = degMetre,
+                              plot = showPlots,
+                              progress = progress)
+  }
+
 
   finalList <- list(range = out$range,
                     rangeTable = out$range_table,
@@ -272,9 +288,9 @@ print.SpatialAutoRange <- function(x, ...){
 #' @method plot SpatialAutoRange
 plot.SpatialAutoRange <- function(x, y, ...){
   if(length(x$plots) == 2){
-    plot(cowplot::plot_grid(x$plots$barchart, x$plots$mapplot))
+    plot(cowplot::plot_grid(x$plots[[1]], x$plots[[2]]))
   } else{
-    plot(x$plots$mapplot)
+    plot(x$plots[[1]])
   }
 }
 

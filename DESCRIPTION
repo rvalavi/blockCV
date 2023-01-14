@@ -29,8 +29,6 @@ Suggests:
   cowplot,
   automap (>= 1.0-16),
   shiny (>= 1.7),
-  utils,
-  methods,
   knitr,
   rmarkdown,
   testthat,

@@ -21,7 +21,7 @@ cv_spatial_autocor(
 \item{x}{a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species binary or continuous date).}
 
 \item{column}{character; indicating the name of the column in which response variable (e.g. species data as a binary
-response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range.}
+response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range. This supports multiple column names.}
 
 \item{num_sample}{integer; the number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).}

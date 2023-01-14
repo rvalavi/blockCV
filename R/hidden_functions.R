@@ -189,7 +189,7 @@
                           yend = "range"),
       size = 1.5
     ) +
-    ggplot2::labs(x = "Raster layers", y = "Range (km)") +
+    ggplot2::labs(x = "Variables", y = "Range (km)") +
     ggplot2::theme_bw() +
     ggplot2::ggtitle("Autocorrelation range", subtitle = paste("Based on", ptnum, "sample points"))+
     ggplot2::guides(color = "none") +
@@ -224,7 +224,7 @@
     points <- sf::as_Spatial(sf::st_as_sf(points))
     names(points) <- "target"
   } else{
-    points <- xx[column]
+    points <- xx[column[i]] # [i] in case there are more column
     points <- sf::as_Spatial(points)
     names(points) <- "target"
   }

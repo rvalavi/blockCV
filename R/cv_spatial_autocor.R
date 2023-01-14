@@ -25,7 +25,7 @@
 #' @param r a terra SpatRaster object. If provided (and \code{x} is missing), it will be used for to calculate range.
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species binary or continuous date).
 #' @param column character; indicating the name of the column in which response variable (e.g. species data as a binary
-#'  response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range.
+#'  response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range. This supports multiple column names.
 #' @param num_sample integer; the number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 #' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
 #' @param deg_to_metre integer. The conversion rate of degrees to metres.
@@ -85,7 +85,6 @@ cv_spatial_autocor <- function(r,
                                deg_to_metre = 111325,
                                plot = TRUE,
                                progress = TRUE,
-                               # parallel = FALSE,
                                ... # extra arguments for cv_plot
 ){
 
@@ -105,8 +104,9 @@ cv_spatial_autocor <- function(r,
 
   # is column in x?
   if(!missing(x) && !is.null(column)){
-    if(!column %in% colnames(x)){
-      stop(sprintf("There is no column named '%s' in 'x'.\n", column))
+    if(!all(column %in% colnames(x))){
+      wc <- which(!column %in% colnames(x))
+      stop(sprintf("There is no column named '%s' in 'x'.\n", column[wc]))
     }
   }
 
@@ -155,7 +155,8 @@ cv_spatial_autocor <- function(r,
       stop("The coordinate reference system of 'x' must be defined.")
     }
     # no raster is provided
-    nlayer <- 1
+    # nlayer <- 1
+    nlayer <- length(column)
   }
 
   # if(is.null(n_cores)){
@@ -174,7 +175,8 @@ cv_spatial_autocor <- function(r,
   # )
   # # future::plan("sequential")
 
-  if(missing(x) && progress) pb <- utils::txtProgressBar(min = 0, max = nlayer, style = 3)
+  if(nlayer < 2) progress <- FALSE
+  if(progress) pb <- utils::txtProgressBar(min = 0, max = nlayer, style = 3)
 
   # fitting wariogram models
   vario_list <- lapply(
@@ -182,16 +184,18 @@ cv_spatial_autocor <- function(r,
     .fit_variogram,
     rr = switch(missing(x), r, NULL),
     xx = switch(!missing(x), x, NULL),
-    column = switch(!missing(x), column, NULL),
+    # column = switch(!missing(x), column, NULL),
+    # column = if(!missing(x)) column else NULL,
+    column = column,
     num_sample = num_sample,
-    progress = ifelse(missing(x) && progress, TRUE, FALSE),
-    pb = if(missing(x) && progress) pb else NULL
+    progress = progress,
+    pb = if(progress) pb else NULL
   )
 
   # make a dataframe from variograms data
   vario_data <- data.frame(layers = seq_len(nlayer), range = 1, sill = 1)
   for(v in seq_along(vario_list)){
-    vario_data$layers[v] <- if(missing(x)) names(r)[v] else column
+    vario_data$layers[v] <- if(missing(x)) names(r)[v] else column[v]
     vario_data$range[v] <- vario_list[[v]]$var_model[2,3]
     vario_data$sill[v] <- vario_list[[v]]$var_model[2,2]
   }
@@ -215,6 +219,9 @@ cv_spatial_autocor <- function(r,
   vis_block$folds <- 1:nrow(vis_block)
   plot_data <- list(blocks = vis_block)
   class(plot_data) <- "cv_spatial"
+
+  # update num_sample
+  num_sample <- ifelse(missing(x), num_sample, nrow(x))
 
   if(nlayer > 1){
     p1 <- .make_bar_plot(vario_data, the_range, num_sample)

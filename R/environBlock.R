@@ -60,6 +60,9 @@ envBlock <- function(rasterLayer,
   if(terra::nlyr(rasterLayer) < 1){
     stop("'rasterLayer' is not a valid raster.")
   }
+
+  scale <- ifelse(standardization == "none", FALSE, TRUE)
+
   # scale?
   if(scale){
     tryCatch(
@@ -77,7 +80,7 @@ envBlock <- function(rasterLayer,
                     column = species,
                     r = rasterLayer,
                     k = k,
-                    scale = ifelse(standardization == "none", FALSE, TRUE),
+                    scale = scale,
                     raster_cluster = rasterBlock,
                     num_sample = sampleNumber,
                     biomod2 = biomod2Format,
