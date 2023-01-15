@@ -12,6 +12,7 @@ Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
              person("Gurutzeta", "Guillera-Arroita", role = "aut",
                     email = "gurutzeta.guillera@unimelb.edu.au"))
 URL: https://github.com/rvalavi/blockCV
+BugReports: https://github.com/rvalavi/blockCV/issues
 Maintainer: Roozbeh Valavi <valavi.r@gmail.com>
 Description: Creating spatially or environmentally separated folds for cross-validation to provide a robust error estimation in spatially structured environments; Investigating and visualising the effective range of spatial autocorrelation in continuous raster covariates and point samples to find an initial realistic distance band to separate training and testing datasets spatially described in Valavi, R. et al. (2019) <doi:10.1111/2041-210X.13107>.
 License: GPL-3
@@ -29,6 +30,7 @@ Suggests:
     cowplot,
     automap (>= 1.0-16),
     shiny (>= 1.7),
+    tmap (>= 2.0),
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),

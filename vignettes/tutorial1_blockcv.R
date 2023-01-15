@@ -12,8 +12,8 @@ library(blockCV)
 
 
 ## ---- fig.height=5, fig.width=7.2, warning=FALSE, message=FALSE---------------
-library(ggplot2) # plotting
-library(rasterVis) # plotting raster data
+# library(ggplot2) # plotting
+# library(rasterVis) # plotting raster data
 library(sf) # working with spatial vector data
 library(terra) # working with saptial raster data
 library(tmap) # plotting spatial data
@@ -40,18 +40,18 @@ tm_shape(rasters[[1]]) +
   tm_dots(col = "occ", style = "cat", size = 0.1)
 
 
-## ---- fig.height=4.5, fig.width=7.1-------------------------------------------
-# plot species data on the map
-rasterVis::gplot(rasters[[1]]) +
-  geom_tile(aes(fill = value)) +
-  scale_fill_distiller(palette = 4, na.value = NA) +
-  guides(fill = "none") +
-  geom_sf(data = pa_data, 
-          aes(color = as.factor(occ)),
-          inherit.aes = FALSE) +
-  scale_color_manual(values = c("red", "yellow")) +
-  theme_minimal()
-
+## ----eval=FALSE, fig.height=4.5, fig.width=7.1--------------------------------
+#  # plot species data on the map
+#  rasterVis::gplot(rasters[[1]]) +
+#    geom_tile(aes(fill = value)) +
+#    scale_fill_distiller(palette = 4, na.value = NA) +
+#    guides(fill = "none") +
+#    geom_sf(data = pa_data,
+#            aes(color = as.factor(occ)),
+#            inherit.aes = FALSE) +
+#    scale_color_manual(values = c("red", "yellow")) +
+#    theme_minimal()
+#  
 
 ## ---- results='hide', fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
 # spatial blocking by specified range with random assignment

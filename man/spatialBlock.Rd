@@ -62,13 +62,13 @@ the species (response) points. If the selection = 'predefined', this argument (a
 \item{foldsCol}{Character. Indicating the name of the column (in user-defined blocks) in which the associated folds are stored.
 This argument is necessary if you choose the 'predefined' selection.}
 
-\item{numLimit}{deprecated option.}
+\item{numLimit}{deprecated option!}
 
 \item{maskBySpecies}{Since version 1.1, this option is always set to \code{TRUE}.}
 
 \item{degMetre}{Integer. The conversion rate of metres to degree. See the details section for more information.}
 
-\item{border}{A sf or SpatialPolygons object to clip the block based on it (optional).}
+\item{border}{deprecated option!}
 
 \item{showBlocks}{Logical. If TRUE the final blocks with fold numbers will be created with ggplot and plotted. A raster layer could be specified
 in \code{rasterlayer} argument to be as background.}

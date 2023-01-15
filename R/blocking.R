@@ -20,11 +20,11 @@
 #' the species (response) points. If the selection = 'predefined', this argument (and foldsCol) must be supplied.
 #' @param foldsCol Character. Indicating the name of the column (in user-defined blocks) in which the associated folds are stored.
 #' This argument is necessary if you choose the 'predefined' selection.
-#' @param numLimit deprecated option.
+#' @param numLimit deprecated option!
 #' @param maskBySpecies Since version 1.1, this option is always set to \code{TRUE}.
 #' @param degMetre Integer. The conversion rate of metres to degree. See the details section for more information.
 #' @param rasterLayer A raster object for visualisation (optional). If provided, this will be used to specify the blocks covering the area.
-#' @param border A sf or SpatialPolygons object to clip the block based on it (optional).
+#' @param border deprecated option!
 #' @param showBlocks Logical. If TRUE the final blocks with fold numbers will be created with ggplot and plotted. A raster layer could be specified
 #' in \code{rasterlayer} argument to be as background.
 #' @param biomod2Format Logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
@@ -134,7 +134,7 @@ spatialBlock <- function(speciesData,
                   blocks = sf::as_Spatial(out$blocks),
                   species = out$column,
                   range = out$size,
-                  plots = cv_plot(out),
+                  plots = if(showBlocks) cv_plot(out) else NULL,
                   records = out$records)
 
 

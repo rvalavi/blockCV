@@ -96,7 +96,7 @@ test_that("test spatiaBlock function works", {
                       selection = "random",
                       iteration = 5,
                       biomod2Format = TRUE,
-                      showBlocks = FALSE,
+                      showBlocks = TRUE,
                       progress = TRUE)
 
   expect_true(exists("sb1"))

@@ -42,7 +42,7 @@
 #'
 #' @return An object of class S3. A list object including:
 #'     \itemize{
-#'     \item{range - the suggested range, which is the median of all calculated ranges in case of 'r'.}
+#'     \item{range - the suggested range (i.e. size), which is the median of all calculated ranges in case of 'r'.}
 #'     \item{range_table - a table of input covariates names and their autocorrelation range}
 #'     \item{plots - the output plot (the plot is shown by default)}
 #'     \item{num_sample - number sample of 'r' used for analysis}
@@ -65,18 +65,18 @@
 #' rasters <- terra::rast(files)
 #'
 #' # spatial autocorrelation of a binary/continuous response
-#' range1 <- cv_spatial_autocor(x = pa_data,
-#'                              column = "occ", # binary or continuous data
-#'                              plot = TRUE)
+#' sac1 <- cv_spatial_autocor(x = pa_data,
+#'                            column = "occ", # binary or continuous data
+#'                            plot = TRUE)
 #'
 #'
 #' # spatial autocorrelation of continuous raster files
-#' range2 <- cv_spatial_autocor(r = rasters,
-#'                              num_sample = 5000,
-#'                              plot = TRUE)
+#' sac2 <- cv_spatial_autocor(r = rasters,
+#'                            num_sample = 5000,
+#'                            plot = TRUE)
 #'
 #' # show the result
-#' summary(range2)
+#' summary(sac2)
 #' }
 cv_spatial_autocor <- function(r,
                                x,

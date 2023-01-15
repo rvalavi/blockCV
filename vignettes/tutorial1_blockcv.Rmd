@@ -13,6 +13,7 @@ vignette: >
   %\VignetteIndexEntry{1- blockCV introduction: how to create block corss-validation folds}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{tmap}
 ---
 
 
@@ -66,8 +67,8 @@ These data are used to illustrate how the package is used. The raster data inclu
 
 To load the package raster data use:
 ```{r, fig.height=5, fig.width=7.2, warning=FALSE, message=FALSE}
-library(ggplot2) # plotting
-library(rasterVis) # plotting raster data
+# library(ggplot2) # plotting
+# library(rasterVis) # plotting raster data
 library(sf) # working with spatial vector data
 library(terra) # working with saptial raster data
 library(tmap) # plotting spatial data
@@ -104,7 +105,7 @@ tm_shape(rasters[[1]]) +
 
 
 
-```{r, fig.height=4.5, fig.width=7.1}
+```{r eval=FALSE, fig.height=4.5, fig.width=7.1}
 # plot species data on the map
 rasterVis::gplot(rasters[[1]]) +
   geom_tile(aes(fill = value)) +

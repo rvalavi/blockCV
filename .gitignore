@@ -3,5 +3,4 @@
 .RData
 Meta
 cran_comments.md
-tests/testthat_CRAN/
-tests/testthat_GitHub/
+tests/testthat/Rplots.pdf
