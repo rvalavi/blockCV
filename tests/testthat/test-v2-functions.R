@@ -115,6 +115,10 @@ test_that("test spatiaBlock function works", {
     !all(sb1$records == 0)
   )
 
+  expect_output(print.SpatialBlock(sb1))
+  expect_output(summary.SpatialBlock(sb1))
+  expect_message(plot.SpatialBlock(sb1))
+
 })
 
 
@@ -150,6 +154,9 @@ test_that("test buffering function works", {
     !all(bf1$records == 0)
   )
 
+  expect_output(print.BufferedBlock(bf1))
+  expect_output(summary.BufferedBlock(bf1))
+
 })
 
 
@@ -183,5 +190,8 @@ test_that("test that environmental blocking function works", {
   expect_true(
     !all(eb$records == 0)
   )
+
+  expect_output(print.EnvironmentalBlock(eb))
+  expect_output(summary.EnvironmentalBlock(eb))
 
 })

@@ -425,14 +425,16 @@ cv_spatial <- function(
   }
 
   # final objects for exporting
-  final_objs <- list(folds_list = fold_list,
-                     folds_ids = fold_vect,
-                     biomod_table = switch(biomod2, as.matrix(biomod_table), NULL),
-                     k = k,
-                     size = size,
-                     column = column,
-                     blocks = sub_blocks,
-                     records = train_test_table)
+  final_objs <- list(
+    folds_list = fold_list,
+    folds_ids = fold_vect,
+    biomod_table = switch(biomod2, as.matrix(biomod_table), NULL),
+    k = k,
+    size = size,
+    column = column,
+    blocks = sub_blocks,
+    records = train_test_table
+  )
 
   class(final_objs) <- c("cv_spatial")
 

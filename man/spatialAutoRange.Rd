@@ -60,10 +60,6 @@ An object of class S3. A list object including:
 \description{
 This function is deprecated and will be removed in future updates! Please use \code{\link{cv_spatial_autocor}} instead!
 }
-\examples{
-\donttest{
-}
-}
 \seealso{
 \code{\link{cv_spatial_autocor}}
 }

@@ -162,12 +162,14 @@ cv_buffer <- function(x,
       if(progress) utils::setTxtProgressBar(pb, i)
     }
   }
-  final_objs <- list(folds_list = fold_list,
-                     k = n,
-                     column = column,
-                     size = size,
-                     presence_background = presence_background,
-                     records = train_test_table)
+  final_objs <- list(
+    folds_list = fold_list,
+    k = n,
+    column = column,
+    size = size,
+    presence_background = presence_background,
+    records = train_test_table
+  )
 
   class(final_objs) <- c("cv_buffer")
   return(final_objs)
