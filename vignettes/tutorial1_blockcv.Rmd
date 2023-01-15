@@ -19,14 +19,17 @@ vignette: >
 
 ## Introduction
 
-Simple random selection of training and testing folds in the structured environment leads to an underestimation of error in the evaluation of spatial predictions and may result in inappropriate model selection (Telford and Birks, 2009; Roberts et al., 2017). The use of spatial and environmental blocks to separate training and testing sets has been suggested as a good strategy for realistic error estimation in datasets with dependence structures, and more generally as a robust method for estimating the predictive performance of models used to predict mapped distributions (Roberts et al., 2017). Package `blockCV` provides functions to separate train and test sets using *buffers*, *spatial* and *environmental* blocks. It provides several options for how those blocks are constructed. It also has a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the covariates to inform the choice of a suitable  distance band by which to separate the data sets. In addition, some visualization tools are provided to help the user choose the block size and explore generated folds. The package has been written with **Species Distribution Modelling (SDM)** in mind, and the functions allow for a number of common scenarios (including presence-absence and presence-background species data, rare and common species, raster data for predictor variables). Although it can be applied to any spatial modelling e.g. multi-class responses for remote sensing image classification.
+Simple random selection of training and testing folds in the structured environment leads to an underestimation of error in the evaluation of spatial predictions and may result in inappropriate model selection (Telford and Birks, 2009; Roberts et al., 2017). The use of spatial and environmental blocks to separate training and testing sets has been suggested as a good strategy for realistic error estimation in datasets with dependence structures, and more generally as a robust method for estimating the predictive performance of models used to predict mapped distributions (Roberts et al., 2017). Package `blockCV` provides functions to separate train and test sets using *buffers*, *spatial* and *clustering* blocks (spatial and environmental), i.e. generates folds for *k-fold* and *leave-one-out (LOO)* cross-validation. It provides several options for how those blocks are constructed. It also has a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the response or covariates to inform the choice of a suitable  distance band by which to separate the data sets. The package has been written with **species distribution modelling (SDM)** in mind, and the functions allow for a number of common scenarios (including presence-absence and presence-background species data, rare and common species, raster data for predictor variables). Although it can be applied to any **spatial modelling** e.g. multi-class responses for remote sensing image classification.
 
-You can find more information about blocking strategies of **blockCV** package and in general block cross-validation technique in the package associated paper [here](https://doi.org/10.1111/2041-210X.13107).
+
+Please cite `blockCV` by: *Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods Ecol Evol. 2019; 10:225–232.* [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
 
 
 ## New updates of the version 3.0
 
-All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) still work, but they will be removed in future versions. Please update your code with the new functions presented bellow.
+There are major updates in `blockCV` **v3.0**. All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) still work, but they will be removed in future versions. Please update your code with the new functions presented bellow.
+
+Some new updates:
 
 * The three main blocking functions are now: `cv_spatial`, `cv_cluster`, and `cv_buffer`
 * Spatial blocks now support hexagonal (default), rectangular, and user-defined blocks
@@ -34,13 +37,13 @@ All function names have changed to more general names starting with `cv_*`. The 
 * The `cv_spatial_autocor` function now calculates spatial autocorrelation range for either the response (i.e. the binary or continuous data) or a set of continuous raster covariates (as before)
 * The new `cv_plot` function can be used to plot the folds of all blocking strategy with ggplot facets
 * The `terra` package is now used for all raster processing with support for `stars` and `raster` objects (or files on disk)
-* The new `cv_similarity` provides measures on possible extrapolation to testing folds
+* The new `cv_similarity` provides measures of possible extrapolation to testing folds
 
 
 
 ## Installation
 
-The **`blockCV`** is available in CRAN and the latest update can also be downloaded from GitHub. It is recommended to install the dependencies of the package. To install the package use:
+The `blockCV` is available in CRAN and the latest update can also be downloaded from GitHub. It is recommended to install the dependencies of the package. To install the package use:
 
 ```{r, eval=FALSE}
 # install stable version from CRAN
@@ -63,24 +66,24 @@ The package contains the raw format of the following data:
 - Raster covariates of Australia (`.tif`)
 - Simulated species data (`.csv`)
 
-These data are used to illustrate how the package is used. The raster data include several bioclimatic and topographic variables from Australian Wet Tropic region aggregated to 800 m resolution. The species data contains records of a species, simulated based on the above environmental variables for the region. There are two `.csv` files with presence-absence and presence-background data.
+These data are used to illustrate how the package is used. The raster data include several bioclimatic variables for Australia. The species data include presence-absence records (binary) of a simulated species.
 
 To load the package raster data use:
+
 ```{r, fig.height=5, fig.width=7.2, warning=FALSE, message=FALSE}
-# library(ggplot2) # plotting
-# library(rasterVis) # plotting raster data
 library(sf) # working with spatial vector data
-library(terra) # working with saptial raster data
-library(tmap) # plotting spatial data
+library(terra) # working with spatial raster data
+library(tmap) # plotting block and maps
 
 # load raster data
+# the pipe operator |> is available for R >= 4.1
 rasters <- system.file("extdata/au/", package = "blockCV") |>
   list.files(full.names = TRUE) |>
   terra::rast()
 
 ```
 
-The presence absence species data include 400 presence points and 500 absence points. The appropriate format of species data for the `blockCV` package is simple features (`sf`). We convert the `data.frame` to `sf` as follows:
+The presence-absence species data include `481` presence points and `514` absence points.
 
 ```{r, fig.height=4.5, fig.width=7.1}
 # load species presence-asence data and convert to sf
@@ -89,11 +92,13 @@ head(points)
 
 ```
 
+The appropriate format of species data for the `blockCV` package is simple features (from the `sf` package). The data is provide in [GDA2020 / GA LCC](https://epsg.io/7845) coordinate reference system with `"EPSG:7845"` as defined by `crs = 7845`. We convert the `data.frame` to `sf` as follows:
 
 ```{r, fig.height=4.5, fig.width=7.1}
 pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 ```
 
+Let's plot the species data using `tmap` package:
 
 ```{r, fig.height=4.5, fig.width=7.1}
 tm_shape(rasters[[1]]) +
@@ -105,59 +110,61 @@ tm_shape(rasters[[1]]) +
 
 
 
-```{r eval=FALSE, fig.height=4.5, fig.width=7.1}
-# plot species data on the map
-rasterVis::gplot(rasters[[1]]) +
-  geom_tile(aes(fill = value)) +
-  scale_fill_distiller(palette = 4, na.value = NA) +
-  guides(fill = "none") +
-  geom_sf(data = pa_data, 
-          aes(color = as.factor(occ)),
-          inherit.aes = FALSE) +
-  scale_color_manual(values = c("red", "yellow")) +
-  theme_minimal()
+## Block cross-validation strategies
 
-```
+### Spatial blocks
+The function `cv_spatial` creates spatial blocks/polygons then assigns blocks to the training and testing folds with *random*, *checkerboard pattern* or in a *systematic* selection. Spatial blocks can be defined either by `size` or number of rows and columns.
 
+Consistent with other functions, the distance (`size`) should be in **metres**, regardless of the unit of the reference system of the input data. When the input map has *geographic coordinate system* (decimal degrees), the block size is calculated based on dividing `size` by 111325 (the standard distance of a degree in metres, on the Equator) to change metre to degree. This value can be changed by the user via the `deg_to_metre` argument.
 
-## Blocking strategies
-### Spatial block
-The function `cv_spatial` creates spatially separated folds based on a pre-specified distance (cell size of the blocks). It then assigns blocks to the training and testing folds with *random*, *checkerboard pattern* or in a *systematic* manner. Another blocking strategy provided by this function is to divide the study area into vertical or horizontal bins of a given number of rows/colmuns, as used by Bahn & McGill (2013) and Wenger & Olden (2012) respectively.
+The `offset` can be used to shift the spatial position of the blocks in horizontal and vertical axes, respectively. This only works when the block have been built based on `size`. The blocks argument allows users to define an external spatial polygon as blocking layer.
 
-To keep the consistency with other functions, the distance (`size`) should be in **metres**, regardless of the unit of the reference system of the input data. When the input map has *geographic coordinate system* (decimal degrees), the block size is calculated based on dividing `size` by **111325** (the standard distance of a degree in metres, on the Equator) to change metre to degree. This value can be changed by the user via the `deg_to_metre` argument.
-
-The `offset` can be used to shift the spatial position of the blocks in horizontal and vertical axes, respectively. This only works when the block have been built based on `size`. The blocks argument allows users to define an external spatial polygon as blocking layer. The polygon layer must cover all the species points. In addition, blocks can be masked by species spatial data. This option keeps the blocks that cover species data and remove the rest.
+Here are some spatial block settings:
 
 ```{r, results='hide', fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
-# spatial blocking by specified range with random assignment
-sb <- cv_spatial(x = pa_data,
-                 column = "occ",
-                 k = 5,
-                 size = 350000,
-                 selection = "random",
-                 iteration = 50)
+sb1 <- cv_spatial(x = pa_data,
+                  column = "occ", # the response column (binary or multi-class)
+                  k = 5, # number of folds
+                  size = 350000, # size of the blocks in metres
+                  selection = "random", # random blocks-to-fold
+                  iteration = 50, # find evenly dispersed folds
+                  biomod2 = TRUE) # also create folds for biomod2
 
 ```
 
+The same setting can be used to create square blocks. You can optionally add a raster layer for to be used for creating blocks and be used in the background of the plot.
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 sb2 <- cv_spatial(x = pa_data,
                   column = "occ",
+                  r = rasters, # optional
                   k = 5,
                   size = 350000,
                   hexagon = FALSE,
                   selection = "random",
                   iteration = 50,
-                  progress = FALSE)
+                  progress = FALSE,
+                  biomod2 = TRUE)
 ```
 
-The assignment of folds to each block can also be done in a systematic manner using `selection = "systematic"` argument. 
+The assignment of folds to each block can also be done in a systematic manner using `selection = "systematic"`. 
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
-# spatial blocking by rows with systematic assignment
 sb3 <- cv_spatial(x = pa_data,
                   column = "occ",
                   k = 5,
+                  size = 350000,
+                  hexagon = FALSE,
+                  selection = "systematic",
+                  iteration = 50)
+
+```
+
+Or a checkerboard pattern using `selection = "checkerboard"`. 
+
+```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
+sb4 <- cv_spatial(x = pa_data,
+                  column = "occ",
                   size = 350000,
                   hexagon = FALSE,
                   selection = "checkerboard",
@@ -165,90 +172,142 @@ sb3 <- cv_spatial(x = pa_data,
 
 ```
 
-Let's visualise the checkerboard locks with `tmap`:
+
+Let's visualise the checkerboard blocks with `tmap`:
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
-tm_shape(sb3$blocks) +
+tm_shape(sb4$blocks) +
   tm_fill(col = "folds", style = "cat")
 
 ```
 
+The blocks can also be created by number of rows and columns:
+
+```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
+sb5 <- cv_spatial(x = pa_data,
+                  column = "occ",
+                  r = rasters,
+                  k = 5, 
+                  rows_cols = c(10, 2), # for hexagonal only first one is used
+                  hexagon = FALSE,
+                  selection = "random",
+                  iteration = 50,
+                  progress = FALSE)
+
+```
 
 
+### Spatial and environemntal clustering
 
-### Spatial and environemntal slustering
+The function `cv_cluster` uses *clustering* methods to specify sets of similar environmental conditions based on the input covariates. Species data corresponding to any of these groups or clusters are assigned to a fold. Alternatively, the clusters can be based on spatial coordinates of sample points (the `x` argument).
 
-The function `cv_cluster` uses *clustering* methods to specify sets of similar environmental conditions based on the input covariates. Species data corresponding to any of these groups or clusters are assigned to a fold.
-
-
+Using spatial coordinate values for clustering:
 
 ```{r}
-# environmental clustering
-sc <- cv_cluster(x = pa_data,
-                 column = "occ",
-                 k = 5) # here number is low for test
+# spatial clustering
+scv <- cv_cluster(x = pa_data,
+                  column = "occ", # optional: counting number of train/test records
+                  k = 5)
 ```
 
 
-As *k-means* algorithms use Euclidean distance to estimate clusters, the input covariates should be quantitative variables. Since variables with wider ranges of values might dominate the clusters and bias the environmental clustering (Hastie et al., 2009), all the input rasters are first standardized within the function. This is done either by normalizing based on subtracting the mean and dividing by the standard deviation of each raster (the default) or optionally by standardizing using linear scaling to constrain all raster values between `0` and `1`. By default, the clustering is done in the raster space. In this approach, the clusters will be consistent throughout the region and across species (in the same region). However, this may result in cluster(s) that cover none of the species records especially when species data is not dispersed throughout the region or the number of clusters (`k` or folds) is high. In this case, the number of folds is less than the specified `k`. If `raster_cluster = FALSE`, the clustering will be done based only on the values of the predictors at the species presence and absence/background points. In this case, and the number of the folds will be the same as `k`.
+The clustering can be done in environmental space by supplying `r`. Notice, this could be an extreme case of cross-validation as the testing folds could possibly fall in novel environmental conditions than what the training points are (check `cv_similarity` for testing this). Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster value should be deleted prior to the analysis.
 
-Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster value should be deleted prior to the analysis.
-
-```{r eval=FALSE, warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE}
 # environmental clustering
-ec <- cv_cluster(x = pa_data,
-                 column = "occ",
-                 r = rasters,
-                 k = 5, 
-                 scale = TRUE, 
-                 num_sample = 500) # here number is low for test
+ecv <- cv_cluster(x = pa_data,
+                  column = "occ",
+                  r = rasters,
+                  k = 5, 
+                  scale = TRUE)
+
 ```
 
+When `r` is supplied, all the input rasters are first centred and scaled to avoid one raster variable dominate the clusters.
 
-### Buffering (a.k.a spatial leave-one-out)
-
-The function `cv_buffer` generates spatially separated training and testing folds by considering buffers of specified distance around each observation point. This approach is a form of *leave-one-out (LOO)* cross-validation. Each fold is generated by excluding nearby observations around each testing point within the specified distance (ideally the range of spatial autocorrelation). In this method the test set never directly abuts a training presence or absence.
-
-For using species **presence-background** data (presence and pseudo-absence), you need to specify the `column` and `presence_background = TRUE`. For more information read the details section help of the function (i.e. `help(cv_buffer)`). 
+By default, the clustering will be done based only on the values of the predictors at the sample points. In this case, and the number of the folds will be the same as `k`. If `raster_cluster = TRUE`, the clustering is done in the raster space. In this approach, the clusters will be consistent throughout the region and across species (in the same region). However, this may result in cluster(s) that cover none of the species records especially when species data is not dispersed throughout the region (or environmental ranges) or the number of clusters (`k` or folds) is high. 
 
 
-For **presence-absence** data, folds are created based on all records, both presences and absences. As above, a target observation (presence or absence) forms a test point, all presence and absence points other than the target point within the buffer are ignored, and the training set comprises all presences and absences outside the buffer. Apart from the folds, the number of *training-presence*, *training-absence*, *testing-presence* and *testing-absence* records is stored and returned in the `records` table. If `species = NULL` (no column with 0s and 1s is defined), the procedure is like presence-absence data. All other types of data (continuous, count or multi-class response) should be used like this.
+### Buffering LOO (also known as Spatial LOO)
 
+The function `cv_buffer` generates spatially separated training and testing folds by considering buffers of specified distance around each observation point. This approach is a form of leave-one-out (LOO) cross-validation. Each fold is generated by excluding nearby observations around each testing point within the specified distance (ideally the range of spatial autocorrelation). In this method the test set never directly abuts a training set.
 
-```{r eval=FALSE}
+Using buffering to create CV folds:
+
+```{r results='hide', fig.keep='all'}
 # buffering with presence-background data
-bf2 <- cv_buffer(x = pa_data, 
-                 column = "occ",
-                 size = 350000)
+bloo <- cv_buffer(x = pa_data,
+                  column = "occ",
+                  size = 350000)
 
 ```
+
+For species **presence-absence** data and any other types of data (such as **continuous**, **counts**, and **multi-class** targets) keep `presence_background = FALSE`. In this case, all sample points other than the target point within the buffer are excluded, and the training set comprises all points outside the buffer.
+
+When using species **presence-background** data (or presence and pseudo-absence), you need to supply the `column` and set `presence_background = TRUE`. In this case, only presence points are considered as target points. For more information read the details section in the help of the function (i.e. `help(cv_buffer)`). 
 
 
 ## Visualising the folds
 
+You can visualise the generate folds for all block cross-validation strategies. You can optionally add a raster layer for background maps using `r` option. When `r` is supplied the plots might be slightly slower.
 
-```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
-cv_plot(cv = sc,
+Let's plot spatial clustering folds created in previous section (using `cv_cluster`):
+
+```{r warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+cv_plot(cv = scv,
         x = pa_data, 
         r = rasters) # optionally add a raster background
+
+```
+
+When `cv_buffer` is used for plotting, only first 10 folds are shown. You can choose any set of CV folds for plotting. The `NA` in legend shows the excluded points.
+
+```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=10}
+cv_plot(cv = bloo,
+        x = pa_data,
+        num_plots = c(1, 50, 100)) 
+
+```
+
+If you do not supply `x` when plotting a `cv_spatial` object, only the spatial blocks are plotted.
+
+```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
+cv_plot(cv = sb1,
+        r = rasters,
+        raster_colors = terrain.colors(10, alpha = 0.5),
+        label_size = 4) 
 
 ```
 
 
 ## Check similarity
 
-Check similarity and possible extrapolation to testing folds...
+The `cv_similarity` function can check for environmental similarity between the training and testing folds and thus possible extrapolation. It computes multivariate environmental similarity surface (MESS) as described in Elith et al. (2010). MESS represents how similar a point in a testing fold is to a training fold (as a reference set of points), with respect to a set of predictor variables in `r`. The negative values are the sites where at least one variable has a value that is outside the range of environments over the reference set, so these are novel environments.
 
 
-```{r}
-cv_similarity(cv = sb, x = pa_data, r = rasters, progress = FALSE)
+```{r fig.height=4, fig.width=6}
+cv_similarity(cv = sb1, 
+              x = pa_data, 
+              r = rasters, 
+              progress = FALSE)
 
 ```
 
+This could be used to see the amount of di
+
+```{r fig.height=4, fig.width=6}
+cv_similarity(cv = ecv, 
+              x = pa_data, 
+              r = rasters, 
+              progress = FALSE)
+
+```
 
 ## Estimating size: the effective range of spatial autocorrelation
-To support a first choice of block size, prior to any model fitting, package `blockCV` includes the option for the user to look at the existing autocorrelation in the predictors, as an indication of landscape spatial structure in their study area. The tool does not suggest any absolute solution to the problem, but serves as a guide to the user. The function works by automatically fitting variograms to each continuous raster and finding the effective range of spatial autocorrelation. Variogram is a fundamental geostatistical tool for measuring spatial autocorrelation. It does so by assessing variability between all pairs of points (O’Sullivan and Unwin, 2010). It provides information about *the effective range of spatial autocorrelation* which is the range over which observations are independent.
 
+To support a first choice of block size, prior to any model fitting, package `blockCV` includes the option for the user to look at the existing autocorrelation in the response or predictors (as an indication of landscape spatial structure). This tool does not suggest any absolute solution to the problem, but serves as a guide to the user. It provides information about *the effective range of spatial autocorrelation* which is the range over which observations are independent.
+
+When only `r` is supplied, the `cv_spatial_autocor` function works by automatically fitting variograms to each continuous raster and finding the effective range of spatial autocorrelation. Variogram is a fundamental geostatistical tool for measuring spatial autocorrelation (O’Sullivan and Unwin, 2010).
 
 ```{r, results='hide', fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
 sac1 <- cv_spatial_autocor(r = rasters, 
@@ -256,9 +315,9 @@ sac1 <- cv_spatial_autocor(r = rasters,
 
 ```
 
-The plotted block size is based on the *median* of the spatial autocorrelation ranges. This could be as the **minimum block size** for creating spatially separated folds. Variograms are computed taking a number of random points (`5000` as default) from each input raster file, using parallel processing to speed up the computation (optional). The variogram fitting procedure is done using [**automap**](https://CRAN.R-project.org/package=automap) package (Hiemstra et al., 2009), using the isotropic variogram and assuming the data meets the geostatistical criteria e.g. stationarity.
+The plotted block size is based on the *median* of the spatial autocorrelation ranges. This could be as the **minimum block size** for creating spatially separated folds. Variograms are computed taking a number of random points (`5000` as default) from each input raster file. The variogram fitting procedure is done using [**automap**](https://CRAN.R-project.org/package=automap) package (Hiemstra et al., 2009), using the isotropic variogram and assuming the data meets the geostatistical criteria e.g. stationarity.
 
-The output object of this function is an `SpatialAutoRange` object, an object of class S3.
+The output object of this function is an `cv_spatial_autocor` object, an object of class S3.
 
 ```{r}
 # class of the output result
@@ -272,6 +331,7 @@ To see the details of the fitted variograms:
 summary(sac1)
 ```
 
+Alternatively, only use the response data using `x` and `column`. This could be a binary or continuous variable provided in as a column in the sample points `sf` object.
 
 ```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
 sac2 <- cv_spatial_autocor(x = pa_data, 
@@ -279,7 +339,7 @@ sac2 <- cv_spatial_autocor(x = pa_data,
 
 ```
 
-To visualise them (this needs the automap package to be loaded): 
+To visualise them (this needs the `automap` package to be loaded): 
 
 ```{r, eval=TRUE, fig.height=4, fig.width=7}
 library(automap)
@@ -290,7 +350,7 @@ plot(sac2$variograms[[1]])
 <!-- ![](../man/figures/variogram.jpeg) -->
 
 
-Package `blockCV` provides two major visualisation tools for graphical exploration of the generated folds and assisting in block size selection. These tools have been developed as local web applications using R-package `shiny`. With `cv_block_size`, the user can choose among block sizes in a specified range, visualise the resulting blocks interactively, viewing the impact of block size on number and arrangement of blocks in the landscape (and optionally on the distribution of species data in those blocks). 
+Package `blockCV` also provides a visualisation tool for assisting in block size selection. This tool is developed as local web applications using R package `shiny`. With `cv_block_size`, the user can choose among block sizes in a specified range, visualise the resulting blocks interactively, viewing the impact of block size on number and arrangement of blocks in the landscape (and optionally on the distribution of sample points in those blocks). 
 
 Using only raster data:
 
@@ -318,25 +378,17 @@ cv_block_size(x = pa_data,
 
 ```
 
-Note that the interactive plots cannot be shown here, as they require opening an external window or web browser. When using `rangeExplorer`, slide to the selected block size, and click **Apply Changes** to change the block size.
+Note that the interactive plots cannot be shown here, as they require opening an external window or web browser. When using `cv_block_size`, slide to the selected block size, and click **Apply Changes** to change the block size.
 
 
 ## References:
-- Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321–331.
-
 - Hiemstra, P. H., Pebesma, E. J., Twenhöfel, C. J., & Heuvelink, G. B. (2009). Real-time automatic interpolation of ambient gamma dose rates from the Dutch radioactivity monitoring network. Computers & Geosciences, 35(8), 1711–1721.
 
-- Hastie, T., Tibshirani, R., & Friedman, J. (2009). The elements of statistical learning: Data Mining, Inference, and Prediction (2nd ed., Vol. 1). Springer series in statistics New York.
-
 - O’Sullivan, D., & Unwin, D. J. (2010). Geographic Information Analysis (2nd ed.). John Wiley & Sons.
-
-- Phillips, S. J., Anderson, R. P., Dudík, M., Schapire, R. E., & Blair, M. E. (2017). Opening the black box: an open-source release of Maxent. Ecography.
 
 - Roberts, D.R., Bahn, V., Ciuti, S., Boyce, M.S., Elith, J., Guillera-Arroita, G., Hauenstein, S., Lahoz-Monfort, J.J., Schröder, B., Thuiller, W., others, 2017. Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography. 40: 913-929.
 
 - Telford, R. J., & Birks, H. J. B. (2009). Evaluation of transfer functions in spatially structured environments. Quaternary Science Reviews, 28(13), 1309–1316.
-
-- Thuiller, W., Georges, D., Engler, R., & Breiner, F. (2017). biomod2: Ensemble Platform for Species Distribution Modeling. R package version 3.3-7. https://CRAN.R-project.org/package=biomod2.
 
 - Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. **blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models**. *Methods Ecol Evol.* 2019; 10:225–232. [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
 
