@@ -26,7 +26,7 @@ RoxygenNote: 7.2.1
 Suggests:
     terra (>= 1.6-41),
     ggplot2 (>= 3.3.6),
-    dismo,
+    Rcpp,
     cowplot,
     automap (>= 1.0-16),
     shiny (>= 1.7),

@@ -106,7 +106,7 @@ cv_similarity <- function(cv,
     df[, paste("Fold", i, sep = "")] <- NA
     train <- folds_list[[i]][[1]]
     test <- folds_list[[i]][[2]]
-    mes <- sapply(1:m, function(j) dismo:::.messi3(points[test, j], points[train, j]))
+    mes <- sapply(1:m, function(j) .messi3(points[test, j], points[train, j]))
     if(methods::is(cv, "cv_buffer")){
       mmes <- min(mes)
     } else{
@@ -152,4 +152,25 @@ cv_similarity <- function(cv,
     ggplot2::theme_bw()
 
   return(p1)
+}
+
+
+# calculating mess for cv_similarity
+# function borrowed from dismo:::.messi3
+.messi3 <- function(p, v) {
+  # seems 2-3 times faster than messi2
+  v <- stats::na.omit(v)
+  f <- 100*findInterval(p, sort(v)) / length(v)
+  minv <- min(v)
+  maxv <- max(v)
+  res <- 2*f
+  f[is.na(f)] <- -99
+  i <- f>50 & f<100
+  res[i] <- 200-res[i]
+
+  i <- f==0
+  res[i] <- 100*(p[i]-minv)/(maxv-minv)
+  i <- f==100
+  res[i] <- 100*(maxv-p[i])/(maxv-minv)
+  res
 }

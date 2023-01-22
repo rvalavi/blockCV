@@ -133,7 +133,6 @@ expect_names <- c("folds",
 test_that("test buffering function works", {
   # skip_on_cran()
 
-  # buffering with presence-absence data
   bf1 <- buffering(speciesData= pa_data,
                    species= "occ",
                    theRange= 450000,
@@ -171,10 +170,9 @@ expect_names <- c("folds",
 test_that("test that environmental blocking function works", {
   # skip_on_cran()
 
-  # environmental clustering
   eb <- envBlock(rasterLayer = aus,
                  speciesData = pa_data,
-                 species = "occ", # name of the column with species data
+                 species = "occ",
                  k = 5,
                  standardization = "standard",
                  rasterBlock = FALSE)

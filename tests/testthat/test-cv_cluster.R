@@ -43,7 +43,7 @@ test_that("test that environmental cluster function with raster_cluster", {
 
 test_that("test that spacial cluster function with no column", {
 
-  # environmental clustering
+  # spatial clustering
   eb <- cv_cluster(x = sf::as_Spatial(pa_data),
                    k = 5,
                    biomod2 = FALSE)

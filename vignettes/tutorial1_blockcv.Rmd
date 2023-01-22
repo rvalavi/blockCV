@@ -238,7 +238,7 @@ Using buffering to create CV folds:
 # buffering with presence-background data
 bloo <- cv_buffer(x = pa_data,
                   column = "occ",
-                  size = 350000)
+                  size = 400000)
 
 ```
 
@@ -260,7 +260,7 @@ cv_plot(cv = scv,
 
 ```
 
-When `cv_buffer` is used for plotting, only first 10 folds are shown. You can choose any set of CV folds for plotting. The `NA` in legend shows the excluded points.
+When `cv_buffer` is used for plotting, only first 10 folds are shown. You can choose any set of CV folds for plotting. If `remove_na = FALSE` (default is `TRUE`), the `NA` in legend shows the excluded points.
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=10}
 cv_plot(cv = bloo,
@@ -331,7 +331,7 @@ To see the details of the fitted variograms:
 summary(sac1)
 ```
 
-Alternatively, only use the response data using `x` and `column`. This could be a binary or continuous variable provided in as a column in the sample points `sf` object.
+Alternatively, only use the response data using `x` and `column`. This could be a binary or continuous variable provided in as a column in the sample points `sf` object. This could be the response or the residuals of a fitted model.
 
 ```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
 sac2 <- cv_spatial_autocor(x = pa_data, 

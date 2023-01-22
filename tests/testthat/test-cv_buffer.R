@@ -12,14 +12,11 @@ pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
   sf::st_as_sf(coords = c("x", "y"), crs = 7845)
 
 
-
 test_that("test that cv_buffer function works properly with presence-absence data",
           {
-            # cv_buffer with presence-absence data
             bloo <- cv_buffer(
               x = pa_data,
               column = "occ",
-              # to count the number of presences and absences
               size = 450000,
               presence_background = FALSE,
               progress = TRUE
@@ -42,7 +39,6 @@ test_that("test that cv_buffer function works properly with presence-absence dat
 
 test_that("test that cv_buffer function works properly with presence-background data",
           {
-            # cv_buffer with presence-background data
             bloo <- cv_buffer(
               x = pa_data,
               column = "occ",
@@ -67,7 +63,6 @@ test_that("test that cv_buffer function works properly with presence-background 
 
 test_that("test that cv_buffer function works properly with no species specified",
           {
-            # cv_buffer with presence-absence data
             bloo <- cv_buffer(
               x = sf::as_Spatial(pa_data),
               size = 450000
@@ -92,12 +87,10 @@ test_that("test that cv_buffer function works properly with no species specified
 
 
 test_that("test cv_buffer function with no matching species column", {
-  # cv_buffer with presence-absence data
   expect_warning(
     bloo <- cv_buffer(
       x = pa_data,
       column = "response",
-      # to count the number of presences and absences
       size = 450000,
       presence_background = FALSE,
       progress = TRUE
@@ -114,7 +107,6 @@ test_that("test cv_buffer function with no spatial column data", {
   expect_error(cv_buffer(
     x = "pa_data",
     column = "occ",
-    # to count the number of presences and absences
     size = 450000
   ))
 

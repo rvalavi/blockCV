@@ -154,7 +154,7 @@ test_that("test cv_spatial with user-defined blocks", {
                    plot = FALSE)
 
   scv <- cv_spatial(x = pa_data,
-                    blocks = sb$blocks,
+                    user_blocks = sb$blocks,
                     selection = "random",
                     iteration = 5,
                     biomod2 = FALSE,

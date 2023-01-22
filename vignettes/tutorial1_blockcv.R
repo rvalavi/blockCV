@@ -12,13 +12,12 @@ library(blockCV)
 
 
 ## ---- fig.height=5, fig.width=7.2, warning=FALSE, message=FALSE---------------
-# library(ggplot2) # plotting
-# library(rasterVis) # plotting raster data
 library(sf) # working with spatial vector data
-library(terra) # working with saptial raster data
-library(tmap) # plotting spatial data
+library(terra) # working with spatial raster data
+library(tmap) # plotting block and maps
 
 # load raster data
+# the pipe operator |> is available for R >= 4.1
 rasters <- system.file("extdata/au/", package = "blockCV") |>
   list.files(full.names = TRUE) |>
   terra::rast()
@@ -40,44 +39,41 @@ tm_shape(rasters[[1]]) +
   tm_dots(col = "occ", style = "cat", size = 0.1)
 
 
-## ----eval=FALSE, fig.height=4.5, fig.width=7.1--------------------------------
-#  # plot species data on the map
-#  rasterVis::gplot(rasters[[1]]) +
-#    geom_tile(aes(fill = value)) +
-#    scale_fill_distiller(palette = 4, na.value = NA) +
-#    guides(fill = "none") +
-#    geom_sf(data = pa_data,
-#            aes(color = as.factor(occ)),
-#            inherit.aes = FALSE) +
-#    scale_color_manual(values = c("red", "yellow")) +
-#    theme_minimal()
-#  
-
 ## ---- results='hide', fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
-# spatial blocking by specified range with random assignment
-sb <- cv_spatial(x = pa_data,
-                 column = "occ",
-                 k = 5,
-                 size = 350000,
-                 selection = "random",
-                 iteration = 50)
+sb1 <- cv_spatial(x = pa_data,
+                  column = "occ", # the response column (binary or multi-class)
+                  k = 5, # number of folds
+                  size = 350000, # size of the blocks in metres
+                  selection = "random", # random blocks-to-fold
+                  iteration = 50, # find evenly dispersed folds
+                  biomod2 = TRUE) # also create folds for biomod2
 
 
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
 sb2 <- cv_spatial(x = pa_data,
                   column = "occ",
+                  r = rasters, # optional
                   k = 5,
                   size = 350000,
                   hexagon = FALSE,
                   selection = "random",
                   iteration = 50,
-                  progress = FALSE)
+                  progress = FALSE,
+                  biomod2 = TRUE)
 
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
-# spatial blocking by rows with systematic assignment
 sb3 <- cv_spatial(x = pa_data,
                   column = "occ",
                   k = 5,
+                  size = 350000,
+                  hexagon = FALSE,
+                  selection = "systematic",
+                  iteration = 50)
+
+
+## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
+sb4 <- cv_spatial(x = pa_data,
+                  column = "occ",
                   size = 350000,
                   hexagon = FALSE,
                   selection = "checkerboard",
@@ -85,40 +81,75 @@ sb3 <- cv_spatial(x = pa_data,
 
 
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
-tm_shape(sb3$blocks) +
+tm_shape(sb4$blocks) +
   tm_fill(col = "folds", style = "cat")
 
 
-## -----------------------------------------------------------------------------
-# environmental clustering
-sc <- cv_cluster(x = pa_data,
-                 column = "occ",
-                 k = 5) # here number is low for test
-
-## ----eval=FALSE, warning=FALSE, message=FALSE---------------------------------
-#  # environmental clustering
-#  ec <- cv_cluster(x = pa_data,
-#                   column = "occ",
-#                   r = rasters,
-#                   k = 5,
-#                   scale = TRUE,
-#                   num_sample = 500) # here number is low for test
-
-## ----eval=FALSE---------------------------------------------------------------
-#  # buffering with presence-background data
-#  bf2 <- cv_buffer(x = pa_data,
-#                   column = "occ",
-#                   size = 350000)
-#  
-
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
-cv_plot(cv = sc,
+sb5 <- cv_spatial(x = pa_data,
+                  column = "occ",
+                  r = rasters,
+                  k = 5, 
+                  rows_cols = c(10, 2), # for hexagonal only first one is used
+                  hexagon = FALSE,
+                  selection = "random",
+                  iteration = 50,
+                  progress = FALSE)
+
+
+## -----------------------------------------------------------------------------
+# spatial clustering
+scv <- cv_cluster(x = pa_data,
+                  column = "occ", # optional: counting number of train/test records
+                  k = 5)
+
+## ----warning=FALSE, message=FALSE---------------------------------------------
+# environmental clustering
+ecv <- cv_cluster(x = pa_data,
+                  column = "occ",
+                  r = rasters,
+                  k = 5, 
+                  scale = TRUE)
+
+
+## ----results='hide', fig.keep='all'-------------------------------------------
+# buffering with presence-background data
+bloo <- cv_buffer(x = pa_data,
+                  column = "occ",
+                  size = 400000)
+
+
+## ----warning=FALSE, message=FALSE, fig.height=6, fig.width=10-----------------
+cv_plot(cv = scv,
         x = pa_data, 
         r = rasters) # optionally add a raster background
 
 
-## -----------------------------------------------------------------------------
-cv_similarity(cv = sb, x = pa_data, r = rasters, progress = FALSE)
+## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=10-----------------
+cv_plot(cv = bloo,
+        x = pa_data,
+        num_plots = c(1, 50, 100)) 
+
+
+## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
+cv_plot(cv = sb1,
+        r = rasters,
+        raster_colors = terrain.colors(10, alpha = 0.5),
+        label_size = 4) 
+
+
+## ----fig.height=4, fig.width=6------------------------------------------------
+cv_similarity(cv = sb1, 
+              x = pa_data, 
+              r = rasters, 
+              progress = FALSE)
+
+
+## ----fig.height=4, fig.width=6------------------------------------------------
+cv_similarity(cv = ecv, 
+              x = pa_data, 
+              r = rasters, 
+              progress = FALSE)
 
 
 ## ---- results='hide', fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2----

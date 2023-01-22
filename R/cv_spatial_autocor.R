@@ -280,3 +280,77 @@ summary.cv_spatial_autocor <- function(object, ...){
   print(summary(object$rangeTable$range))
   print(object$rangeTable[,1:2])
 }
+
+
+
+# make a bar plot for cv_spatial_autocor
+.make_bar_plot <- function(vario_data, the_range, ptnum){
+  # change the scale to km
+  vario_data$range <- vario_data$range / 1000
+  the_range <- the_range / 1000
+
+  p <- ggplot2::ggplot(
+    data = vario_data,
+    ggplot2::aes(y = get("range"),
+                 x = stats::reorder(factor(get("layers")),
+                                    get("range"),
+                                    decreasing = FALSE),
+                 color = get("range"))
+  ) +
+    # ggplot2::geom_bar(
+    #   ggplot2::aes(x = stats::reorder(factor(get("layers")), get("range")),
+    #                y = get("range"),
+    #                fill = get("range")),
+    #   stat = "identity", data = vario_data,) +
+    ggplot2::geom_point(size = 4) +
+    ggplot2::geom_segment(
+      ggplot2::aes_string(x = "layers",
+                          xend = "layers",
+                          y = 0,
+                          yend = "range"),
+      size = 1.5
+    ) +
+    ggplot2::labs(x = "Variables", y = "Range (km)") +
+    ggplot2::theme_bw() +
+    ggplot2::ggtitle("Autocorrelation range", subtitle = paste("Based on", ptnum, "sample points"))+
+    ggplot2::guides(color = "none") +
+    ggplot2::geom_hline(yintercept = the_range, color = 'red', size = 0.5, linetype = 2) +
+    ggplot2::annotate("text", x = floor(nrow(vario_data) / 3),
+                      y =  (the_range + (max(vario_data$range) / 20)),
+                      angle = 270,
+                      label = "Block size",
+                      color = 'red') +
+    ggplot2::coord_flip()
+
+  return(p)
+}
+
+
+# auto-fit variogram models
+.fit_variogram <- function(i,
+                           xx = NULL,
+                           rr = NULL,
+                           column = NULL,
+                           num_sample = 1e4,
+                           progress = FALSE,
+                           pb = NULL){
+  if(is.null(xx)){
+    points <- terra::spatSample(
+      x = rr[[i]],
+      size = num_sample,
+      method = "random",
+      as.points = TRUE,
+      na.rm = TRUE
+    )
+    points <- sf::as_Spatial(sf::st_as_sf(points))
+    names(points) <- "target"
+  } else{
+    points <- xx[column[i]] # [i] in case there are more column
+    points <- sf::as_Spatial(points)
+    names(points) <- "target"
+  }
+  fit_vario <- automap::autofitVariogram(target~1, points)
+  if(progress) utils::setTxtProgressBar(pb, i)
+
+  return(fit_vario)
+}

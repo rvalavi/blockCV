@@ -12,6 +12,7 @@ cv_plot(
   ncol = NULL,
   num_plots = 1:10,
   max_pixels = 3e+05,
+  remove_na = TRUE,
   raster_colors = gray.colors(10, alpha = 1),
   points_colors = c("#E69F00", "#56B4E9"),
   points_alpha = 0.7,
@@ -35,6 +36,8 @@ It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.}
 You can choose any of the folds to be shown e.g. \code{1:3} or \code{c(2, 7, 16, 22)}}
 
 \item{max_pixels}{integer; maximum number of pixels used for plotting \code{r}}
+
+\item{remove_na}{logical; whether to remove excluded points in \code{cv_buffer} from the plot}
 
 \item{raster_colors}{character; a character vector of colours for raster background e.g. \code{terrain.colors(20)}}
 

@@ -93,75 +93,43 @@ cv_buffer <- function(x,
 
   if(is.null(column) && presence_background) stop("'column' must be provided for presence-background data.")
 
+
   # distance matrix by sf
   dmatrix <- sf::st_distance(x)
-  distuni <- dmatrix[1,1] # take the unit to avoid using units package
-  distuni[1] <- size
-  fold_list <- list()
+  units(dmatrix) <- NULL
 
-  if(!is.null(column)){
-    if(presence_background){
-      unqsp <- unique(x[, column, drop = TRUE])
-      if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
-        stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n", "The data should be numeric.\n")
-      }
-      prI <- which(x[, column, drop = TRUE] == 1) # presence indices to loop through
-      n <- length(prI)
-      cl <- sort(unique(x[, column, drop = TRUE]))
-      clen <- length(cl)
-      train_test_table <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
-      names(train_test_table) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
-      if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
-      j <- 0
-      for(i in prI){ # loop through presences
-        j <- j + 1
-        train_set <- which(dmatrix[i, ] > distuni)
-        if(add_background){
-          test <- which(dmatrix[i, ] <= distuni)
-          inside <- x[test, ]
-          test_set <- test[which(inside[, column, drop = TRUE] == 0)]
-          test_set[length(test_set) + 1] <- i
-        } else{
-          test_set <- i
-        }
-        fold_list[[j]] <- assign(paste0("fold", j), list(train_set, test_set))
-        countrain <- table(x[train_set ,column, drop = TRUE])
-        countest <- table(x[test_set ,column, drop = TRUE])
-        train_test_table[j, which(cl %in% names(countrain))] <- countrain
-        train_test_table[j, clen + which(cl %in% names(countest))] <- countest
-        if(progress) utils::setTxtProgressBar(pb, i)
-      }
-    } else{
-      n <- nrow(x)
-      cl <- sort(unique(x[, column, drop = TRUE]))
-      clen <- length(cl)
-      train_test_table <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
-      names(train_test_table) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
-      if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
-      for(i in seq_len(n)){
-        train_set <- which(dmatrix[i, ] > distuni)
-        test_set <- i
-        fold_list[[i]] <- assign(paste0("fold", i), list(train_set, test_set))
-        countrain <- table(x[train_set ,column, drop = TRUE])
-        countest <- table(x[test_set ,column, drop = TRUE])
-        train_test_table[i, which(cl %in% names(countrain))] <- countrain
-        train_test_table[i, clen + which(cl %in% names(countest))] <- countest
-        if(progress) utils::setTxtProgressBar(pb, i)
-      }
+  if(presence_background){
+    unqsp <- unique(x[, column, drop = TRUE])
+    if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
+      stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n", "The data should be numeric.\n")
     }
-  } else{ # data with no column column
-    n <- nrow(x)
-    train_test_table <- base::data.frame(train = rep(0, n), test = 0)
-    if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
-    for(i in seq_len(n)){
-      train_set <- which(dmatrix[i, ] > distuni)
-      test_set <- i
-      fold_list[[i]] <- assign(paste0("fold", i), list(train_set, test_set))
-      train_test_table$train[i] <- length(train_set)
-      train_test_table$test[i] <- length(test_set)
-      if(progress) utils::setTxtProgressBar(pb, i)
-    }
+    # indices of presences
+    x_1s <- which(x[, column, drop = TRUE] == 1)
+  } else{
+    x_1s <- 1:nrow(x)
   }
+
+  # the k
+  n <- length(x_1s)
+
+  if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
+  fold_list <- lapply(x_1s, function(i, pbag = presence_background){
+    if(pbag){
+      test_ids <- which(dmatrix[i, ] <= size)
+      inside <- x[test_ids, column, drop = TRUE]
+      test_set <- test_ids[which(inside == 0)]
+      test_set <- c(i, test_set)
+    } else{
+      test_set <- i
+    }
+    if(progress) utils::setTxtProgressBar(pb, i)
+    list(which(dmatrix[i, ] > size), test_set)
+  }
+  )
+
+  # calculate train test table; optional?
+  train_test_table <- .ttt(fold_list, x, column, n)
+
   final_objs <- list(
     folds_list = fold_list,
     k = n,
@@ -187,4 +155,33 @@ print.cv_buffer <- function(x, ...){
 summary.cv_buffer <- function(object, ...){
   print("Number of recoreds in each category")
   print(object$records)
+}
+
+
+# count the train and test records
+.ttt <- function(fold_list, x, column, n){
+  if(is.null(column)){
+    tt_count <- base::data.frame(train = rep(0, n), test = 0)
+    for(i in seq_len(n)){
+      train_set <- fold_list[[i]][[1]]
+      test_set <- fold_list[[i]][[2]]
+      tt_count$train[i] <- length(train_set)
+      tt_count$test[i] <- length(test_set)
+    }
+  } else{
+    cl <- sort(unique(x[, column, drop = TRUE]))
+    clen <- length(cl)
+    tt_count <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
+    names(tt_count) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
+    for(i in seq_len(n)){
+      train_set <- fold_list[[i]][[1]]
+      test_set <- fold_list[[i]][[2]]
+      countrain <- table(x[train_set, column, drop = TRUE])
+      countest <- table(x[test_set, column, drop = TRUE])
+      tt_count[i, which(cl %in% names(countrain))] <- countrain
+      tt_count[i, clen + which(cl %in% names(countest))] <- countest
+    }
+  }
+
+  return(tt_count)
 }

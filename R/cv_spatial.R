@@ -473,3 +473,48 @@ summary.cv_spatial <- function(object, ...){
   print(object$records)
 }
 
+
+
+# generate fold number in checkerboard pattern or systematic
+.fold_assign <- function(blocks, n, checkerboard=FALSE){
+  # solve problems of digits in R
+  old <- options("digits") # save away original options
+  options(digits = 22) # change the option
+  on.exit(options(old))
+  # compute centroids
+  cent <- sf::st_centroid(blocks)
+  xy <- as.data.frame(sf::st_coordinates(cent))
+  # to avoid problem of digits precision
+  xy$X <- as.factor(xy$X)
+  xy$Y <- as.factor(xy$Y)
+  # get the dimension of blocks
+  # xlev <- levels(xy$X)
+  ylev <- levels(xy$Y)
+  ny <- length(ylev)
+
+  len <- nrow(xy)
+  xy$ids <- seq_len(len)
+  xy <- xy[order(xy$Y), ]
+  xy$z <- 0
+
+  if(checkerboard){
+    for(i in rev(seq_len(ny))){
+      wyi <- which(xy$Y == ylev[i])
+      nx <- length(wyi)
+      if(i %% 2){
+        xy$z[wyi] <- rep(1:2, length.out = nx)
+      } else{
+        xy$z[wyi] <- rep(2:1, length.out = nx)
+      }
+    }
+  } else{
+    xy$z <- rep(1:n, length.out = len)
+  }
+
+  blocks <- sf::st_sf(blocks)
+  blocks$block_id <- 1:nrow(blocks)
+  xy <- xy[order(xy$ids), ]
+  blocks$folds <- xy$z
+
+  return(blocks)
+}

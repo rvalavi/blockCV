@@ -17,6 +17,7 @@
 #' @param points_colors character; two colours to be used for train and test points
 #' @param points_alpha numeric; the opacity of points
 #' @param label_size integer; size of fold labels when a \code{cv_spatial} object is used.
+#' @param remove_na logical; whether to remove excluded points in \code{cv_buffer} from the plot
 #'
 #' @importFrom grDevices gray.colors
 #' @return a ggplot object
@@ -48,6 +49,7 @@ cv_plot <- function(
     ncol = NULL,
     num_plots = 1:10,
     max_pixels = 3e5,
+    remove_na = TRUE,
     raster_colors = gray.colors(10, alpha = 1),
     points_colors = c("#E69F00", "#56B4E9"),
     points_alpha = 0.7,
@@ -76,9 +78,9 @@ cv_plot <- function(
   if(!is.null(r)){
     map_df <- terra::spatSample(r,
                                 size = max_pixels,
-                                method="regular",
-                                xy=TRUE,
-                                na.rm=TRUE)
+                                method = "regular",
+                                xy = TRUE,
+                                na.rm = TRUE)
     colnames(map_df) <- c("x", "y", "value")
 
     geom_rast <- ggplot2::geom_tile(data = map_df,
@@ -98,10 +100,19 @@ cv_plot <- function(
 
   if(!missing(x)){
     x_long <- .x_to_long(x, cv, num_plot = num_plots)
+
+    # exclude NAs from cv_buffer
+    if(methods::is(cv, "cv_buffer") && remove_na){
+      x_long <- x_long[which(complete.cases(x_long$value)), ]
+    }
+
   } else{
     # stop if x is missing for buffer and cluster
     if(!methods::is(cv, "cv_spatial")) stop("'x' is required for plotting cv_cluster and cv_buffer.")
   }
+
+
+
 
   if(missing(x)){
     if(methods::is(cv, "cv_spatial")){
@@ -139,4 +150,69 @@ cv_plot <- function(
   }
 
   return(p1)
+}
+
+
+# transform x and fold numbers for plotting
+.x_to_long <- function(x, cv, num_plot=1:10){
+  # get the folds list
+  folds_list <- cv$folds_list
+  # The iteration must be a natural number
+  tryCatch(
+    {
+      num_plot <- abs(as.integer(num_plot))
+      num_plot <- sort(num_plot)
+    },
+    error = function(cond) {
+      message("'num_plot' must be natural numbers.")
+    }
+  )
+  # length of the folds
+  k <- length(folds_list)
+  if(max(num_plot) > k){
+    num_plot <- num_plot[num_plot <= k]
+  }
+  # get the length of unique ids
+  if(methods::is(cv, "cv_buffer")){
+    len <- length(unique(unlist(cv$folds_list)))
+  } else{
+    len <- length(unlist(folds_list[[1]]))
+    if(len != nrow(x)){
+      stop("Number of rows in 'x' does not match the folds in 'cv'!")
+    }
+  }
+  # create a dataframe temp
+  df <- data.frame(id = seq_len(len))
+  # make the indices in x
+  for(i in num_plot){
+    df[, paste("Fold", i, sep = "")] <- NA
+    test <- folds_list[[i]][[2]]
+    train <- folds_list[[i]][[1]]
+    df[test, paste("Fold", i, sep = "")] <- 0
+    df[train, paste("Fold", i, sep = "")] <- 1
+  }
+  # get the geometry column name
+  sf_colname <- attr(x, "sf_column")
+  # cbind x and the df with fold ids
+  xf <- cbind(x, df)
+  # convert to dataframe for reshaping
+  x_df <- as.data.frame(xf)
+  # name of columns to rehspae long
+  fold_names <- paste("Fold", num_plot, sep = "")
+  # reshape x-df to long
+  x_reshape <- stats::reshape(x_df,
+                              direction = "long",
+                              idvar = "id",
+                              varying = fold_names,
+                              times = fold_names,
+                              v.names = "value",
+                              timevar = "folds"
+  )
+  # convert back to sf
+  x_long <- sf::st_as_sf(x_reshape, sf_column_name = sf_colname)
+  # convert to factor for plotting
+  x_long$value <- as.factor(x_long$value)
+  levels(x_long$value) <- c("Test", "Train")
+
+  return(x_long)
 }
