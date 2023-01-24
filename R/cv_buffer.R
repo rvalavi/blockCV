@@ -36,6 +36,7 @@
 #' recommend according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 #' the background pints to testing points.
 #' @param progress logical; whether to shows a progress bar.
+#' @param print logical; whether to print summary records; for very big datasets, set to FALSE for faster calculation.
 #'
 #' @seealso \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, and \code{\link{cv_spatial_autocor}}
 #'
@@ -69,12 +70,15 @@
 #'                   presence_background = FALSE)
 #'
 #' }
-cv_buffer <- function(x,
-                      column = NULL,
-                      size,
-                      presence_background = FALSE,
-                      add_background = FALSE,
-                      progress = TRUE){
+cv_buffer <- function(
+    x,
+    column = NULL,
+    size,
+    presence_background = FALSE,
+    add_background = FALSE,
+    progress = TRUE,
+    print = TRUE
+){
 
   # check x is an sf object
   x <- .x_check(x)
@@ -127,8 +131,11 @@ cv_buffer <- function(x,
   }
   )
 
-  # calculate train test table; optional?
-  train_test_table <- .ttt(fold_list, x, column, n)
+  # calculate train test table summary
+  if(print){
+    train_test_table <- .ttt(fold_list, x, column, n)
+    print(summary(train_test_table)[c(1,4,6), ])
+  }
 
   final_objs <- list(
     folds_list = fold_list,
@@ -136,7 +143,7 @@ cv_buffer <- function(x,
     column = column,
     size = size,
     presence_background = presence_background,
-    records = train_test_table
+    records = if(print) train_test_table else NULL
   )
 
   class(final_objs) <- c("cv_buffer")
@@ -151,10 +158,17 @@ print.cv_buffer <- function(x, ...){
 }
 
 #' @export
+#' @method plot cv_buffer
+plot.cv_buffer <- function(x, ...){
+  message("Please use cv_plot function to plot each fold interactively.")
+}
+
+#' @export
 #' @method summary cv_buffer
 summary.cv_buffer <- function(object, ...){
-  print("Number of recoreds in each category")
-  print(object$records)
+  if(!is.null(object$records)){
+    print(summary(object$records)[c(1,4,6),])
+  }
 }
 
 

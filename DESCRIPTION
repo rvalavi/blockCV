@@ -21,7 +21,8 @@ LazyData: true
 Depends:
   R (>= 3.5.0)
 Imports:
-  sf (>= 1.0)
+    Rcpp,
+    sf (>= 1.0)
 RoxygenNote: 7.2.1
 Suggests:
     terra (>= 1.6-41),
@@ -37,3 +38,5 @@ Suggests:
     covr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+LinkingTo: 
+    Rcpp

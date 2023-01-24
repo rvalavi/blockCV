@@ -77,15 +77,17 @@
 #'                  scale = TRUE)
 #'
 #' }
-cv_cluster <- function(x,
-                       column = NULL,
-                       r = NULL,
-                       k = 5L,
-                       scale = TRUE,
-                       raster_cluster = FALSE,
-                       num_sample = 10000L,
-                       biomod2 = TRUE,
-                       print = TRUE){
+cv_cluster <- function(
+    x,
+    column = NULL,
+    r = NULL,
+    k = 5L,
+    scale = TRUE,
+    raster_cluster = FALSE,
+    num_sample = 10000L,
+    biomod2 = TRUE,
+    print = TRUE
+){
 
   # check x is an sf object
   x <- .x_check(x)
