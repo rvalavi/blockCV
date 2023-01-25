@@ -1,84 +1,152 @@
 #include <Rcpp.h>
-using namespace Rcpp;
+
+#include <limits>
+#include <vector>
+
+template<typename T>
+class Lightweight_matrix {
+private:
+  using MatrixType = std::vector<T>;
+public:
+
+  explicit Lightweight_matrix(int rows, int columns):
+    rows_(rows), columns_(columns), matrix_(rows * columns) {}
+
+  template<typename Matrix>
+  explicit Lightweight_matrix(Matrix matrix):
+    Lightweight_matrix(matrix.nrow(), matrix.ncol()) {
+    for(int i(0); i < rows_; ++i) {
+      for(int j(0); j < columns_; ++j) {
+        operator()(i, j) = static_cast<T>(matrix(i, j));
+      }
+    }
+  }
+
+  T operator()(int i, int j) const {
+    return matrix_[i * columns_ + j];
+  }
+
+  T& operator()(int i, int j) {
+    return matrix_[i * columns_ + j];
+  }
+
+  int ncol() const {
+    return columns_;
+  }
+
+  int nrow() const {
+    return rows_;
+  }
+
+  Rcpp::NumericMatrix as_rcpp_matrix() const {
+    Rcpp::NumericMatrix ret(rows_, columns_);
+    for(int i(0); i < rows_; ++i) {
+      for(int j(0); j < columns_; ++j) {
+        ret(i, j) = operator()(i, j);
+      }
+    }
+    return ret;
+  }
+
+private:
+  int rows_;
+  int columns_;
+  MatrixType matrix_;
+};
+
+int count_less_than_value(const std::vector<double>& vector,
+                          double value){
+  int less_than_value(0);
+  for(int i=0; i < vector.size(); i++){
+    if(vector[i] <= value){
+      ++less_than_value;
+    }
+  }
+  return less_than_value;
+}
 
 // [[Rcpp::export]]
-NumericMatrix nndm_cpp(NumericMatrix X,
-                       NumericVector Gjstar,
-                       NumericVector Gij,
-                       double rmin,
-                       double phi,
-                       int imin,
-                       int jmin,
-                       double min_train){
+Rcpp::NumericMatrix nndm_cpp(Rcpp::NumericMatrix X,
+                             Rcpp::NumericVector Gjstar,
+                             Rcpp::NumericVector Gij,
+                             double rmin,
+                             double phi,
+                             int imin,
+                             int jmin,
+                             double min_train){
 
-  double Gst_len = Gjstar.size();
-  double Gij_len = Gij.size();
+  const std::vector<double> Gij_vec(Rcpp::as<std::vector<double>>(Gij));
+  std::vector<double> Gjstar_vec(Rcpp::as<std::vector<double>>(Gjstar));
+  const Lightweight_matrix<double> X_cpp(X);
+  Lightweight_matrix<int> is_na(X.nrow(), X.ncol());
+
+  for(int i=0; i<is_na.nrow() ;i++){
+    for(int j=0; j<is_na.ncol() ;j++){
+      is_na(i, j) = static_cast<int>(i == j);
+    }
+  }
 
   while( rmin <= phi ) {
 
-    LogicalVector Gst_lte_rmin = Gjstar <= rmin;
-    LogicalVector Gij_lte_rmin = Gij <= rmin;
-    LogicalVector Gst_ht_rmin = Gjstar > rmin;
+    const int Gjstar_less_than_rmin(count_less_than_value(Gjstar_vec, rmin));
+    const int Gij_less_than_rmin(count_less_than_value(Gij_vec, rmin));
+    const double pcdf = static_cast<double>(Gij_less_than_rmin) / static_cast<double>(Gij_vec.size());
+    const double tcdf = static_cast<double>(Gjstar_less_than_rmin - 1) / static_cast<double>(Gjstar_vec.size());
 
-    double tcdf = (sum(Gst_lte_rmin) - 1) / Gst_len;
-    double pcdf = sum(Gij_lte_rmin) / Gij_len;
-    bool tcdf_hte_pcdf = tcdf >= pcdf;
-
-    NumericVector one_row = X(imin, _);
-    LogicalVector index = is_na(one_row);
-    double n_col = X.ncol();
-    bool in_prop = sum(!index) / n_col > min_train;
-
-    if( tcdf_hte_pcdf && in_prop ) {
-
-      // replace the element with NA
-      X(imin, jmin) = NA_REAL;
-      for(int i=0; i<X.nrow() ;i++){
-        NumericVector row_i = X( i , _ );
-        LogicalVector index = is_na(row_i);
-        NumericVector Xi = row_i[!index];
-        Gjstar[i] = min(Xi);
+    int X_non_na(0);
+    for(int j=0; j<X_cpp.ncol(); j++){
+      if(is_na(imin, j) != 1) {
+        ++X_non_na;
       }
+    }
 
-      NumericVector Gst_hte_rmin = Gjstar[Gjstar >= rmin];
-      rmin = min(Gst_hte_rmin);
+    const bool in_prop = static_cast<double>(X_non_na) / static_cast<double>(X_cpp.ncol()) > min_train;
 
-      for(int i=0; i<Gjstar.size(); i++){
-        if(Gjstar[i] == rmin){
+    double new_rmin = std::numeric_limits<double>::infinity();
+
+    if( (tcdf >= pcdf) && in_prop ) {
+      // Signal that the current element is NA
+      is_na(imin, jmin) = 1;
+
+      for(int i=0; i<X_cpp.nrow() ;i++){
+        Gjstar_vec[i] = std::numeric_limits<double>::infinity();
+        for(int j=0; j<X_cpp.ncol() ;j++){
+          if((is_na(i, j) != 1) && X_cpp(i, j) < Gjstar_vec[i]) {
+            Gjstar_vec[i] = X_cpp(i, j);
+          }
+        }
+        if(Gjstar_vec[i] >= rmin && Gjstar_vec[i] < new_rmin) {
+          new_rmin = Gjstar_vec[i];
           imin = i;
-          break;
         }
       }
-      // this can be coverted to for loop for j and then for for i?
-      NumericVector row_imin = X( imin, _ );
-      for(int i=0; i<row_imin.size(); i++){
-        if(row_imin[i] == rmin){
-          jmin = i;
-          break;
-        }
-      }
-
-    } else if( sum(Gst_ht_rmin) == 0 ){
+    } else if( Gjstar_vec.size() == Gjstar_less_than_rmin ){
       break;
     } else {
-      NumericVector Gst_h_rmin = Gjstar[Gst_ht_rmin];
-      rmin = min(Gst_h_rmin);
-
-      for(int i=0; i<Gjstar.size(); i++){
-        if(Gjstar[i] == rmin){
+      for(int i=0; i<Gjstar_vec.size(); i++){
+        if(Gjstar_vec[i] > rmin && Gjstar_vec[i] < new_rmin) {
+          new_rmin = Gjstar_vec[i];
           imin = i;
-          break;
-        }
-      }
-      NumericVector row_imin = X( imin, _ );
-      for(int i=0; i<row_imin.size(); i++){
-        if(row_imin[i] == rmin){
-          jmin = i;
-          break;
         }
       }
     }
 
+    rmin = new_rmin;
+
+    for(int j=0; j<X_cpp.ncol(); j++){
+      if((is_na(imin, j) != 1) && X_cpp(imin, j) == rmin){
+        jmin = j;
+        break;
+      }
+    }
+  }
+
+  for(int i=0; i<X.nrow() ;i++){
+    for(int j=0; j<X.ncol() ;j++){
+      if(is_na(i, j) == 1) {
+        X(i, j) = NA_REAL;
+      }
+    }
   }
 
   return X;
