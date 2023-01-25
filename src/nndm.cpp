@@ -7,8 +7,8 @@ NumericMatrix nndm_cpp(NumericMatrix X,
                        NumericVector Gij,
                        double rmin,
                        double phi,
+                       int imin,
                        int jmin,
-                       int kmin,
                        double min_train){
 
   double Gst_len = Gjstar.size();
@@ -24,7 +24,7 @@ NumericMatrix nndm_cpp(NumericMatrix X,
     double pcdf = sum(Gij_lte_rmin) / Gij_len;
     bool tcdf_hte_pcdf = tcdf >= pcdf;
 
-    NumericVector one_row = X(jmin, _);
+    NumericVector one_row = X(imin, _);
     LogicalVector index = is_na(one_row);
     double n_col = X.ncol();
     bool in_prop = sum(!index) / n_col > min_train;
@@ -32,7 +32,7 @@ NumericMatrix nndm_cpp(NumericMatrix X,
     if( tcdf_hte_pcdf && in_prop ) {
 
       // replace the element with NA
-      X(jmin, kmin) = NA_REAL;
+      X(imin, jmin) = NA_REAL;
       for(int i=0; i<X.nrow() ;i++){
         NumericVector row_i = X( i , _ );
         LogicalVector index = is_na(row_i);
@@ -45,15 +45,15 @@ NumericMatrix nndm_cpp(NumericMatrix X,
 
       for(int i=0; i<Gjstar.size(); i++){
         if(Gjstar[i] == rmin){
-          jmin = i;
+          imin = i;
           break;
         }
       }
       // this can be coverted to for loop for j and then for for i?
-      NumericVector row_jmin = X( jmin, _ );
-      for(int i=0; i<row_jmin.size(); i++){
-        if(row_jmin[i] == rmin){
-          kmin = i;
+      NumericVector row_imin = X( imin, _ );
+      for(int i=0; i<row_imin.size(); i++){
+        if(row_imin[i] == rmin){
+          jmin = i;
           break;
         }
       }
@@ -66,14 +66,14 @@ NumericMatrix nndm_cpp(NumericMatrix X,
 
       for(int i=0; i<Gjstar.size(); i++){
         if(Gjstar[i] == rmin){
-          jmin = i;
+          imin = i;
           break;
         }
       }
-      NumericVector row_jmin = X( jmin, _ );
-      for(int i=0; i<row_jmin.size(); i++){
-        if(row_jmin[i] == rmin){
-          kmin = i;
+      NumericVector row_imin = X( imin, _ );
+      for(int i=0; i<row_imin.size(); i++){
+        if(row_imin[i] == rmin){
+          jmin = i;
           break;
         }
       }

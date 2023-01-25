@@ -23,13 +23,14 @@ In a nutshell, package **blockCV** provides functions to build train and test da
 
 ## New updates of the version 3.0
 * Function names have changed, all starting with `cv_` now
-* The three main blocking functions are now: `cv_spatial`, `cv_cluster`, `cv_buffer`, `cv_nndm`
-* Spatial blocks now support hexagonal (default), rectangular, and user-defined blocks
-* Clustering function now works both on *environmental* rasters, and *spatial coordinates* of the sample points
-* Implementation of the newly developed *Nearest Neighbour Distance Matching (NNDM)* algorithm (Milà et al. 2022)
+* The three main blocking functions are now: `cv_spatial`, `cv_cluster`, `cv_buffer`, and `cv_nndm`
+* Spatial blocks now support **hexagonal** (default), rectangular, and user-defined blocks
+* Implementation of the newly developed **Nearest Neighbour Distance Matching (NNDM)** algorithm (Milà et al. 2022)
+* The NNDM algorithm works for both presence-absence and presence-background data, and also other type of data
+* Clustering function now works both on **environmental rasters**, and **spatial coordinates** of the sample points
 * The `cv_spatial_autocor` function now calculates spatial autocorrelation range for either the response (i.e. the binary or continuous data) or a set of continuous raster covariates (as before)
 * The new `cv_plot` function can be used to plot the folds of all blocking strategy with ggplot facets
-* The `terra` package is now used for all raster processing with support for `stars` and `raster` objects (or files on disk)
+* The **terra** package is now used for all raster processing with support for **stars** and **raster** objects (or files on disk)
 * The new `cv_similarity` provides measures on possible extrapolation to testing folds
 
 **Note**: All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) still work, but they will be removed in future versions. Please update your code with the new functions.
