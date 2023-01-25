@@ -155,7 +155,6 @@ cv_spatial_autocor <- function(r,
       stop("The coordinate reference system of 'x' must be defined.")
     }
     # no raster is provided
-    # nlayer <- 1
     nlayer <- length(column)
   }
 
@@ -184,8 +183,6 @@ cv_spatial_autocor <- function(r,
     .fit_variogram,
     rr = switch(missing(x), r, NULL),
     xx = switch(!missing(x), x, NULL),
-    # column = switch(!missing(x), column, NULL),
-    # column = if(!missing(x)) column else NULL,
     column = column,
     num_sample = num_sample,
     progress = progress,
@@ -235,9 +232,9 @@ cv_spatial_autocor <- function(r,
     ...
   )
   p2 <- p2 + ggplot2::ggtitle(label = "Spatial blocks",
-                     subtitle = paste("Using",
-                                      round(the_range),
-                                      "metres block size"))
+                              subtitle = paste("Using",
+                                               round(the_range),
+                                               "metres block size"))
 
 
   if(plot){

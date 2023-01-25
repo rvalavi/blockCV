@@ -20,6 +20,17 @@
   return(x)
 }
 
+# check for column matching colnames(x)
+.column_check <- function(column, x){
+  if(!is.null(column)){
+    if(!column %in% colnames(x)){
+      warning(sprintf("There is no column named '%s' in 'x'.\n", column))
+      column <- NULL
+    }
+  }
+  return(column)
+}
+
 # check for r
 .r_check <- function(r, name = "r"){
   if(!methods::is(r, "SpatRaster")){

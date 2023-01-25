@@ -151,9 +151,9 @@ cv_spatial <- function(
     .pkg_check(pkg)
   }
 
-  if(!is.element(selection, c("systematic", "random", "checkerboard", "predefined"))){
-    stop("The selection argument must be 'random', 'systematic', 'checkerboard', or 'predefined'.")
-  }
+  # check for selection arg
+  selection <- match.arg(selection, choices = c("random", "systematic", "checkerboard", "predefined"))
+
   # turn off progress if...
   if(selection != "random") progress <- FALSE
   if(iteration < 3) progress <- FALSE

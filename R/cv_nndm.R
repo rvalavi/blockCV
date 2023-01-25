@@ -1,22 +1,81 @@
 #' Use the Nearest Neighbour Distance Matching (NNDM) to separate train and test folds
 #'
-#' @param x
-#' @param column
-#' @param r
-#' @param size
-#' @param num_sample
-#' @param sampling
-#' @param min_train
-#' @param presence_background
-#' @param add_background
-#' @param plot
-#' @param progress
+#' A fast implementation of the Nearest Neighbour Distance Matching (NNDM) algorithm (Milà et al., 2022) in C++. Similar
+#' to \code{\link{cv_buffer}}, this is a variation of leave-one-out (LOO) cross-validation. It tries to match the
+#' nearest neighbour distance distribution function between the test and training data to the nearest neighbour
+#' distance distribution function between the target prediction and training points (Milà et al., 2022).
 #'
-#' @return
+#' When working with presence-background (presence and pseudo-absence) species distribution
+#' data (should be specified by \code{presence_background = TRUE} argument), only presence records are used
+#' for specifying the folds (recommended). The testing fold comprises only the target \emph{presence} point (optionally,
+#' all background points within the distance are also included when \code{add_background = TRUE}; this is the
+#' distance that matches the nearest neighbour distance distribution function of training-testing presences and
+#' training-presences and prediction points; often lower than \code{size}).
+#' Any non-target presence points inside the distance are excluded.
+#' All points (presence and background) outside of distance are used for the training set.
+#' The methods cycles through all the presence data, so the number of folds is equal to
+#' the number of presence points in the dataset.
+#'
+#' For all other types of data (including presence-absence, count, continuous, and multi-class)
+#' set \code{presence_background = FALE}, and the function behaves similar to the methods
+#' explained by Milà and colleagues (2022).
+#'
+#' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species
+#' data or ground truth sample for image classification).
+#' @inheritParams cv_buffer
+#' @param r a terra SpatRaster object of a predictor variable. This defines the area that model is going to predict.
+#' @param size numeric value of the range of spatial autocorrelation (the \code{phi} parameter).
+#' This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}.
+#' @param num_sample integer; the number of sample points from predictor (\code{r}) to be used for calculating
+#' the G function of prediction points.
+#' @param sampling either \code{"random"} or \code{"regular"} for sampling prediction points.
+#' When  \code{sampling = "regular"}, the actual number of samples might be less than \code{num_sample}
+#' for non-rectangular rasters (points falling on no value areas are removed).
+#' @param min_train numeric; between 0 and 1. A constraint on the minimum proportion of train points in each fold.
+#' @inheritParams cv_buffer
+#' @inheritParams cv_buffer
+#' @param plot logical; whether to plot the G functions in ggplot.
+#' @inheritParams cv_buffer
+#'
+#' @seealso \code{\link{cv_buffer}} and \code{\link{cv_spatial_autocor}}
+#'
+#' @references C. Milà, J. Mateu, E. Pebesma, and H. Meyer, Nearest Neighbour Distance Matching
+#' Leave-One-Out Cross-Validation for map validation, Methods in Ecology and Evolution (2022).
+#'
+#' @return An object of class S3. A list of objects including:
+#'     \itemize{
+#'     \item{folds_list - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
+#'     \item{k - number of the folds}
+#'     \item{size - the distance band to separated trainig and testing folds)}
+#'     \item{column - the name of the column if provided}
+#'     \item{presence_background - whether this was treated as presence-background data}
+#'     \item{records - a table with the number of points in each category of training and testing}
+#'     }
 #' @export
 #'
 #' @examples
+#' \donttest{
+#' library(blockCV)
 #'
+#' # import presence-absence species data
+#' points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
+#' # make an sf object from data.frame
+#' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
+#'
+#' # load raster data
+#' path <- system.file("extdata/au/", package = "blockCV")
+#' files <- list.files(path, full.names = TRUE)
+#' rasters <- terra::rast(files)
+#'
+#' nndm <- cv_nndm(x = pa_data,
+#'                 column = "occ", # optional
+#'                 r = rasters[[1]],
+#'                 size = 350000, # size in metres no matter the CRS
+#'                 num_sample = 10000,
+#'                 sampling = "regular",
+#'                 min_train = 0.1,)
+#'
+#' }
 cv_nndm <- function(
     x,
     column = NULL,
@@ -28,34 +87,42 @@ cv_nndm <- function(
     presence_background = FALSE,
     add_background = FALSE,
     plot = TRUE,
-    progress = TRUE,
     print = TRUE
 ){
 
-  sampling <- c("random", "regular")[1]
+  # check for sampling arg
+  sampling <- match.arg(sampling, choices = c("random", "regular"))
 
   # check x is an sf object
   x <- .x_check(x)
   # is column in x?
-  if(!is.null(column)){
-    if(!column %in% colnames(x)){
-      warning(sprintf("There is no column named '%s' in 'x'.\n", column))
-      column <- NULL
-    }
-  }
+  column <- .column_check(column, x)
+  # if(!is.null(column)){
+  #   if(!column %in% colnames(x)){
+  #     warning(sprintf("There is no column named '%s' in 'x'.\n", column))
+  #     column <- NULL
+  #   }
+  # }
 
   # check r
   r <- .r_check(r)
   r <- r[[1]]
 
   # get the sample points form raster
-  rx <- terra::spatSample(x = r,
-                          size = num_sample,
-                          method = sampling,
-                          values = FALSE,
-                          na.rm = TRUE,
-                          as.points = TRUE)
-
+  tryCatch(
+    {
+      rx <- terra::spatSample(x = r,
+                              size = num_sample,
+                              method = sampling,
+                              values = FALSE,
+                              na.rm = TRUE,
+                              as.points = TRUE)
+    },
+    error = function(cond) {
+      message("Sampling raster failed!")
+    }
+  )
+  # convert to sf object
   rx <- sf::st_as_sf(rx)
 
   if(presence_background){
@@ -86,8 +153,8 @@ cv_nndm <- function(
 
   # Start algorithm
   rmin <- min(Gjstar)
-  jmin <- which.min(Gjstar)[1]
-  kmin <- which(tdist[jmin, ] == rmin)
+  imin <- which.min(Gjstar)[1]
+  jmin <- which(tdist[imin, ] == rmin)
 
   # run nndm in cpp
   distmat <- nndm_cpp(
@@ -95,12 +162,11 @@ cv_nndm <- function(
     Gjstar = Gjstar,
     Gij = Gij,
     rmin = rmin,
-    jmin = jmin,
-    kmin = as.numeric(kmin),
+    imin = imin,
+    jmin = as.numeric(jmin),
     phi = size,
     min_train = min_train
   )
-
 
   msize <- apply(distmat, 1, function(x) min(x, na.rm=TRUE))
 
@@ -139,10 +205,6 @@ cv_nndm <- function(
   # tp_cdf <- ecdf(Gjstar)
   fp_cdf <- ecdf(msize)
 
-  plot(r_range, pp_cdf(r_range), type = "l")
-  points(r_range, tp_cdf(r_range), type = "l", col = "red")
-  points(r_range, fp_cdf(r_range), type = "l", col = "blue")
-
   plot_data <- rbind(
     data.frame(value = pp_cdf(r_range), r = r_range, name = "Prediction"),
     data.frame(value = tp_cdf(r_range), r = r_range, name = "LOO"),
@@ -164,16 +226,17 @@ cv_nndm <- function(
 
   plot(plt)
 
-  final_objs <- list(
-    folds_list = fold_list,
-    k = n,
-    column = column,
-    size = size,
-    presence_background = presence_background,
-    records = if(print) train_test_table else NULL
-  )
-
-  class(final_objs) <- c("cv_nndm")
-  return(final_objs)
+  # final_objs <- list(
+  #   folds_list = fold_list,
+  #   k = n,
+  #   column = column,
+  #   size = size,
+  #   presence_background = presence_background,
+  #   records = if(print) train_test_table else NULL
+  # )
+  #
+  # class(final_objs) <- c("cv_nndm")
+  # return(final_objs)
+  return(distmat)
 }
 

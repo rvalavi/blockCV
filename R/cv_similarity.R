@@ -59,7 +59,7 @@ cv_similarity <- function(cv,
                           progress = TRUE){
 
   # check required packages
-  pkg <- c("ggplot2", "dismo")
+  pkg <- c("ggplot2")
   .pkg_check(pkg)
   # check x is an sf object
   x <- .x_check(x)

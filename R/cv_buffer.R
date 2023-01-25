@@ -10,9 +10,9 @@
 #' When working with presence-background (presence and pseudo-absence) species distribution
 #' data (should be specified by \code{presence_background = TRUE} argument), only presence records are used
 #' for specifying the folds (recommended). Consider a target presence point. The buffer is defined around this target point,
-#' using the specified range (\code{size}). The testing fold comprises the target presence point and all background
-#' points within the buffer (this is the default. If \code{add_background = FALSE} the background
-#' points are ignored). Any non-target presence points inside the buffer are excluded.
+#' using the specified range (\code{size}). By default, the testing fold comprises only the target presence point (all background
+#' points within the buffer are also added when \code{add_background = TRUE}).
+#' Any non-target presence points inside the buffer are excluded.
 #' All points (presence and background) outside of buffer are used for the training set.
 #' The methods cycles through all the \emph{presence} data, so the number of folds is equal to
 #' the number of presence points in the dataset.
@@ -30,10 +30,12 @@
 #' @inheritParams cv_spatial
 #' @param column character; indicating the name of the column in which response variable (e.g. species data as a binary
 #'  response i.e. 0s and 1s) is stored. This is required when \code{presence_background = TRUE}, otherwise optional.
-#' @param presence_background logical; whether to treat data as presence-background species data. For all other data
-#' types (continuous, count or multi-class responses), this option should be \code{FALSE}.
+#' @param size numeric value of the specified range by which training/testing data are separated.
+#' This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}.
+#' @param presence_background logical; whether to treat data as species presence-background data. For all other data
+#' types (presence-absence, continuous, count or multi-class responses), this option should be \code{FALSE}.
 #' @param add_background logical; add background points to the test set when \code{presence_background = TRUE}. We do not
-#' recommend according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
+#' recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 #' the background pints to testing points.
 #' @param progress logical; whether to shows a progress bar.
 #' @param print logical; whether to print summary records; for very big datasets, set to FALSE for faster calculation.
@@ -47,7 +49,7 @@
 #'     \itemize{
 #'     \item{folds_list - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
 #'     \item{k - number of the folds}
-#'     \item{size - the distance band to separated trainig and testing folds)}
+#'     \item{size - the defined range of spatial autocorrelation)}
 #'     \item{column - the name of the column if provided}
 #'     \item{presence_background - whether this was treated as presence-background data}
 #'     \item{records - a table with the number of points in each category of training and testing}
@@ -63,10 +65,9 @@
 #' # make an sf object from data.frame
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
-#' # spatial clustering
 #' bloo <- cv_buffer(x = pa_data,
 #'                   column = "occ",
-#'                   size = 250000, # size in metres (no matter the crs)
+#'                   size = 350000, # size in metres no matter the CRS
 #'                   presence_background = FALSE)
 #'
 #' }
