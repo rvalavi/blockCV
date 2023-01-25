@@ -23,10 +23,10 @@ In a nutshell, package **blockCV** provides functions to build train and test da
 
 ## New updates of the version 3.0
 * Function names have changed, all starting with `cv_` now
-* The three main blocking functions are now: `cv_spatial`, `cv_cluster`, `cv_buffer`, and `cv_nndm`
+* The main blocking functions are: `cv_spatial`, `cv_cluster`, `cv_buffer`, and `cv_nndm`
 * Spatial blocks now support **hexagonal** (default), rectangular, and user-defined blocks
 * Implementation of the newly developed **Nearest Neighbour Distance Matching (NNDM)** algorithm (Milà et al. 2022)
-* The NNDM algorithm works for both presence-absence and presence-background data, and also other type of data
+* The NNDM algorithm works for both species presence-absence and presence-background data, and also other types of data
 * Clustering function now works both on **environmental rasters**, and **spatial coordinates** of the sample points
 * The `cv_spatial_autocor` function now calculates spatial autocorrelation range for either the response (i.e. the binary or continuous data) or a set of continuous raster covariates (as before)
 * The new `cv_plot` function can be used to plot the folds of all blocking strategy with ggplot facets
