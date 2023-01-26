@@ -44,7 +44,7 @@ envBlock <- function(rasterLayer,
   if(missing(speciesData)) stop("'speciesData' must br provided!")
 
   # check x is an sf object
-  speciesData <- .x_check(speciesData, name = "speciesData")
+  speciesData <- .check_x(speciesData, name = "speciesData")
 
   # is column in x?
   if(!is.null(species)){
@@ -55,7 +55,7 @@ envBlock <- function(rasterLayer,
   }
 
   # check r
-  rasterLayer <- .r_check(rasterLayer, name = "rasterLayer")
+  rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
   # check r layers
   if(terra::nlyr(rasterLayer) < 1){
     stop("'rasterLayer' is not a valid raster.")
@@ -70,7 +70,7 @@ envBlock <- function(rasterLayer,
         rasterLayer <- terra::scale(rasterLayer)
       },
       error = function(cond) {
-        message("Scaling the raster failed!")
+        message("Normalising the raster failed!")
       }
     )
   }

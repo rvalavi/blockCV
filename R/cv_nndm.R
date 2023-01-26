@@ -73,7 +73,7 @@
 #'                 size = 350000, # size in metres no matter the CRS
 #'                 num_sample = 10000,
 #'                 sampling = "regular",
-#'                 min_train = 0.1,)
+#'                 min_train = 0.1)
 #'
 #' }
 cv_nndm <- function(
@@ -86,6 +86,8 @@ cv_nndm <- function(
     min_train = 0.05,
     presence_background = FALSE,
     add_background = FALSE,
+    # pres_bag = FALSE,
+    # add_bag = FALSE,
     plot = TRUE,
     print = TRUE
 ){
@@ -94,18 +96,11 @@ cv_nndm <- function(
   sampling <- match.arg(sampling, choices = c("random", "regular"))
 
   # check x is an sf object
-  x <- .x_check(x)
+  x <- .check_x(x)
   # is column in x?
-  column <- .column_check(column, x)
-  # if(!is.null(column)){
-  #   if(!column %in% colnames(x)){
-  #     warning(sprintf("There is no column named '%s' in 'x'.\n", column))
-  #     column <- NULL
-  #   }
-  # }
-
+  column <- .check_column(column, x)
   # check r
-  r <- .r_check(r)
+  r <- .check_r(r)
   r <- r[[1]]
 
   # get the sample points form raster
@@ -148,10 +143,10 @@ cv_nndm <- function(
   diag(tdist) <- NA
   Gj <- apply(tdist, 1, function(i) min(i, na.rm=TRUE))
   Gjstar <- as.numeric(Gj)
+  # training points CDF
+  tp_cdf <- stats::ecdf(Gjstar)
 
-  tp_cdf <- ecdf(Gjstar)
-
-  # Start algorithm
+  # starting point
   rmin <- min(Gjstar)
   imin <- which.min(Gjstar)[1]
   jmin <- which(tdist[imin, ] == rmin)
@@ -170,14 +165,13 @@ cv_nndm <- function(
 
   msize <- apply(distmat, 1, function(x) min(x, na.rm=TRUE))
 
-  # distance matrix by sf
+  # distance matrix by sf for the full dataset
   if(presence_background){
     full_distmat <- sf::st_distance(x)
     units(full_distmat) <- NULL
   } else{
     full_distmat <- tdist
   }
-
   # if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
   fold_list <- lapply(1:n, function(i, pbag = presence_background){
     if(pbag){
@@ -192,19 +186,19 @@ cv_nndm <- function(
     list(which(full_distmat[i, ] > msize), test_set)
   }
   )
-
   # calculate train test table summary
   if(print){
     train_test_table <- .ttt(fold_list, x, column, n)
     print(summary(train_test_table)[c(1,4,6), ])
   }
 
-
+  # range for plotting
   r_range <- seq(0, size, length.out = 200)
-  pp_cdf <- ecdf(Gij)
-  # tp_cdf <- ecdf(Gjstar)
-  fp_cdf <- ecdf(msize)
-
+  # prediction points CDF
+  pp_cdf <- stats::ecdf(Gij)
+  # NNDM CDF
+  fp_cdf <- stats::ecdf(msize)
+  # plotting datta
   plot_data <- rbind(
     data.frame(value = pp_cdf(r_range), r = r_range, name = "Prediction"),
     data.frame(value = tp_cdf(r_range), r = r_range, name = "LOO"),
@@ -217,26 +211,46 @@ cv_nndm <- function(
     ggplot2::geom_step(alpha = 0.8) +
     ggplot2::scale_size_manual(values = c(0.5, 1.1, 1.1)) +
     ggplot2::scale_colour_manual(values = c("#56B4E9", "#E69F00", "#000000")) +
-    ggplot2::ylab(expression(paste(G[r]))) +
+    ggplot2::ylab(expression(G[r])) +
     ggplot2::labs(colour = "", size = "") +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.text.align = 0,
                    legend.text = ggplot2::element_text(size = 12))
 
+  if(plot) plot(plt)
 
-  plot(plt)
+  final_objs <- list(
+    folds_list = fold_list,
+    k = n,
+    column = column,
+    size = size,
+    plot = plt,
+    presence_background = presence_background,
+    records = if(print) train_test_table else NULL
+  )
 
-  # final_objs <- list(
-  #   folds_list = fold_list,
-  #   k = n,
-  #   column = column,
-  #   size = size,
-  #   presence_background = presence_background,
-  #   records = if(print) train_test_table else NULL
-  # )
-  #
-  # class(final_objs) <- c("cv_nndm")
-  # return(final_objs)
-  return(distmat)
+  class(final_objs) <- c("cv_nndm")
+  return(final_objs)
 }
 
+#' @export
+#' @method print cv_nndm
+print.cv_nndm <- function(x, ...){
+  print(class(x))
+}
+
+
+#' @export
+#' @method plot cv_nndm
+plot.cv_nndm <- function(x, y, ...){
+  plot(x$plot)
+  message("Please use cv_plot function to plot each fold.")
+}
+
+
+#' @export
+#' @method summary cv_nndm
+summary.cv_nndm <- function(object, ...){
+  cat("Summary of number of recoreds in each training and testing fold:\n")
+  print(summary(object$records)[c(1,4,6), ])
+}

@@ -56,22 +56,16 @@ cv_block_size <- function(r, # priority
                           max_size = NULL){
   # check for required packages
   pkg <- c("ggplot2", "shiny")
-  .pkg_check(pkg)
+  .check_pkgs(pkg)
 
   # check x is an sf object
   if(!is.null(x)){
-    x <- .x_check(x)
+    x <- .check_x(x)
+    column <- .check_column(column, x)
   }
-  # is column in x?
-  if(!is.null(x) && !is.null(column)){
-    if(!column %in% colnames(x)){
-      stop(sprintf("There is no column named '%s' in 'x'.\n", column))
-    }
-  }
-
   # change the r to terra object
   if(!missing(r)){
-    r <- .r_check(r)
+    r <- .check_r(r)
     r <- r[[1]]
   }
 

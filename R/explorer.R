@@ -24,7 +24,9 @@ rangeExplorer <- function(rasterLayer,
 
   message("This function is deprecated! Please use 'cv_block_size' instead.")
   # check x is an sf object
-  speciesData <- .x_check(speciesData, name = "speciesData")
+  if(!is.null(speciesData)){
+    speciesData <- .check_x(speciesData, name = "speciesData")
+  }
 
   # is column in x?
   if(!is.null(species)){
@@ -35,7 +37,7 @@ rangeExplorer <- function(rasterLayer,
   }
 
   # check r
-  rasterLayer <- .r_check(rasterLayer, name = "rasterLayer")
+  rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
 
   cv_block_size(r = rasterLayer, # priority
                 x = speciesData,

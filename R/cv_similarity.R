@@ -60,14 +60,14 @@ cv_similarity <- function(cv,
 
   # check required packages
   pkg <- c("ggplot2")
-  .pkg_check(pkg)
+  .check_pkgs(pkg)
   # check x is an sf object
-  x <- .x_check(x)
+  x <- .check_x(x)
   # change the r to terra object
-  r <- .r_check(r)
+  r <- .check_r(r)
 
   # check cv obj
-  if(!class(cv) %in% c("cv_spatial", "cv_cluster", "cv_buffer")){
+  if(!class(cv) %in% c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm")){
     stop("'cv' must be a blockCV cv_* object.")
   }
 

@@ -148,7 +148,7 @@ cv_spatial <- function(
   # check for availability of ggplot2
   if(plot){
     pkg <- c("ggplot2")
-    .pkg_check(pkg)
+    .check_pkgs(pkg)
   }
 
   # check for selection arg
@@ -159,20 +159,15 @@ cv_spatial <- function(
   if(iteration < 3) progress <- FALSE
 
   # check x is an sf object
-  x <- .x_check(x)
+  x <- .check_x(x)
+  # is column in x?
+  column <- .check_column(column, x)
 
   # check for user_blocks format
   if(!is.null(user_blocks)){
-    user_blocks <- .x_check(user_blocks, name = user_blocks)
+    user_blocks <- .check_x(user_blocks, name = user_blocks)
   }
 
-  # is column in x?
-  if(!is.null(column)){
-    if(!column %in% colnames(x)){
-      warning(sprintf("There is no column named '%s' in 'x'.\n", column))
-      column <- NULL
-    }
-  }
 
   # checks for pre-defined folds
   if(selection == "predefined"){
@@ -189,7 +184,7 @@ cv_spatial <- function(
 
   # change the r to terra object
   if(!is.null(r)){
-    r <- .r_check(r)
+    r <- .check_r(r)
     r <- r[[1]]
   }
 
@@ -462,7 +457,7 @@ print.cv_spatial <- function(x, ...){
 #' @method plot cv_spatial
 plot.cv_spatial <- function(x, y, ...){
   plot(x$blocks["folds"])
-  message("Please use cv_plot function to plot each fold interactively.")
+  message("Please use cv_plot function to plot each fold")
 }
 
 

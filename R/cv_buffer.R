@@ -82,18 +82,13 @@ cv_buffer <- function(
 ){
 
   # check x is an sf object
-  x <- .x_check(x)
+  x <- .check_x(x)
+  # is column in x?
+  column <- .check_column(column, x)
 
   # x's CRS must be defined
   if(is.na(sf::st_crs(x))){
     stop("The coordinate reference system of x must be defined.")
-  }
-  # is column in x?
-  if(!is.null(column)){
-    if(!column %in% colnames(x)){
-      warning(sprintf("There is no column named '%s' in 'x'.\n", column))
-      column <- NULL
-    }
   }
 
   if(is.null(column) && presence_background) stop("'column' must be provided for presence-background data.")

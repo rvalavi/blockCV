@@ -78,7 +78,9 @@ spatialBlock <- function(speciesData,
 
   message("This function is deprecated! Please use 'cv_spatial' instead.")
 
-  speciesData <- .x_check(speciesData, name = "speciesData")
+  speciesData <- .check_x(speciesData, name = "speciesData")
+
+  .check_pkgs("sf")
 
   if(!is.null(species)){
     if(!species %in% colnames(speciesData)){
@@ -102,7 +104,7 @@ spatialBlock <- function(speciesData,
 
   # change the r to terra object
   if(!is.null(rasterLayer)){
-    rasterLayer <- .r_check(rasterLayer, name = "rasterLayer")
+    rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
   }
 
   out <- cv_spatial(

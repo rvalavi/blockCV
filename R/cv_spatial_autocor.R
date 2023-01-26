@@ -90,11 +90,11 @@ cv_spatial_autocor <- function(r,
 
   # check for availability of required packages
   pkg <- c("ggplot2", "cowplot", "automap", "terra")
-  .pkg_check(pkg)
+  .check_pkgs(pkg)
 
   # check x is an sf object
   if(!missing(x)){
-    x <- .x_check(x)
+    x <- .check_x(x)
   }
 
   # x and column must be provided
@@ -112,7 +112,7 @@ cv_spatial_autocor <- function(r,
 
   # change the r to terra object
   if(!missing(r)){
-    r <- .r_check(r)
+    r <- .check_r(r)
   }
 
   if(!missing(r) && missing(x)){
@@ -157,22 +157,6 @@ cv_spatial_autocor <- function(r,
     # no raster is provided
     nlayer <- length(column)
   }
-
-  # if(is.null(n_cores)){
-  #   n_cores <- ceiling(future::availableCores() / 2)
-  # }
-  # future::plan("multisession", workers = n_cores)
-  # vario_list <- future.apply::future_lapply(
-  #   seq_along(nlayer),
-  #   .fit_variogram,
-  #   rr = rpoints,
-  #   xx = NULL,
-  #   column = NULL,
-  #   rnames = names(r),
-  #   rcrs=terra::crs(r),
-  #   future.seed = NULL
-  # )
-  # # future::plan("sequential")
 
   if(nlayer < 2) progress <- FALSE
   if(progress) pb <- utils::txtProgressBar(min = 0, max = nlayer, style = 3)

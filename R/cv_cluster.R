@@ -90,19 +90,16 @@ cv_cluster <- function(
 ){
 
   # check x is an sf object
-  x <- .x_check(x)
-
+  x <- .check_x(x)
   # is column in x?
-  if(!is.null(column)){
-    if(!column %in% colnames(x)){
-      warning(sprintf("There is no column named '%s' in 'x'.\n", column))
-      column <- NULL
-    }
-  }
+  column <- .check_column(column, x)
 
   if(!is.null(r)){
+    # check for required packages
+    pkg <- c("terra")
+    .check_pkgs(pkg)
     # check r
-    r <- .r_check(r)
+    r <- .check_r(r)
     # check r layers
     if(terra::nlyr(r) < 1){
       stop("'r' is not a valid raster.")

@@ -50,8 +50,9 @@ spatialAutoRange <- function(rasterLayer,
 
   if(missing(rasterLayer)) stop("'rasterLayer' must be provided!")
 
+  .check_pkgs(c("ggplot2", "terra"))
   # check r
-  rasterLayer <- .r_check(rasterLayer, name = "rasterLayer")
+  rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
   # check r layers
   if(terra::nlyr(rasterLayer) < 1){
     stop("'rasterLayer' is not a valid raster.")
@@ -59,7 +60,7 @@ spatialAutoRange <- function(rasterLayer,
 
   # check x is an sf object
   if(!is.null(speciesData)){
-    speciesData <- .x_check(speciesData, name = "speciesData")
+    speciesData <- .check_x(speciesData, name = "speciesData")
 
     df <- terra::extract(rasterLayer, speciesData, ID = FALSE)
     speciesData <- cbind(speciesData, df)

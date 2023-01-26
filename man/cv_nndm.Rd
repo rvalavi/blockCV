@@ -103,7 +103,7 @@ nndm <- cv_nndm(x = pa_data,
                 size = 350000, # size in metres no matter the CRS
                 num_sample = 10000,
                 sampling = "regular",
-                min_train = 0.1,)
+                min_train = 0.1)
 
 }
 }

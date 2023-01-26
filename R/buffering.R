@@ -38,7 +38,7 @@ buffering <- function(speciesData,
   message("This function is deprecated! Please use 'cv_buffer' instead.")
 
   # check x is an sf object
-  speciesData <- .x_check(speciesData, name = "speciesData")
+  speciesData <- .check_x(speciesData, name = "speciesData")
 
   # x's CRS must be defined
   if(is.na(sf::st_crs(speciesData))){

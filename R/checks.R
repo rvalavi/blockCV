@@ -5,7 +5,7 @@
 # Licence GPL v3
 
 # check for x
-.x_check <- function(x, name = "x"){
+.check_x <- function(x, name = "x"){
   if(!methods::is(x, "sf")){
     tryCatch(
       {
@@ -21,10 +21,10 @@
 }
 
 # check for column matching colnames(x)
-.column_check <- function(column, x){
+.check_column <- function(column, x){
   if(!is.null(column)){
     if(!column %in% colnames(x)){
-      warning(sprintf("There is no column named '%s' in 'x'.\n", column))
+      warning(sprintf("There is no column named '%s' in 'x'. Column is ignored!\n", column))
       column <- NULL
     }
   }
@@ -32,7 +32,7 @@
 }
 
 # check for r
-.r_check <- function(r, name = "r"){
+.check_r <- function(r, name = "r"){
   if(!methods::is(r, "SpatRaster")){
     tryCatch(
       {
@@ -48,7 +48,7 @@
 }
 
 # check for required packages
-.pkg_check <- function(pkg){
+.check_pkgs <- function(pkg){
   pkgna <- names(which(sapply(sapply(pkg, find.package, quiet = TRUE), length) == 0))
   if(length(pkgna) > 0){
     nm <- paste(pkgna, collapse = ", ")

@@ -57,20 +57,20 @@ cv_plot <- function(
 ){
   # check for availability of ggplot2
   pkg <- c("ggplot2")
-  .pkg_check(pkg)
+  .check_pkgs(pkg)
 
-  if(!class(cv) %in% c("cv_spatial", "cv_cluster", "cv_buffer")){
+  if(!class(cv) %in% c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm")){
     stop("'cv' must be a blockCV cv_* object.")
   }
 
   # check x is an sf object
   if(!missing(x)){
-    x <- .x_check(x)
+    x <- .check_x(x)
   }
 
   # change the r to terra object
   if(!is.null(r)){
-    r <- .r_check(r)
+    r <- .check_r(r)
     r <- r[[1]]
   }
 
@@ -110,8 +110,6 @@ cv_plot <- function(
     # stop if x is missing for buffer and cluster
     if(!methods::is(cv, "cv_spatial")) stop("'x' is required for plotting cv_cluster and cv_buffer.")
   }
-
-
 
 
   if(missing(x)){
