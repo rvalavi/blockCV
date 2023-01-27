@@ -285,10 +285,10 @@ summary.cv_spatial_autocor <- function(object, ...){
     #   stat = "identity", data = vario_data,) +
     ggplot2::geom_point(size = 4) +
     ggplot2::geom_segment(
-      ggplot2::aes_string(x = "layers",
-                          xend = "layers",
-                          y = 0,
-                          yend = "range"),
+      ggplot2::aes(x = .data$layers,
+                   xend = .data$layers,
+                   y = 0,
+                   yend = .data$range),
       size = 1.5
     ) +
     ggplot2::labs(x = "Variables", y = "Range (km)") +

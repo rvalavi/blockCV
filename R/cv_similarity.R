@@ -140,8 +140,9 @@ cv_similarity <- function(cv,
   # which geom to choose
   geom_exta <- if(methods::is(cv, "cv_buffer")) goem_buffer else geom_other
 
-  p1 <- ggplot2::ggplot(data = mes_reshp,
-                        ggplot2::aes_string(x = "folds", y =  "value", col = "value")) +
+  p1 <- ggplot2::ggplot(
+    data = mes_reshp,
+    ggplot2::aes(x = .data$folds, y = .data$value, col = .data$value)) +
     ggplot2::geom_hline(yintercept = 0, color = "grey50", linetype = 2) +
     geom_exta +
     switch(!methods::is(cv, "cv_buffer"), geom_vio, NULL) +

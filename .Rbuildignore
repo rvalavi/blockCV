@@ -7,3 +7,4 @@
 ^Meta$
 cran_comments.md
 .github/
+^LICENSE\.md$

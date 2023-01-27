@@ -108,10 +108,9 @@ cv_block_size <- function(r, # priority
     colnames(map_df) <- c("x", "y", "value")
 
     base_plot <- ggplot2::ggplot() +
-      ggplot2::geom_tile(data = map_df,
-                         ggplot2::aes_string(x = "x",
-                                             y = "y",
-                                             fill = "value")) +
+      ggplot2::geom_tile(
+        data = map_df,
+        ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)) +
       ggplot2::scale_fill_gradientn(colours = gray.colors(20, alpha = 1)) +
       ggplot2::guides(fill = "none")
 
@@ -122,7 +121,8 @@ cv_block_size <- function(r, # priority
   if(!is.null(x)){
     geom_x <- ggplot2::geom_sf(
       data = x,
-      ggplot2::aes_string(colour = switch(!is.null(column), column, NULL)),
+      switch(!is.null(column), ggplot2::aes(colour = {{ column }}), NULL),
+      # ggplot2::aes(colour = {{ switch(!is.null(column), column, NULL) }}),
       inherit.aes = FALSE,
       alpha = 0.5
     )
@@ -154,8 +154,13 @@ cv_block_size <- function(r, # priority
   )
 
   # create shiny server and main code
-  server <- function(input, output){
+  server <- function(input, output, session){
     output$ggplot <- shiny::renderPlot({
+
+      # stop app after session ends
+      session$onSessionEnded(function() {
+        shiny::stopApp()
+      })
 
       plot_size <- if(sf::st_is_longlat(x_obj)) round(input$num) / 111325 else round(input$num)
       vis_block <- sf::st_make_grid(x_obj, cellsize = plot_size, what = "polygons")
@@ -178,5 +183,5 @@ cv_block_size <- function(r, # priority
     })
   }
   # starting the shiny app
-  shiny::shinyApp(ui = ui, server = server)
+  shiny::shinyApp(ui = ui, server = server, )
 }

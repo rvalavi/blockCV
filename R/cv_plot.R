@@ -20,6 +20,7 @@
 #' @param remove_na logical; whether to remove excluded points in \code{cv_buffer} from the plot
 #'
 #' @importFrom grDevices gray.colors
+#' @importFrom rlang .data
 #' @return a ggplot object
 #' @export
 #'
@@ -83,8 +84,9 @@ cv_plot <- function(
                                 na.rm = TRUE)
     colnames(map_df) <- c("x", "y", "value")
 
-    geom_rast <- ggplot2::geom_tile(data = map_df,
-                                    ggplot2::aes_string(x="x", y="y", fill="value"))
+    geom_rast <- ggplot2::geom_tile(
+      data = map_df,
+      ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value))
     geom_rast_col <- ggplot2::scale_fill_gradientn(colours = raster_colors)
   }
   # make geom_sf for spatial blocks
@@ -100,17 +102,15 @@ cv_plot <- function(
 
   if(!missing(x)){
     x_long <- .x_to_long(x, cv, num_plot = num_plots)
-
     # exclude NAs from cv_buffer
-    if(methods::is(cv, "cv_buffer") && remove_na){
+    # if(methods::is(cv, "cv_buffer") && remove_na){
+    if(.is_loo(cv) && remove_na){
       x_long <- x_long[which(complete.cases(x_long$value)), ]
     }
-
   } else{
     # stop if x is missing for buffer and cluster
     if(!methods::is(cv, "cv_spatial")) stop("'x' is required for plotting cv_cluster and cv_buffer.")
   }
-
 
   if(missing(x)){
     if(methods::is(cv, "cv_spatial")){
@@ -122,8 +122,9 @@ cv_plot <- function(
                          fill = "orangered4",
                          alpha = 0.04,
                          size = 0.2) +
-        ggplot2::geom_sf_text(ggplot2::aes_string(label = "folds"),
-                              size = label_size, fun.geometry = sf::st_centroid) +
+        ggplot2::geom_sf_text(
+          ggplot2::aes(label = .data$folds),
+          size = label_size, fun.geometry = sf::st_centroid) +
         ggplot2::labs(x = "", y = "") + # or set the axes labes to NULL
         ggplot2::scale_x_continuous(guide = ggplot2::guide_axis(check.overlap = TRUE)) +
         ggplot2::theme_minimal() +
@@ -137,10 +138,10 @@ cv_plot <- function(
       switch(!is.null(r), geom_rast, NULL) +
       switch(!is.null(r), geom_rast_col, NULL) +
       switch(methods::is(cv, "cv_spatial"), geom_poly, NULL) +
-      ggplot2::geom_sf(ggplot2::aes_string(col = "value"),
+      ggplot2::geom_sf(ggplot2::aes(col = .data$value),
                        alpha = points_alpha) +
       ggplot2::scale_color_manual(values = points_colors, na.value = "#BEBEBE03") +
-      ggplot2::facet_wrap(~folds, nrow = nrow, ncol = ncol) +
+      ggplot2::facet_wrap(~.data$folds, nrow = nrow, ncol = ncol) +
       ggplot2::labs(x = "", y = "", col = "") + # set the axes labes to NULL
       ggplot2::theme_bw() +
       ggplot2::guides(fill = "none")
@@ -150,6 +151,11 @@ cv_plot <- function(
   return(p1)
 }
 
+
+# is it a LOO CV object?
+.is_loo <- function(x){
+  methods::is(x, "cv_buffer") || methods::is(x, "cv_nndm")
+}
 
 # transform x and fold numbers for plotting
 .x_to_long <- function(x, cv, num_plot=1:10){
@@ -171,13 +177,14 @@ cv_plot <- function(
     num_plot <- num_plot[num_plot <= k]
   }
   # get the length of unique ids
-  if(methods::is(cv, "cv_buffer")){
+  # if(methods::is(cv, "cv_buffer")){
+  if(.is_loo(cv)){
     len <- length(unique(unlist(cv$folds_list)))
   } else{
     len <- length(unlist(folds_list[[1]]))
-    if(len != nrow(x)){
-      stop("Number of rows in 'x' does not match the folds in 'cv'!")
-    }
+  }
+  if(len != nrow(x)){
+    stop("Number of rows in 'x' does not match the folds in 'cv'!")
   }
   # create a dataframe temp
   df <- data.frame(id = seq_len(len))
