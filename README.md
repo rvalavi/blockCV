@@ -9,8 +9,9 @@
 
 
 ### Spatial and environmental blocking for k-fold and LOO cross-validation   
-   
-In a nutshell, package **blockCV** provides functions to build train and test data sets using three general strategies: *buffers*, *spatial* and *environmental* blocks. It offers several options for how those blocks are constructed and how blocks are allocated to cross-validation folds. It includes a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the chosen predictor variables or the response variable (e.g. binary or continuous responses) to inform the choice of the block and buffer size. In addition, visualization tools further aid the selection of block size and provide an understanding of the spread of sample points across generated folds. 
+
+The package `blockCV` offers a range of functions for generating train and test folds for **k-fold** and **leave-one-out (LOO)** cross-validation (CV). It allows for separation of data spatially or environmentally, with various options for block construction. Additionally, it includes a function for assessing the level of spatial autocorrelation in response or raster covariates, to aid in selecting an appropriate distance band for data separation. The package `blockCV` is suitable for a variety of spatial modelling applications, including classification of remote sensing imagery, soil mapping, and species distribution modelling (SDM). It also provides support for different SDM scenarios, including presence-absence and presence-background species data, rare and common species, and raster data for predictor variables.
+
 
 
 ## Main features
@@ -51,11 +52,9 @@ install.packages("blockCV", dependencies = TRUE)
 ## Vignettes
 To see the vignettes of the package use:
 
-1- blockCV introduction: how to create block corss-validation folds
-
-2- Block cross-validation for species distribution modelling
-
-3- Using blockCV with `caret` and `tidymodels`
+1. blockCV introduction: how to create block cross-validation folds
+2. Block cross-validation for species distribution modelling
+3. Using blockCV with `caret` and `tidymodels` (will be added later)
 
 The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
 
