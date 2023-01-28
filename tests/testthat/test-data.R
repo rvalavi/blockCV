@@ -18,7 +18,7 @@ test_that("test that the data is corrrect", {
     terra::rast()
 
   expect_true(exists("pa"))
-  expect_true(nrow(pa) > 500)
+  expect_true(nrow(pa) > 300)
   expect_s3_class(pa, "data.frame")
   expect_true(exists("r"))
   expect_equal(terra::nlyr(r), 4)

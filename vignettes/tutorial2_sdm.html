@@ -11,7 +11,7 @@
 
 <meta name="author" content="Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita" />
 
-<meta name="date" content="2023-01-15" />
+<meta name="date" content="2023-01-28" />
 
 <title>2- Block cross-validation for species distribution modelling</title>
 
@@ -1501,18 +1501,48 @@ font-size: 0.95em;
 distribution modelling</h1>
 <h4 class="author">Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and
 Gurutzeta Guillera-Arroita</h4>
-<h4 class="date">2023-01-15</h4>
+<h4 class="date">2023-01-28</h4>
 
 </div>
 
 
-<div id="please-ignore-not-updated-yet.." class="section level1">
-<h1>PLEASE IGNORE! NOT UPDATED YET..</h1>
-<p>This document presents the main functions of the package and
-illustrates its usage with three examples: modelling using
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Simple random selection of training and testing folds in the
+structured environment leads to an underestimation of error in the
+evaluation of spatial predictions and may result in inappropriate model
+selection (Telford and Birks, 2009; Roberts et al., 2017). The use of
+spatial and environmental blocks to separate training and testing sets
+has been suggested as a good strategy for realistic error estimation in
+datasets with dependence structures, and more generally as a robust
+method for estimating the predictive performance of models used to
+predict mapped distributions (Roberts et al., 2017). Package
+<code>blockCV</code> provides functions to separate train and test sets
+using <em>buffers</em>, <em>spatial</em> and <em>clustering</em> blocks
+(spatial and environmental), i.e. generates folds for <em>k-fold</em>
+and <em>leave-one-out (LOO)</em> cross-validation. It provides several
+options for how those blocks are constructed. It also has a function
+that applies geostatistical techniques to investigate the existing level
+of spatial autocorrelation in the response or covariates to inform the
+choice of a suitable distance band by which to separate the data sets.
+The package has been written with <strong>species distribution modelling
+(SDM)</strong> in mind, and the functions allow for a number of common
+scenarios (including presence-absence and presence-background species
+data, rare and common species, raster data for predictor variables).
+Although it can be applied to any <strong>spatial modelling</strong>
+e.g. multi-class responses for remote sensing image classification.</p>
+<p>This document presents the main functions of the <code>blockCV</code>
+package and illustrates its usage with three examples: modelling using
 <strong>randomForest</strong>, <strong>maxnet</strong> (new
 implementation of Maxent software in R) and <strong>biomod2</strong>
 packages.</p>
+<p>Please cite <code>blockCV</code> by: <em>Valavi R, Elith J,
+Lahoz-Monfort JJ, Guillera-Arroita G. blockCV: An R package for
+generating spatially or environmentally separated folds for k-fold
+cross-validation of species distribution models. Methods Ecol Evol.
+2019; 10:225–232.</em> <a href="https://doi.org/10.1111/2041-210X.13107">doi:
+10.1111/2041-210X.13107</a></p>
+</div>
 <div id="making-blocks" class="section level2">
 <h2>Making blocks</h2>
 </div>
@@ -1735,7 +1765,6 @@ distribution models</strong>. <em>Methods Ecol Evol.</em> 2019;
 10:225–232. <a href="https://doi.org/10.1111/2041-210X.13107">doi:
 10.1111/2041-210X.13107</a></p></li>
 </ul>
-</div>
 </div>
 
 

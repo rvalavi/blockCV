@@ -145,6 +145,7 @@ cv_nndm <- function(
 
   tdist <- sf::st_distance(x[x_1s, ])
   units(tdist) <- NULL
+  full_distmat <- tdist # for calculating indices
   diag(tdist) <- NA
   Gj <- apply(tdist, 1, function(i) min(i, na.rm=TRUE))
   Gjstar <- as.numeric(Gj)
@@ -170,12 +171,10 @@ cv_nndm <- function(
 
   msize <- apply(distmat, 1, function(x) min(x, na.rm=TRUE))
 
-  # distance matrix by sf for the full dataset
+  # get a complete dist matrix for PBG
   if(presence_background){
     full_distmat <- sf::st_distance(x)
     units(full_distmat) <- NULL
-  } else{
-    full_distmat <- tdist
   }
 
   # Note: in presnec-background, length of full-matrix is longer than msize
@@ -204,23 +203,19 @@ cv_nndm <- function(
   # NNDM CDF
   fp_cdf <- stats::ecdf(msize)
   # plotting datta
-  plot_data <- rbind(
-    data.frame(value = pp_cdf(r_range), r = r_range, name = "Prediction"),
-    data.frame(value = tp_cdf(r_range), r = r_range, name = "LOO"),
-    data.frame(value = fp_cdf(r_range), r = r_range, name = "NNDM")
-  )
+  plot_data <- data.frame(pr = pp_cdf(r_range),
+                          lo = tp_cdf(r_range),
+                          nn = fp_cdf(r_range),
+                          r = r_range)
 
-  plt <- ggplot2::ggplot(
-    plot_data,
-    ggplot2::aes(x = get("r"),
-                 y = get("value"),
-                 colour = get("name"),
-                 size = get("name"))) +
-    ggplot2::geom_step(alpha = 0.6) +
-    ggplot2::scale_size_manual(values = c(0.6, 1.3, 0.9)) +
-    ggplot2::scale_colour_manual(values = c("#56B4E9", "#E69F00", "#000000")) +
-    ggplot2::ylab(expression(G[r])) +
-    ggplot2::labs(colour = "", size = "", x = "r") +
+  plt <- ggplot2::ggplot(plot_data, ggplot2::aes(x = get("r"))) +
+    ggplot2::geom_step(alpha = 0.7, linewidth = 1.2, ggplot2::aes(y = get("pr"), color = "Prediciton")) +
+    ggplot2::geom_step(alpha = 0.7, linewidth = 0.6, ggplot2::aes(y = get("lo"), color = "LOO")) +
+    ggplot2::geom_step(alpha = 0.7, linewidth = 1.2, ggplot2::aes(y = get("nn"), color = "NNDM")) +
+    ggplot2::scale_color_manual(values = c("Prediciton" = "#000000",
+                                           "LOO" = "#56B4E9",
+                                           "NNDM" = "#E69F00")) +
+    ggplot2::labs(color = "", x = "r", y = expression(G[r])) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.text = ggplot2::element_text(size = 12))
 

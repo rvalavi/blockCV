@@ -10,16 +10,16 @@
 
 ### Spatial and environmental blocking for k-fold and LOO cross-validation   
 
-The package `blockCV` offers a range of functions for generating train and test folds for **k-fold** and **leave-one-out (LOO)** cross-validation (CV). It allows for separation of data spatially or environmentally, with various options for block construction. Additionally, it includes a function for assessing the level of spatial autocorrelation in response or raster covariates, to aid in selecting an appropriate distance band for data separation. The package `blockCV` is suitable for a variety of spatial modelling applications, including classification of remote sensing imagery, soil mapping, and species distribution modelling (SDM). It also provides support for different SDM scenarios, including presence-absence and presence-background species data, rare and common species, and raster data for predictor variables.
+The package `blockCV` offers a range of functions for generating train and test folds for **k-fold** and **leave-one-out (LOO)** cross-validation (CV). It allows for separation of data spatially and environmentally, with various options for block construction. Additionally, it includes a function for assessing the level of spatial autocorrelation in response or raster covariates, to aid in selecting an appropriate distance band for data separation. The `blockCV` package is suitable for the evaluation of a variety of spatial modelling applications, including classification of remote sensing imagery, soil mapping, and species distribution modelling (SDM). It also provides support for different SDM scenarios, including presence-absence and presence-background species data, rare and common species, and raster data for predictor variables.
 
 
 
 ## Main features
-* There are three blocking methods: **buffers**, **spatial** and **clustering** blocks
+* There are four blocking methods: **spatial**, **buffers**, **NNDM** and **clustering** blocks
 * Several ways to construct spatial blocks
 * The assignment of the spatial blocks to cross-validation folds can be done in three different ways: **random**, **systematic** and **checkerboard pattern**
 * The spatial blocks can be assigned to cross-validation folds to have *evenly distributed records* for *binary* (e.g. species presence-absence/background) or *multi-class* responses (e.g. land cover classes for remote sensing image classification) 
-* The buffering function can account for *presence-absence* and *presence-background* data types 
+* The buffering and NNDM functions can account for *presence-absence* and *presence-background* data types 
 * Using geostatistical techniques to inform the choice of a suitable distance band by which to separate the data sets 
 
 ## New updates of the version 3.0
@@ -54,7 +54,7 @@ To see the vignettes of the package use:
 
 1. blockCV introduction: how to create block cross-validation folds
 2. Block cross-validation for species distribution modelling
-3. Using blockCV with `caret` and `tidymodels` (will be added later)
+3. Using blockCV with `caret` and `tidymodels` (coming soon!)
 
 The vignette is also available via this [link](http://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/BlockCV_for_SDM.html).
 
