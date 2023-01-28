@@ -23,8 +23,8 @@ LazyData: true
 Depends:
   R (>= 3.5.0)
 Imports:
-    Rcpp,
-    sf (>= 1.0)
+    sf (>= 1.0),
+    Rcpp (>= 1.0.2)
 Suggests:
     terra (>= 1.6-41),
     ggplot2 (>= 3.3.6),
@@ -32,6 +32,7 @@ Suggests:
     automap (>= 1.0-16),
     shiny (>= 1.7),
     tmap (>= 2.0),
+    methods,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),

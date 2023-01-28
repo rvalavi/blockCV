@@ -31,6 +31,7 @@
 #' @param raster_cluster logical; if \code{TRUE}, the clustering is done over the entire raster layer,
 #' otherwise it will be over the extracted raster values of the sample points. See details for more information.
 #' @param num_sample integer; the number of samples from raster layers to build the clusters (when \code{raster_cluster = FALSE}).
+#' @param ... additional arguments for \code{stats::kmeans} function, e.g. \code{algorithm = "MacQueen"}.
 #'
 #' @seealso \code{\link{cv_buffer}} and \code{\link{cv_spatial}}
 #'
@@ -60,7 +61,7 @@
 #' # load raster data
 #' path <- system.file("extdata/au/", package = "blockCV")
 #' files <- list.files(path, full.names = TRUE)
-#' rasters <- terra::rast(files)
+#' covars <- terra::rast(files)
 #'
 #' # spatial clustering
 #' set.seed(6)
@@ -70,7 +71,7 @@
 #'
 #' # environmental clustering
 #' set.seed(6)
-#' ec <- cv_cluster(r = rasters, # if provided will be used for environmental clustering
+#' ec <- cv_cluster(r = covars, # if provided will be used for environmental clustering
 #'                  x = pa_data,
 #'                  column = "occ", # optional; name of the column with response
 #'                  k = 5,
@@ -86,7 +87,8 @@ cv_cluster <- function(
     raster_cluster = FALSE,
     num_sample = 10000L,
     biomod2 = TRUE,
-    print = TRUE
+    print = TRUE,
+    ...
 ){
 
   # check x is an sf object
@@ -117,24 +119,11 @@ cv_cluster <- function(
     }
   }
 
-  # create train-test table
-  if(is.null(column)){
-    train_test_table <- data.frame(train = rep(0, k), test = 0)
-  } else{
-    cl <- sort(unique(x[, column, drop = TRUE]))
-    clen <- length(cl)
-    train_test_table <- as.data.frame(matrix(0, nrow = k, ncol = clen * 2))
-    names(train_test_table) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
-  }
-
-  fold_list <- list()
-  fold_ids <- rep(NA, nrow(x))
-  biomod_table <- data.frame(RUN1 = rep(TRUE, nrow(x)))
 
   if(is.null(r)){
     # spatial cluster on xy
     xy <- sf::st_coordinates(x)
-    kms <- stats::kmeans(xy, centers = k, iter.max = 500, nstart = 25)
+    kms <- stats::kmeans(xy, centers = k, iter.max = 500, nstart = 25, ...)
     x$fold <- as.integer(kms$cluster)
 
   } else{
@@ -156,14 +145,28 @@ cv_cluster <- function(
       sampr <- terra::spatSample(r, size = num_sample, method = "random", na.rm = TRUE)
       sampr <- sampr[stats::complete.cases(sampr), ]
       sampr <- rbind(x_vals, sampr)
-      kms <- stats::kmeans(sampr, centers = k, iter.max = 500, nstart = 25)
+      kms <- stats::kmeans(sampr, centers = k, iter.max = 500, nstart = 25, ...)
       x$fold <- kms$cluster[seq_len(nrow(x))]
     } else{
-      kms <- stats::kmeans(x_vals, centers = k, iter.max = 500, nstart = 25)
+      kms <- stats::kmeans(x_vals, centers = k, iter.max = 500, nstart = 25, ...)
       x$fold <- kms$cluster
     }
 
   }
+
+  # create train-test table
+  if(is.null(column)){
+    train_test_table <- data.frame(train = rep(0, k), test = 0)
+  } else{
+    cl <- sort(unique(x[, column, drop = TRUE]))
+    clen <- length(cl)
+    train_test_table <- as.data.frame(matrix(0, nrow = k, ncol = clen * 2))
+    names(train_test_table) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
+  }
+
+  fold_list <- list()
+  fold_ids <- rep(NA, nrow(x))
+  biomod_table <- data.frame(RUN1 = rep(TRUE, nrow(x)))
 
   for(i in seq_len(k)){
     test_set <- which(x$fold == i)

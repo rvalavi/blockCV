@@ -20,6 +20,7 @@ pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 test_that("test that environmental cluster function with raster_cluster", {
 
   # environmental clustering
+  set.seed(42)
   eb <- cv_cluster(r = aus,
                    x = pa_data,
                    column = "occ",
@@ -44,6 +45,7 @@ test_that("test that environmental cluster function with raster_cluster", {
 test_that("test that spacial cluster function with no column", {
 
   # spatial clustering
+  set.seed(42)
   eb <- cv_cluster(x = sf::as_Spatial(pa_data),
                    k = 5,
                    biomod2 = FALSE)
@@ -68,13 +70,15 @@ test_that("test that spacial cluster function with no column", {
 
 test_that("test that environmental cluster with no scale and wrong column", {
 
+  set.seed(42)
   expect_warning(
     eb <- cv_cluster(r = aus,
                      x = pa_data,
                      column = "response", # wrong column name
                      k = 5,
                      scale = FALSE,
-                     raster_cluster = TRUE)
+                     raster_cluster = TRUE,
+                     algorithm = "MacQueen")
   )
 
   expect_true(exists("eb"))

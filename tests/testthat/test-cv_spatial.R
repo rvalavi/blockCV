@@ -15,7 +15,7 @@ aus <- system.file("extdata/au/", package = "blockCV") |>
 
 pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
   sf::st_as_sf(coords = c("x", "y"), crs = 7845)
-
+pa_data <- pa_data[1:200, ]
 
 test_that("test cv_spatial function with random assingment and raster file", {
 
@@ -197,7 +197,7 @@ test_that("test cv_spatial failur: number of blocks, wrong selection", {
 
   expect_error(cv_spatial(x = pa_data,
                           k = 5,
-                          selection = "rand")) # wrong selection
+                          selection = "chance")) # wrong selection
 
 })
 

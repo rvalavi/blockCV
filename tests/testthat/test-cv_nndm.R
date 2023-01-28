@@ -4,26 +4,32 @@ expect_names <- c("folds_list",
                   "k",
                   "column",
                   "size",
+                  "plot",
                   "presence_background",
                   "records")
 
 
+aus <- system.file("extdata/au/", package = "blockCV") |>
+  list.files(full.names = TRUE) |>
+  terra::rast()
+
 pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
   sf::st_as_sf(coords = c("x", "y"), crs = 7845)
-pa_data <- pa_data[1:200, ]
+pa_data <- pa_data[1:100, ]
 
-test_that("test that cv_buffer function works properly with presence-absence data",
+test_that("test that cv_nndm function works properly with presence-absence data",
           {
-            bloo <- cv_buffer(
+            bloo <- cv_nndm(
               x = pa_data,
               column = "occ",
+              r = aus,
               size = 250000,
-              presence_background = FALSE,
-              progress = TRUE
+              num_sample = 3000,
+              presence_background = FALSE
             )
 
             expect_true(exists("bloo"))
-            expect_s3_class(bloo, "cv_buffer")
+            expect_s3_class(bloo, "cv_nndm")
             expect_equal(names(bloo), expect_names)
             expect_equal(length(bloo$folds), nrow(pa_data))
             expect_type(bloo$folds, "list")
@@ -34,21 +40,22 @@ test_that("test that cv_buffer function works properly with presence-absence dat
             expect_equal(dim(bloo$records), c(nrow(pa_data), 4))
             expect_true(!all(bloo$records == 0))
 
-})
+          })
 
 
-test_that("test that cv_buffer function works properly with presence-background data",
+test_that("test that cv_nndm function works properly with presence-background data",
           {
-            bloo <- cv_buffer(
+            bloo <- cv_nndm(
               x = pa_data,
               column = "occ",
+              r = aus,
               size = 250000,
-              presence_background = TRUE,
-              progress = FALSE
+              sampling = "regular",
+              presence_background = TRUE
             )
 
             expect_true(exists("bloo"))
-            expect_s3_class(bloo, "cv_buffer")
+            expect_s3_class(bloo, "cv_nndm")
             expect_equal(names(bloo), expect_names)
             expect_equal(length(bloo$folds), sum(pa_data$occ))
             expect_type(bloo$folds, "list")
@@ -59,17 +66,20 @@ test_that("test that cv_buffer function works properly with presence-background 
             expect_equal(dim(bloo$records), c(sum(pa_data$occ), 4))
             expect_true(!all(bloo$records == 0))
 
-})
+          })
 
-test_that("test that cv_buffer function works properly with no species specified",
+test_that("test that cv_nndm function works properly with no species specified",
           {
-            bloo <- cv_buffer(
+            bloo <- cv_nndm(
               x = sf::as_Spatial(pa_data),
-              size = 250000
+              r = aus,
+              size = 250000,
+              num_sample = 3000,
+              plot = FALSE
             )
 
             expect_true(exists("bloo"))
-            expect_s3_class(bloo, "cv_buffer")
+            expect_s3_class(bloo, "cv_nndm")
             expect_equal(names(bloo), expect_names)
             expect_equal(length(bloo$folds), nrow(pa_data))
             expect_type(bloo$folds, "list")
@@ -80,20 +90,21 @@ test_that("test that cv_buffer function works properly with no species specified
             expect_equal(dim(bloo$records), c(nrow(pa_data), 2))
             expect_true(!all(bloo$records == 0))
 
-            expect_equal(print.cv_buffer(bloo), "cv_buffer")
-            expect_output(summary.cv_buffer(bloo))
+            expect_equal(print.cv_nndm(bloo), "cv_nndm")
+            expect_output(summary.cv_nndm(bloo))
 
-})
+          })
 
 
-test_that("test cv_buffer function with no matching species column", {
+test_that("test cv_nndm function with no matching species column", {
   expect_warning(
-    bloo <- cv_buffer(
+    bloo <- cv_nndm(
       x = pa_data,
       column = "response",
+      r = aus,
       size = 250000,
-      presence_background = FALSE,
-      progress = TRUE
+      num_sample = 3000,
+      presence_background = FALSE
     )
   )
 
@@ -103,23 +114,25 @@ test_that("test cv_buffer function with no matching species column", {
 
 })
 
-test_that("test cv_buffer function with no spatial column data", {
+test_that("test cv_nndm function with no spatial column data", {
   expect_error(
-    cv_buffer(
+    cv_nndm(
       x = "pa_data",
+      r = aus,
       size = 250000
     )
   )
 
 })
 
-test_that("test cv_buffer function to have sptial points with no CRS", {
+test_that("test cv_nndm function to have sptial points with no CRS", {
   sf::st_crs(pa_data) <- NA
 
   expect_error(
-    cv_buffer(
+    cv_nndm(
       x = pa_data,
       column = "occ",
+      r = aus,
       size = 250000
     )
   )

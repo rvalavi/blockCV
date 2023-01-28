@@ -80,7 +80,7 @@ pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 # load raster data
 path <- system.file("extdata/au/", package = "blockCV")
 files <- list.files(path, full.names = TRUE)
-rasters <- terra::rast(files)
+covars <- terra::rast(files)
 
 # spatial autocorrelation of a binary/continuous response
 sac1 <- cv_spatial_autocor(x = pa_data,
@@ -89,7 +89,7 @@ sac1 <- cv_spatial_autocor(x = pa_data,
 
 
 # spatial autocorrelation of continuous raster files
-sac2 <- cv_spatial_autocor(r = rasters,
+sac2 <- cv_spatial_autocor(r = covars,
                            num_sample = 5000,
                            plot = TRUE)
 

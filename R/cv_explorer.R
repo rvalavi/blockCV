@@ -110,7 +110,7 @@ cv_block_size <- function(r, # priority
     base_plot <- ggplot2::ggplot() +
       ggplot2::geom_tile(
         data = map_df,
-        ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)) +
+        ggplot2::aes(x = get("x"), y = get("y"), fill = get("value"))) +
       ggplot2::scale_fill_gradientn(colours = gray.colors(20, alpha = 1)) +
       ggplot2::guides(fill = "none")
 

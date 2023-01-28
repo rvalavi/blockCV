@@ -62,7 +62,7 @@ pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 # load raster data
 path <- system.file("extdata/au/", package = "blockCV")
 files <- list.files(path, full.names = TRUE)
-rasters <- terra::rast(files)
+covars <- terra::rast(files)
 
 # hexagonal spatial blocking by specified size and random assignment
 sb <- cv_spatial(x = pa_data,
@@ -72,7 +72,7 @@ sb <- cv_spatial(x = pa_data,
                  iteration = 1)
 
 # compute extrapolation
-cv_similarity(cv = sb, r = rasters, x = pa_data)
+cv_similarity(cv = sb, r = covars, x = pa_data)
 
 }
 }

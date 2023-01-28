@@ -32,7 +32,8 @@ the background pints to testing points.}
 
 \item{progress}{logical; whether to shows a progress bar.}
 
-\item{print}{logical; whether to print summary records; for very big datasets, set to FALSE for faster calculation.}
+\item{print}{logical; whether to print summary records; for very big
+datasets, set to \code{FALSE} for faster calculation.}
 }
 \value{
 An object of class S3. A list of objects including:
@@ -94,5 +95,5 @@ Radosavljevic, A., & Anderson, R. P. (2014). Making better Maxent models of spec
 distributions: Complexity, overfitting and evaluation. Journal of Biogeography, 41, 629–643. https://doi.org/10.1111/jbi.12227
 }
 \seealso{
-\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, and \code{\link{cv_spatial_autocor}}
+\code{\link{cv_nndm}}, \code{\link{cv_spatial}}, and \code{\link{cv_spatial_autocor}}
 }

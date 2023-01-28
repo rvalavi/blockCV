@@ -34,8 +34,9 @@
 #' @param min_train numeric; between 0 and 1. A constraint on the minimum proportion of train points in each fold.
 #' @inheritParams cv_buffer
 #' @inheritParams cv_buffer
-#' @param plot logical; whether to plot the G functions in ggplot.
-#' @inheritParams cv_buffer
+#' @param plot logical; whether to plot the G functions.
+#' @param print logical; whether to print summary records; for very big
+#' datasets, set to \code{FALSE} for slightly faster calculation.
 #'
 #' @seealso \code{\link{cv_buffer}} and \code{\link{cv_spatial_autocor}}
 #'
@@ -63,13 +64,12 @@
 #' pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 #'
 #' # load raster data
-#' path <- system.file("extdata/au/", package = "blockCV")
-#' files <- list.files(path, full.names = TRUE)
-#' rasters <- terra::rast(files)
+#' path <- system.file("extdata/au/bio_5.tif", package = "blockCV")
+#' covar <- terra::rast(path)
 #'
 #' nndm <- cv_nndm(x = pa_data,
 #'                 column = "occ", # optional
-#'                 r = rasters[[1]],
+#'                 r = covar,
 #'                 size = 350000, # size in metres no matter the CRS
 #'                 num_sample = 10000,
 #'                 sampling = "regular",
@@ -99,6 +99,11 @@ cv_nndm <- function(
   x <- .check_x(x)
   # is column in x?
   column <- .check_column(column, x)
+  # x's CRS must be defined
+  if(is.na(sf::st_crs(x))){
+    stop("The coordinate reference system of 'x' must be defined.")
+  }
+
   # check r
   r <- .check_r(r)
   r <- r[[1]]
@@ -172,18 +177,18 @@ cv_nndm <- function(
   } else{
     full_distmat <- tdist
   }
-  # if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
+
+  # Note: in presnec-background, length of full-matrix is longer than msize
   fold_list <- lapply(1:n, function(i, pbag = presence_background){
     if(pbag){
-      test_ids <- which(full_distmat[i, ] <= msize[x_1s[i]])
+      test_ids <- which(full_distmat[x_1s[i], ] <= msize[i])
       inside <- x[test_ids, column, drop = TRUE]
       test_set <- test_ids[which(inside == 0)]
       test_set <- c(i, test_set)
     } else{
       test_set <- i
     }
-    # if(progress) utils::setTxtProgressBar(pb, i)
-    list(which(full_distmat[i, ] > msize), test_set)
+    list(which(full_distmat[x_1s[i], ] > msize[i]), test_set)
   }
   )
   # calculate train test table summary
@@ -207,15 +212,17 @@ cv_nndm <- function(
 
   plt <- ggplot2::ggplot(
     plot_data,
-    ggplot2::aes_string(x="r", y="value", colour="name", size="name")) +
-    ggplot2::geom_step(alpha = 0.8) +
-    ggplot2::scale_size_manual(values = c(0.5, 1.1, 1.1)) +
+    ggplot2::aes(x = get("r"),
+                 y = get("value"),
+                 colour = get("name"),
+                 size = get("name"))) +
+    ggplot2::geom_step(alpha = 0.6) +
+    ggplot2::scale_size_manual(values = c(0.6, 1.3, 0.9)) +
     ggplot2::scale_colour_manual(values = c("#56B4E9", "#E69F00", "#000000")) +
     ggplot2::ylab(expression(G[r])) +
-    ggplot2::labs(colour = "", size = "") +
+    ggplot2::labs(colour = "", size = "", x = "r") +
     ggplot2::theme_bw() +
-    ggplot2::theme(legend.text.align = 0,
-                   legend.text = ggplot2::element_text(size = 12))
+    ggplot2::theme(legend.text = ggplot2::element_text(size = 12))
 
   if(plot) plot(plt)
 

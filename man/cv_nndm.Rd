@@ -46,9 +46,10 @@ types (presence-absence, continuous, count or multi-class responses), this optio
 recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 the background pints to testing points.}
 
-\item{plot}{logical; whether to plot the G functions in ggplot.}
+\item{plot}{logical; whether to plot the G functions.}
 
-\item{print}{logical; whether to print summary records; for very big datasets, set to FALSE for faster calculation.}
+\item{print}{logical; whether to print summary records; for very big
+datasets, set to \code{FALSE} for slightly faster calculation.}
 }
 \value{
 An object of class S3. A list of objects including:
@@ -93,13 +94,12 @@ points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
 # load raster data
-path <- system.file("extdata/au/", package = "blockCV")
-files <- list.files(path, full.names = TRUE)
-rasters <- terra::rast(files)
+path <- system.file("extdata/au/bio_5.tif", package = "blockCV")
+covar <- terra::rast(path)
 
 nndm <- cv_nndm(x = pa_data,
                 column = "occ", # optional
-                r = rasters[[1]],
+                r = covar,
                 size = 350000, # size in metres no matter the CRS
                 num_sample = 10000,
                 sampling = "regular",

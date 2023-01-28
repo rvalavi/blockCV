@@ -38,9 +38,10 @@
 #' recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 #' the background pints to testing points.
 #' @param progress logical; whether to shows a progress bar.
-#' @param print logical; whether to print summary records; for very big datasets, set to FALSE for faster calculation.
+#' @param print logical; whether to print summary records; for very big
+#' datasets, set to \code{FALSE} for faster calculation.
 #'
-#' @seealso \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, and \code{\link{cv_spatial_autocor}}
+#' @seealso \code{\link{cv_nndm}}, \code{\link{cv_spatial}}, and \code{\link{cv_spatial_autocor}}
 #'
 #' @references Radosavljevic, A., & Anderson, R. P. (2014). Making better Maxent models of species
 #' distributions: Complexity, overfitting and evaluation. Journal of Biogeography, 41, 629–643. https://doi.org/10.1111/jbi.12227
@@ -88,7 +89,7 @@ cv_buffer <- function(
 
   # x's CRS must be defined
   if(is.na(sf::st_crs(x))){
-    stop("The coordinate reference system of x must be defined.")
+    stop("The coordinate reference system of 'x' must be defined.")
   }
 
   if(is.null(column) && presence_background) stop("'column' must be provided for presence-background data.")

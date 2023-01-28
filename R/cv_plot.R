@@ -20,7 +20,6 @@
 #' @param remove_na logical; whether to remove excluded points in \code{cv_buffer} from the plot
 #'
 #' @importFrom grDevices gray.colors
-#' @importFrom rlang .data
 #' @return a ggplot object
 #' @export
 #'
@@ -86,7 +85,8 @@ cv_plot <- function(
 
     geom_rast <- ggplot2::geom_tile(
       data = map_df,
-      ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value))
+      # ggplot2::aes(x = rlang::.data$x, y = rlang::.data$y, fill = rlang::.data$value))
+      ggplot2::aes(x = get("x"), y = get("y"), fill = get("value")))
     geom_rast_col <- ggplot2::scale_fill_gradientn(colours = raster_colors)
   }
   # make geom_sf for spatial blocks
@@ -97,7 +97,7 @@ cv_plot <- function(
                                   colour = "red",
                                   fill = "orangered4",
                                   alpha = 0.04,
-                                  size = 0.2)
+                                  linewidth = 0.2)
   }
 
   if(!missing(x)){
@@ -105,7 +105,7 @@ cv_plot <- function(
     # exclude NAs from cv_buffer
     # if(methods::is(cv, "cv_buffer") && remove_na){
     if(.is_loo(cv) && remove_na){
-      x_long <- x_long[which(complete.cases(x_long$value)), ]
+      x_long <- x_long[which(stats::complete.cases(x_long$value)), ]
     }
   } else{
     # stop if x is missing for buffer and cluster
@@ -121,9 +121,9 @@ cv_plot <- function(
         ggplot2::geom_sf(colour = "red",
                          fill = "orangered4",
                          alpha = 0.04,
-                         size = 0.2) +
+                         linewidth = 0.2) +
         ggplot2::geom_sf_text(
-          ggplot2::aes(label = .data$folds),
+          ggplot2::aes(label = get("folds")),
           size = label_size, fun.geometry = sf::st_centroid) +
         ggplot2::labs(x = "", y = "") + # or set the axes labes to NULL
         ggplot2::scale_x_continuous(guide = ggplot2::guide_axis(check.overlap = TRUE)) +
@@ -138,10 +138,12 @@ cv_plot <- function(
       switch(!is.null(r), geom_rast, NULL) +
       switch(!is.null(r), geom_rast_col, NULL) +
       switch(methods::is(cv, "cv_spatial"), geom_poly, NULL) +
-      ggplot2::geom_sf(ggplot2::aes(col = .data$value),
+      # ggplot2::geom_sf(ggplot2::aes(col = rlang::.data$value),
+      ggplot2::geom_sf(ggplot2::aes(col = get("value")),
                        alpha = points_alpha) +
       ggplot2::scale_color_manual(values = points_colors, na.value = "#BEBEBE03") +
-      ggplot2::facet_wrap(~.data$folds, nrow = nrow, ncol = ncol) +
+      # ggplot2::facet_wrap(~ rlang::.data$folds, nrow = nrow, ncol = ncol) +
+      ggplot2::facet_wrap(~get("folds"), nrow = nrow, ncol = ncol) +
       ggplot2::labs(x = "", y = "", col = "") + # set the axes labes to NULL
       ggplot2::theme_bw() +
       ggplot2::guides(fill = "none")

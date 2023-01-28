@@ -14,7 +14,7 @@ library(blockCV)
 ## ---- fig.height=5, fig.width=7.2, warning=FALSE, message=FALSE---------------
 library(sf) # working with spatial vector data
 library(terra) # working with spatial raster data
-library(tmap) # plotting block and maps
+library(tmap) # plotting maps
 
 # load raster data
 # the pipe operator |> is available for R >= 4.1
@@ -52,7 +52,7 @@ sb1 <- cv_spatial(x = pa_data,
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
 sb2 <- cv_spatial(x = pa_data,
                   column = "occ",
-                  r = rasters, # optional
+                  r = rasters, # optionally add a raster background
                   k = 5,
                   size = 350000,
                   hexagon = FALSE,
@@ -85,26 +85,16 @@ tm_shape(sb4$blocks) +
   tm_fill(col = "folds", style = "cat")
 
 
-## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
-sb5 <- cv_spatial(x = pa_data,
-                  column = "occ",
-                  r = rasters,
-                  k = 5, 
-                  rows_cols = c(10, 2), # for hexagonal only first one is used
-                  hexagon = FALSE,
-                  selection = "random",
-                  iteration = 50,
-                  progress = FALSE)
-
-
 ## -----------------------------------------------------------------------------
 # spatial clustering
+set.seed(6)
 scv <- cv_cluster(x = pa_data,
                   column = "occ", # optional: counting number of train/test records
                   k = 5)
 
 ## ----warning=FALSE, message=FALSE---------------------------------------------
 # environmental clustering
+set.seed(6)
 ecv <- cv_cluster(x = pa_data,
                   column = "occ",
                   r = rasters,
@@ -117,6 +107,17 @@ ecv <- cv_cluster(x = pa_data,
 bloo <- cv_buffer(x = pa_data,
                   column = "occ",
                   size = 400000)
+
+
+## -----------------------------------------------------------------------------
+nncv <- cv_nndm(x = pa_data,
+                column = "occ",
+                r = rasters,
+                size = 350000,
+                num_sample = 5000, 
+                sampling = "regular",
+                min_train = 0.1,
+                plot = TRUE)
 
 
 ## ----warning=FALSE, message=FALSE, fig.height=6, fig.width=10-----------------

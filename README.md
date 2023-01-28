@@ -22,15 +22,15 @@ In a nutshell, package **blockCV** provides functions to build train and test da
 * Using geostatistical techniques to inform the choice of a suitable distance band by which to separate the data sets 
 
 ## New updates of the version 3.0
-* Function names have changed, all starting with `cv_` now
-* The main blocking functions are: `cv_spatial`, `cv_cluster`, `cv_buffer`, and `cv_nndm`
+* Function names have been changed, with all functions now starting with `cv_`
+* The CV blocking functions are: `cv_spatial`, `cv_cluster`, `cv_buffer`, and `cv_nndm`
 * Spatial blocks now support **hexagonal** (default), rectangular, and user-defined blocks
-* A fast C++ implementation of the newly proposed **Nearest Neighbour Distance Matching (NNDM)** algorithm (Milà et al. 2022) is now added
-* The NNDM algorithm can account for species presence-background data (and also other types of data)
-* Clustering function now works both on **environmental rasters**, and **spatial coordinates** of the sample points
-* The `cv_spatial_autocor` function now calculates spatial autocorrelation range for either the response (i.e. the binary or continuous data) or a set of continuous raster covariates (as before)
-* The new `cv_plot` function can be used to plot the folds of all blocking strategy with ggplot facets
-* The **terra** package is now used for all raster processing with support for **stars** and **raster** objects (or files on disk)
+* A fast C++ implementation of **Nearest Neighbour Distance Matching (NNDM)** algorithm (Milà et al. 2022) is now added
+* The NNDM algorithm can handle species presence-background data and other types of data
+* The `cv_cluster` function generates blocks based on kmeans clustering. It now works on both environmental rasters and the spatial coordinates of sample points
+* The `cv_spatial_autocor` function now calculates the spatial autocorrelation range for both the response (i.e. the binary or continuous data) and a set of continuous raster covariates
+* The new `cv_plot` function allows for visualization of folds from all blocking strategies using ggplot facets
+* The `terra` package is now used for all raster processing and supports both `stars` and `raster` objects, as well as files on disk.
 * The new `cv_similarity` provides measures on possible extrapolation to testing folds
 
 **Note**: All function names have changed to more general names starting with `cv_*`. The old functions (v2.x) still work, but they will be removed in future versions. Please update your code with the new functions.

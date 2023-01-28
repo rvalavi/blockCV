@@ -15,10 +15,15 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# PLEASE IGNORE! NOT UPDATED YET..
+## Introduction
+
+Simple random selection of training and testing folds in the structured environment leads to an underestimation of error in the evaluation of spatial predictions and may result in inappropriate model selection (Telford and Birks, 2009; Roberts et al., 2017). The use of spatial and environmental blocks to separate training and testing sets has been suggested as a good strategy for realistic error estimation in datasets with dependence structures, and more generally as a robust method for estimating the predictive performance of models used to predict mapped distributions (Roberts et al., 2017). Package `blockCV` provides functions to separate train and test sets using *buffers*, *spatial* and *clustering* blocks (spatial and environmental), i.e. generates folds for *k-fold* and *leave-one-out (LOO)* cross-validation. It provides several options for how those blocks are constructed. It also has a function that applies geostatistical techniques to investigate the existing level of spatial autocorrelation in the response or covariates to inform the choice of a suitable  distance band by which to separate the data sets. The package has been written with **species distribution modelling (SDM)** in mind, and the functions allow for a number of common scenarios (including presence-absence and presence-background species data, rare and common species, raster data for predictor variables). Although it can be applied to any **spatial modelling** e.g. multi-class responses for remote sensing image classification.
 
 
-This document presents the main functions of the package and illustrates its usage with three examples: modelling using **randomForest**, **maxnet** (new implementation of Maxent software in R) and  **biomod2** packages.
+This document presents the main functions of the `blockCV` package and illustrates its usage with three examples: modelling using **randomForest**, **maxnet** (new implementation of Maxent software in R) and  **biomod2** packages.
+
+
+Please cite `blockCV` by: *Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods Ecol Evol. 2019; 10:225–232.* [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
 
 ## Making blocks
 

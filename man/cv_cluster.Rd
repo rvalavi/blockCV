@@ -13,7 +13,8 @@ cv_cluster(
   raster_cluster = FALSE,
   num_sample = 10000L,
   biomod2 = TRUE,
-  print = TRUE
+  print = TRUE,
+  ...
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ otherwise it will be over the extracted raster values of the sample points. See 
 a \emph{DataSplitTable} for cross-validation.}
 
 \item{print}{logical; whether to print the report of the records per fold.}
+
+\item{...}{additional arguments for \code{stats::kmeans} function, e.g. \code{algorithm = "MacQueen"}.}
 }
 \value{
 An object of class S3. A list of objects including:
@@ -87,7 +90,7 @@ pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 # load raster data
 path <- system.file("extdata/au/", package = "blockCV")
 files <- list.files(path, full.names = TRUE)
-rasters <- terra::rast(files)
+covars <- terra::rast(files)
 
 # spatial clustering
 set.seed(6)
@@ -97,7 +100,7 @@ sc <- cv_cluster(x = pa_data,
 
 # environmental clustering
 set.seed(6)
-ec <- cv_cluster(r = rasters, # if provided will be used for environmental clustering
+ec <- cv_cluster(r = covars, # if provided will be used for environmental clustering
                  x = pa_data,
                  column = "occ", # optional; name of the column with response
                  k = 5,

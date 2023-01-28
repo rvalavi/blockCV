@@ -34,7 +34,7 @@
 #' # load raster data
 #' path <- system.file("extdata/au/", package = "blockCV")
 #' files <- list.files(path, full.names = TRUE)
-#' rasters <- terra::rast(files)
+#' covars <- terra::rast(files)
 #'
 #' # hexagonal spatial blocking by specified size and random assignment
 #' sb <- cv_spatial(x = pa_data,
@@ -44,7 +44,7 @@
 #'                  iteration = 1)
 #'
 #' # compute extrapolation
-#' cv_similarity(cv = sb, r = rasters, x = pa_data)
+#' cv_similarity(cv = sb, r = covars, x = pa_data)
 #'
 #' }
 cv_similarity <- function(cv,
@@ -93,7 +93,7 @@ cv_similarity <- function(cv,
   points <- terra::extract(r, x, ID = FALSE)
   # to set as nrow for df; cv_buffer has only one target points unless P-BG
   n <- nrow(points)
-  if(methods::is(cv, "cv_buffer")){
+  if(.is_loo(cv)){
     n <- ifelse(cv$presence_background, nrow(points), 1)
   }
   # number of predictors
@@ -107,7 +107,7 @@ cv_similarity <- function(cv,
     train <- folds_list[[i]][[1]]
     test <- folds_list[[i]][[2]]
     mes <- sapply(1:m, function(j) .messi3(points[test, j], points[train, j]))
-    if(methods::is(cv, "cv_buffer")){
+    if(.is_loo(cv)){
       mmes <- min(mes)
     } else{
       mmes <- apply(mes, 1, min, na.rm = TRUE)
@@ -127,25 +127,27 @@ cv_similarity <- function(cv,
   )
   # remove NAs
   mes_reshp <- mes_reshp[stats::complete.cases(mes_reshp), ]
-  if(methods::is(cv, "cv_buffer")) mes_reshp$folds <- as.numeric(substr(mes_reshp$folds, 5, 25))
+  if(.is_loo(cv)) mes_reshp$folds <- as.numeric(substr(mes_reshp$folds, 5, 25))
   # get the max value for color legend
   maxabs <- max(abs(mes_reshp$value))
   # define point colors
   cols <- c("#D53E4F", "#FC8D59", "#FEE08B", "#FFFFBF", "#E6F598", "#99D594", "#3288BD")
-  if(is.null(points_colors)) points_colors <- cols else points_colors
+  points_colors <- if(is.null(points_colors)) cols else points_colors
+
   # provide alternatives for class(cv)
   goem_buffer <- ggplot2::geom_point(size = points_size, alpha = points_alpha)
   geom_other <- ggplot2::geom_jitter(width = jitter_width, size = points_size, alpha = points_alpha)
   geom_vio <- ggplot2::geom_violin(fill = NA)
   # which geom to choose
-  geom_exta <- if(methods::is(cv, "cv_buffer")) goem_buffer else geom_other
+  geom_exta <- if(.is_loo(cv)) goem_buffer else geom_other
 
   p1 <- ggplot2::ggplot(
     data = mes_reshp,
-    ggplot2::aes(x = .data$folds, y = .data$value, col = .data$value)) +
+    # ggplot2::aes(x = rlang::.data$folds, y = rlang::.data$value, col = rlang::.data$value)) +
+    ggplot2::aes(x = get("folds"), y = get("value"), col = get("value"))) +
     ggplot2::geom_hline(yintercept = 0, color = "grey50", linetype = 2) +
     geom_exta +
-    switch(!methods::is(cv, "cv_buffer"), geom_vio, NULL) +
+    switch(!.is_loo(cv), geom_vio, NULL) +
     ggplot2::scale_color_gradientn(colours = points_colors,
                                    limits = c(-maxabs, maxabs),
                                    na.value = "#BEBEBE03") +
