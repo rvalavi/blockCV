@@ -11,10 +11,8 @@ an underestimation of error in the evaluation of spatial
 predictions and may result in inappropriate model selection (Telford and Birks, 2009; Roberts et al., 2017). The use of spatial and
 environmental blocks to separate training and testing sets has been suggested as a good strategy for realistic error estimation in datasets
 with dependence structures, and more generally as a robust method for estimating the predictive performance of models used to predict mapped
-distributions (Roberts et al., 2017).
-}
-\details{
-The package \code{blockCV} offers a range of functions for generating train and test folds
+distributions (Roberts et al., 2017). The package \code{blockCV} offers
+a range of functions for generating train and test folds
 for \strong{k-fold} and \strong{leave-one-out (LOO)} cross-validation (CV). It allows for separation
 of data spatially and environmentally, with various options for block construction.
 Additionally, it includes a function for assessing the level of spatial autocorrelation
@@ -34,7 +32,7 @@ Telford, R.J., Birks, H.J.B., (2009). Evaluation of transfer functions in spatia
 Valavi, R., Elith, J., Lahoz-Monfort, J. J., & Guillera-Arroita, G. (2019). blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods in Ecology and Evolution, 10(2), 225-232. doi:10.1111/2041-210X.13107.
 }
 \seealso{
-\code{\link{cv_spatial}}, \code{\link{cv_buffer}} and \code{\link{cv_cluster}} for blocking strategies.
+\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}} for blocking strategies.
 }
 \author{
 Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita

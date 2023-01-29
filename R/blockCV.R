@@ -6,9 +6,8 @@
 #' predictions and may result in inappropriate model selection (Telford and Birks, 2009; Roberts et al., 2017). The use of spatial and
 #' environmental blocks to separate training and testing sets has been suggested as a good strategy for realistic error estimation in datasets
 #' with dependence structures, and more generally as a robust method for estimating the predictive performance of models used to predict mapped
-#' distributions (Roberts et al., 2017).
-#'
-#' The package \code{blockCV} offers a range of functions for generating train and test folds
+#' distributions (Roberts et al., 2017). The package \code{blockCV} offers
+#' a range of functions for generating train and test folds
 #' for \strong{k-fold} and \strong{leave-one-out (LOO)} cross-validation (CV). It allows for separation
 #' of data spatially and environmentally, with various options for block construction.
 #' Additionally, it includes a function for assessing the level of spatial autocorrelation
@@ -19,7 +18,7 @@
 #' different SDM scenarios, including presence-absence and presence-background species
 #' data, rare and common species, and raster data for predictor variables.
 #'
-#' @seealso \code{\link{cv_spatial}}, \code{\link{cv_buffer}} and \code{\link{cv_cluster}} for blocking strategies.
+#' @seealso \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}} for blocking strategies.
 #'
 #' @references Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
 #' or phylogenetic structure. Ecography. 40: 913-929.

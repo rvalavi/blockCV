@@ -1,8 +1,8 @@
 ---
-title: "1- blockCV introduction: how to create block cross-validation folds"
+title: "1. blockCV introduction: how to create block cross-validation folds"
 author: "Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita"
 date: "`r Sys.Date()`"
-output: 
+output:
   html_document:
     toc: true
     toc_float:
@@ -10,10 +10,9 @@ output:
       smooth_scroll: false
     toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{1- blockCV introduction: how to create block cross-validation folds}
+  %\VignetteIndexEntry{1. blockCV introduction: how to create block cross-validation folds}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  %\VignetteDepends{tmap}
 ---
 
 

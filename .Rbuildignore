@@ -9,4 +9,7 @@ cran_comments.md
 NEWS.md
 README.md
 .github/
+man/figures/logo.png
+tests/testthat/_snaps/
+tests/testthat/Rplots.pdf
 ^LICENSE\.md$
