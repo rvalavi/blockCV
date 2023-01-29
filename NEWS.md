@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # version 3.0
 * function names have changed, all starting with `cv_*` now
 * all old functions (v2.x) are deprecate now and replaces with the new function; although they should work fine
