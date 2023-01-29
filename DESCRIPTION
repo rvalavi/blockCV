@@ -1,43 +1,44 @@
 Package: blockCV
 Type: Package
-Title: Spatial and Environmental Blocking for K-Fold Cross-Validation
-Version: 2.1.5
-Date: 2022-01-26
+Title: Spatial and Environmental Blocking for K-Fold and LOO Cross-Validation
+Version: 3.0-0
+Date: 2023-01-28
 Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "valavi.r@gmail.com"),
              person("Jane", "Elith", role = "aut",
                     email = "j.elith@unimelb.edu.au"),
              person("José", "Lahoz-Monfort", role = "aut",
                     email = "jose.lahoz@unimelb.edu.au"),
+             person("Ian", "Flint", role = "aut",
+                    email = "ian.flint@unimelb.edu.au"),
              person("Gurutzeta", "Guillera-Arroita", role = "aut",
                     email = "gurutzeta.guillera@unimelb.edu.au"))
 URL: https://github.com/rvalavi/blockCV
+BugReports: https://github.com/rvalavi/blockCV/issues
 Maintainer: Roozbeh Valavi <valavi.r@gmail.com>
-Description: Creating spatially or environmentally separated folds for cross-validation to provide a robust error estimation in spatially structured environments; Investigating and visualising the effective range of spatial autocorrelation in continuous raster covariates to find an initial realistic distance band to separate training and testing datasets spatially described in Valavi, R. et al. (2019) <doi:10.1111/2041-210X.13107>.
-License: GPL-3
+Description: Creating spatially or environmentally separated folds for cross-validation to provide a robust error estimation in spatially structured environments; Investigating and visualising the effective range of spatial autocorrelation in continuous raster covariates and point samples to find an initial realistic distance band to separate training and testing datasets spatially described in Valavi, R. et al. (2019) <doi:10.1111/2041-210X.13107>.
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Depends:
   R (>= 3.5.0)
 Imports:
-  raster (>= 2.5-8),
-  sf (>= 0.8-0),
-  progress
-RoxygenNote: 7.1.1
-Suggests: 
-  knitr,
-  ggplot2 (>= 3.2.1),
-  cowplot,
-  automap (>= 1.0-14),
-  rgeos,
-  rgdal,
-  future,
-  future.apply,
-  shiny (>= 1.0.3),
-  shinydashboard,
-  geosphere,
-  methods,
-  rmarkdown,
-  testthat,
-  covr
+    sf (>= 1.0),
+    Rcpp (>= 1.0.2)
+Suggests:
+    terra (>= 1.6-41),
+    ggplot2 (>= 3.3.6),
+    cowplot,
+    automap (>= 1.0-16),
+    shiny (>= 1.7),
+    tmap (>= 2.0),
+    methods,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    covr
+RoxygenNote: 7.2.1
 VignetteBuilder: knitr
+Config/testthat/edition: 3
+LinkingTo: 
+    Rcpp

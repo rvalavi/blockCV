@@ -1,5 +1,18 @@
-# version 2.1.5
-* fix unmatching crs for random spatial block
+<<<<<<< HEAD
+# version 3.0
+* function names have changed, all starting with `cv_*` now
+* all old functions (v2.x) are deprecate now and replaces with the new function; although they should work fine
+* better error handling is utilised
+* dependencies on `raster`, `rgdal`, `rgeos`, `progress`, `future`, and `future.apply` are removed
+* the `terra` package is now used for all raster processing with support for `stars` and `raster` formats
+* several dependencies are removed and `blockCV` only imports `sf` package now
+* spatial blocks now support hexagonal (default), rectangular, and user-defined blocks
+* clustering function now works both on *environmental* rasters, and *spatial coordinates* of the sample points
+* the `cv_spatial_autocor` function now calculates spatial autocorrelation range for either the response (i.e. the binary or continuous data) or a set of continuous raster covariates (as before)
+* the new `cv_plot` function can be used to plot the folds of all blocking strategy with ggplot facets
+* the newly developed function ******** is implemented
+* ...
+
 
 # version 2.1.4
 * fixed CRAN error for ggplot guide 

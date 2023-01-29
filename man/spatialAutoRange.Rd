@@ -9,7 +9,7 @@ spatialAutoRange(
   sampleNumber = 5000L,
   border = NULL,
   speciesData = NULL,
-  doParallel = FALSE,
+  doParallel = NULL,
   nCores = NULL,
   showPlots = TRUE,
   degMetre = 111325,
@@ -24,17 +24,15 @@ spatialAutoRange(
 \item{sampleNumber}{Integer. The number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).}
 
-\item{border}{A sf or SpatialPolygons object to clip the block based on it (optional).}
+\item{border}{deprecated option!}
 
 \item{speciesData}{A spatial or sf object (optional). If provided, the \code{sampleNumber} is ignored and
 variograms are created based on species locations. This option is not recommended if the species data is not
 evenly distributed across the whole study area and/or the number of records is low.}
 
-\item{doParallel}{Logical. Run in parallel when more than one raster layer is available. Given multiple CPU cores, it is
-recommended to set it to \code{TRUE} when there is a large number of rasters to process.}
+\item{doParallel}{deprecated option!}
 
-\item{nCores}{Integer. Number of CPU cores to run in parallel. If \code{nCores = NULL} half of available cores in your
-machine will be used.}
+\item{nCores}{deprecated option!}
 
 \item{showPlots}{Logical. Show final plot of spatial blocks and autocorrelation ranges.}
 
@@ -45,8 +43,7 @@ calculated based on deviding the calculated \emph{range} by this value to conver
 
 \item{maxpixels}{Number of random pixels to select the blocks over the study area.}
 
-\item{plotVariograms}{Logical. Plot fitted variograms. This can also be done after the analysis.
-It is \code{FALSE} by default.}
+\item{plotVariograms}{deprecated option!}
 
 \item{progress}{Logical. Shows progress bar. It works only when \code{doParallel = FALSE}.}
 }
@@ -61,55 +58,8 @@ An object of class S3. A list object including:
     }
 }
 \description{
-This function provides a quantitative basis for choosing block size. The spatial autocorrelation in all continuous
-predictor variables available as raster layers is assessed and reported. The function estimates spatial autocorrelation
-ranges of all input raster layers. This is the range over which observations are independent and is determined by
-constructing the empirical variogram, a fundamental geostatistical tool for measuring spatial autocorrelation.
-The empirical variogram models the structure of spatial autocorrelation by measuring variability between all possible
-pairs of points (O'Sullivan and Unwin, 2010). Results are plotted. See the details section for further information.
+This function is deprecated and will be removed in future updates! Please use \code{\link{cv_spatial_autocor}} instead!
 }
-\details{
-The input raster layers should be continuous for computing the variograms and estimating the range of spatial
-autocorrelation. The input rasters should also have a specified coordinate reference system. However, if the reference
-system is not specified, the function attempts to guess it based on the extent of the map. It assumes an unprojected
-reference system for layers with extent lying between -180 and 180, and a projected reference system otherwise.
-
-Variograms are calculated based on the distances between pairs of points, so unprojected rasters (in degrees) will
-not give an accurate result (especially over large latitudinal extents). For unprojected rasters, \emph{the great circle distance} (rather
-than Euclidian distance) is used to calculate the spatial distances between pairs of points. To
-enable more accurate estimate, it is recommended to transform unprojected maps (geographic coordinate
-system / latitude-longitude) to a projected metric reference system (e.g. UTM or Lambert) where it is possible.
-See \code{\link[automap]{autofitVariogram}} from \pkg{automap} and \code{\link[gstat]{variogram}} from \pkg{gstat} packages
-for further information.
-}
-\examples{
-\donttest{
-
-# load the example raster data
-awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-
-# run the model in parallel
-range1 <- spatialAutoRange(rasterLayer = awt,
-                           sampleNumber = 5000, # number of cells to be used
-                           doParallel = TRUE,
-                           nCores = 2, # if NULL, it uses half of the CPU cores
-                           plotVariograms = FALSE,
-                           showPlots = TRUE)
-
-
-# run the model with no parallel
-range3 <- spatialAutoRange(rasterLayer = awt,
-                           sampleNumber = 5000,
-                           doParallel = FALSE,
-                           progress = TRUE)
-
-# show the result
-summary(range1)
-}
-}
-\references{
-O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
-
-Roberts et al., (2017). Cross-validation strategies for data with temporal, spatial, hierarchical,
-or phylogenetic structure. Ecography. 40: 913-929.
+\seealso{
+\code{\link{cv_spatial_autocor}}
 }

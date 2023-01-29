@@ -6,5 +6,7 @@
 ^doc$
 ^Meta$
 cran_comments.md
-tests/testthat_CRAN/
-tests/testthat_GitHub/
+NEWS.md
+README.md
+.github/
+^LICENSE\.md$

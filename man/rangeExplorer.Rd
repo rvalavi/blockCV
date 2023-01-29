@@ -14,60 +14,24 @@ rangeExplorer(
 )
 }
 \arguments{
-\item{rasterLayer}{A raster object as background map for visualisation.}
+\item{rasterLayer}{raster layer for make plot}
 
-\item{speciesData}{A simple features (sf) or SpatialPoints object containing species data (response variable). If provided, the species data will be shown on the map.}
+\item{speciesData}{a simple features (sf) or SpatialPoints object containing species data (response variable). If provided, the species data will be shown on the map.}
 
-\item{species}{Character value indicating the name of the field in which the species data (response variable e.g. 0s and 1s) are stored.
+\item{species}{character value indicating the name of the field in which the species data (response variable e.g. 0s and 1s) are stored.
 If provided, species presence and absence data will be shown in different colours.}
 
-\item{rangeTable}{A data.frame created by \code{spatialAutoRange} function containing spatial autocorrelation parameters of all covariates.}
+\item{rangeTable}{deprecated option!}
 
-\item{minRange}{A numeric value to set the minimum possible range for creating spatial blocks. It is used to limit the searching domain of
+\item{minRange}{a numeric value to set the minimum possible range for creating spatial blocks. It is used to limit the searching domain of
 spatial block size.}
 
-\item{maxRange}{A numeric value to set the maximum possible range for creating spatial blocks. It is used to limit the searching
+\item{maxRange}{a numeric value to set the maximum possible range for creating spatial blocks. It is used to limit the searching
 domain of spatial block size.}
 }
-\value{
-An interactive map with blocks (and optionally species data) superimposed. Note that this can also be opened in a
-web browser window. When you return to the R console, press "Esc" to return to the prompt.
-}
 \description{
-This function assists selection of block size. It allows the user to visualise the blocks interactively,
-viewing the impact of block size on number and arrangement of blocks in the landscape (and optionally on
-the distribution of species data in those blocks). \strong{Slide} to the slected block size, and click \strong{Apply Changes}
-to change the block size.
-}
-\details{
-The only required argument for this function is the \code{rasterLayer}. The rest are optional. If the \code{rangeTable}
-is provided, the minimum, maximum and initial ranges for searching the size of spatial blocks will be selected
-based on the spatial autocorrelation range of covariates. It is also possible to restrict the allowable range
-of block sizes by using the \code{minRange} and \code{maxRanege} arguments.
-}
-\examples{
-\donttest{
-if(interactive()){
-
-# load package data
-awt <- raster::brick(system.file("extdata", "awt.grd", package = "blockCV"))
-# import presence-absence species data
-PA <- read.csv(system.file("extdata", "PA.csv", package = "blockCV"))
-# make a sf object from data.frame
-pa_data <- sf::st_as_sf(PA, coords = c("x", "y"), crs = raster::crs(awt))
-
-rangeExplorer(rasterLayer = awt) # the only mandatory input
-
-# add species data to add them on the map
-rangeExplorer(rasterLayer = awt,
-              speciesData = pa_data,
-              species = "Species",
-              rangeTable = NULL,
-              minRange = 30000, # limit the search domain
-              maxRange = 100000)
-}
-}
+This function is deprecated and will be removed in future updates! Please use \code{\link{cv_block_size}} instead!
 }
 \seealso{
-\code{\link{spatialBlock}}; \code{\link{spatialAutoRange}} for the \code{rangeTable}
+\code{\link{cv_block_size}}
 }
