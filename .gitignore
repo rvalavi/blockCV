@@ -4,3 +4,7 @@
 Meta
 cran_comments.md
 tests/testthat/Rplots.pdf
+vignettes/tutorial_1.R
+vignettes/tutorial_1.html
+vignettes/tutorial_2.R
+vignettes/tutorial_2.html
