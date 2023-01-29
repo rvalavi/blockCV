@@ -3,7 +3,8 @@
 #' This function visualises the folds create by blockCV. It also accepts a raster
 #' layer to be used as background in the output plot.
 #'
-#' @param cv a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster} or \code{cv_buffer}
+#' @param cv a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer}
+#' or \code{cv_nndm}
 #' @param x a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
 #' the \code{cv} object. This could be empty when \code{cv} is a \code{cv_spatial} object.
 #' @param r a terra SpatRaster object (optional). If provided, it will be used as background of the plots.

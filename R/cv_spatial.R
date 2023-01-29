@@ -46,7 +46,8 @@
 #' This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}
 #' and \code{\link{cv_block_size}} functions.
 #' @param rows_cols integer vector. Two integers to define the blocks based on row and
-#' column e.g. \code{c(10, 10)} or \code{c(5, 1)}. Hexagonal blocks uses only the first one.
+#' column e.g. \code{c(10, 10)} or \code{c(5, 1)}. Hexagonal blocks uses only the first one. This
+#' option is ignored when \code{size} is provided.
 #' @param selection type of assignment of blocks into folds. Can be \strong{random} (default), \strong{systematic}, \strong{checkerboard}, or \strong{predefined}.
 #' The checkerboard does not work with hexagonal and user-defined spatial blocks. If the \code{selection = 'predefined'}, user-defined
 #' blocks and \code{folds_column} must be supplied.

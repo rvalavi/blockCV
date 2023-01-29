@@ -30,7 +30,7 @@
 #' the G function of prediction points.
 #' @param sampling either \code{"random"} or \code{"regular"} for sampling prediction points.
 #' When  \code{sampling = "regular"}, the actual number of samples might be less than \code{num_sample}
-#' for non-rectangular rasters (points falling on no value areas are removed).
+#' for non-rectangular rasters (points falling on no-value areas are removed).
 #' @param min_train numeric; between 0 and 1. A constraint on the minimum proportion of train points in each fold.
 #' @inheritParams cv_buffer
 #' @inheritParams cv_buffer

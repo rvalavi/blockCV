@@ -6,5 +6,7 @@
 ^doc$
 ^Meta$
 cran_comments.md
+NEWS.md
+README.md
 .github/
 ^LICENSE\.md$

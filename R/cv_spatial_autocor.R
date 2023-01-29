@@ -280,26 +280,16 @@ summary.cv_spatial_autocor <- function(object, ...){
   ) +
     # ggplot2::geom_bar(
     #   ggplot2::aes(x = stats::reorder(factor(get("layers")), get("range")),
-    #                y = get("range"),
-    #                fill = get("range")),
+    #                y = get("range"), fill = get("range")),
     #   stat = "identity", data = vario_data,) +
     ggplot2::geom_point(size = 4) +
     ggplot2::geom_segment(
-      # ggplot2::aes(x = rlang::.data$layers,
-      #              xend = rlang::.data$layers,
-      #              y = 0,
-      #              yend = rlang::.data$range),
-      ggplot2::aes(x = get("layers"),
-                   xend = get("layers"),
-                   y = 0,
-                   yend = get("range")),
-      linewidth = 1.5
-    ) +
+      ggplot2::aes(x = get("layers"), xend = get("layers"), y = 0, yend = get("range")),
+      linewidth = 1.5) +
     ggplot2::labs(x = "Variables", y = "Range (km)") +
     ggplot2::theme_bw() +
     ggplot2::ggtitle("Autocorrelation range", subtitle = paste("Based on", ptnum, "sample points"))+
     ggplot2::guides(color = "none") +
-    # ggplot2::geom_hline(yintercept = the_range, color = 'red', size = 0.5, linetype = 2) +
     ggplot2::geom_hline(yintercept = the_range, color = 'red', linewidth = 0.5, linetype = 2) +
     ggplot2::annotate("text", x = floor(nrow(vario_data) / 3),
                       y =  (the_range + (max(vario_data$range) / 20)),
