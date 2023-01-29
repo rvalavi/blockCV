@@ -1,17 +1,14 @@
-<<<<<<< HEAD
 # version 3.0
-* function names have changed, all starting with `cv_*` now
-* all old functions (v2.x) are deprecate now and replaces with the new function; although they should work fine
-* better error handling is utilised
-* dependencies on `raster`, `rgdal`, `rgeos`, `progress`, `future`, and `future.apply` are removed
-* the `terra` package is now used for all raster processing with support for `stars` and `raster` formats
-* several dependencies are removed and `blockCV` only imports `sf` package now
-* spatial blocks now support hexagonal (default), rectangular, and user-defined blocks
-* clustering function now works both on *environmental* rasters, and *spatial coordinates* of the sample points
-* the `cv_spatial_autocor` function now calculates spatial autocorrelation range for either the response (i.e. the binary or continuous data) or a set of continuous raster covariates (as before)
-* the new `cv_plot` function can be used to plot the folds of all blocking strategy with ggplot facets
-* the newly developed function ******** is implemented
-* ...
+* Function names have been changed, with all functions now starting with `cv_`
+* The CV blocking functions are: `cv_spatial`, `cv_cluster`, `cv_buffer`, and `cv_nndm`
+* Spatial blocks now support **hexagonal** (default), rectangular, and user-defined blocks
+* A fast C++ implementation of **Nearest Neighbour Distance Matching (NNDM)** algorithm (Milà et al. 2022) is now added
+* The NNDM algorithm can handle species presence-background data and other types of data
+* The `cv_cluster` function generates blocks based on kmeans clustering. It now works on both environmental rasters and the spatial coordinates of sample points
+* The `cv_spatial_autocor` function now calculates the spatial autocorrelation range for both the response (i.e. the binary or continuous data) and a set of continuous raster covariates
+* The new `cv_plot` function allows for visualization of folds from all blocking strategies using ggplot facets
+* The `terra` package is now used for all raster processing and supports both `stars` and `raster` objects, as well as files on disk.
+* The new `cv_similarity` provides measures on possible extrapolation to testing folds
 
 
 # version 2.1.4

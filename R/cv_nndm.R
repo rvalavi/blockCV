@@ -86,8 +86,6 @@ cv_nndm <- function(
     min_train = 0.05,
     presence_background = FALSE,
     add_background = FALSE,
-    # pres_bag = FALSE,
-    # add_bag = FALSE,
     plot = TRUE,
     print = TRUE
 ){
