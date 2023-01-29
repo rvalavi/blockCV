@@ -124,7 +124,8 @@ cv_buffer <- function(
       test_set <- i
     }
     if(progress) utils::setTxtProgressBar(pb, i)
-    list(which(dmatrix[i, ] > size), test_set)
+    list(as.numeric(which(dmatrix[i, ] > size)),
+         as.numeric(test_set))
   }
   )
 

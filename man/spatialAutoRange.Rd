@@ -47,16 +47,6 @@ calculated based on deviding the calculated \emph{range} by this value to conver
 
 \item{progress}{Logical. Shows progress bar. It works only when \code{doParallel = FALSE}.}
 }
-\value{
-An object of class S3. A list object including:
-    \itemize{
-    \item{range - the suggested range, which is the median of all calculated ranges}
-    \item{rangeTable - a table of input covariates names and their autocorrelation range}
-    \item{plots - the output plot (the plot is shown by default)}
-    \item{sampleNumber}
-    \item{variograms - fitted variograms for all layers}
-    }
-}
 \description{
 This function is deprecated and will be removed in future updates! Please use \code{\link{cv_spatial_autocor}} instead!
 }

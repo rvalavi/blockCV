@@ -31,17 +31,6 @@ This distance should be in \strong{\emph{metres}} no matter what the coordinate 
 
 \item{progress}{Logical. If TRUE a progress bar will be shown.}
 }
-\value{
-An object of class S3. A list of objects including:
-    \itemize{
-    \item{folds - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
-    \item{k - number of the folds}
-    \item{range - the distance band to separated trainig and testing folds)}
-    \item{species - the name of the species (column), if provided}
-    \item{dataType - species data type}
-    \item{records - a table with the number of points in each category of training and testing}
-    }
-}
 \description{
 This function is deprecated and will be removed in future updates! Please use \code{\link{cv_buffer}} instead!
 }

@@ -110,7 +110,6 @@ tm_shape(rasters[[1]]) +
 ```
 
 
-
 ## Block cross-validation strategies
 
 ### Spatial blocks

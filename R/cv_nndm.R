@@ -185,7 +185,8 @@ cv_nndm <- function(
     } else{
       test_set <- i
     }
-    list(which(full_distmat[x_1s[i], ] > msize[i]), test_set)
+    list(as.numeric(which(full_distmat[x_1s[i], ] > msize[i])),
+         as.numeric(test_set))
   }
   )
   # calculate train test table summary
