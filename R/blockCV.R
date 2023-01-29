@@ -9,7 +9,7 @@
 #' distributions (Roberts et al., 2017).
 #'
 #' The package \code{blockCV} offers a range of functions for generating train and test folds
-#' for \strong{k-fold} and \string{leave-one-out (LOO)} cross-validation (CV). It allows for separation
+#' for \strong{k-fold} and \strong{leave-one-out (LOO)} cross-validation (CV). It allows for separation
 #' of data spatially and environmentally, with various options for block construction.
 #' Additionally, it includes a function for assessing the level of spatial autocorrelation
 #' in response or raster covariates, to aid in selecting an appropriate distance band for
