@@ -1,8 +1,8 @@
 ---
-title: "2- Block cross-validation for species distribution modelling"
+title: "2. Block cross-validation for species distribution modelling"
 author: "Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita"
 date: "`r Sys.Date()`"
-output: 
+output:
   html_document:
     toc: true
     toc_float:
@@ -10,7 +10,7 @@ output:
       smooth_scroll: false
     toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{2- Block cross-validation for species distribution modelling}
+  %\VignetteIndexEntry{2. Block cross-validation for species distribution modelling}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
