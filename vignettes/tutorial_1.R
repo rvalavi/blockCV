@@ -50,28 +50,6 @@ sb1 <- cv_spatial(x = pa_data,
 
 
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
-sb2 <- cv_spatial(x = pa_data,
-                  column = "occ",
-                  r = rasters, # optionally add a raster background
-                  k = 5,
-                  size = 350000,
-                  hexagon = FALSE,
-                  selection = "random",
-                  iteration = 50,
-                  progress = FALSE,
-                  biomod2 = TRUE)
-
-## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
-sb3 <- cv_spatial(x = pa_data,
-                  column = "occ",
-                  k = 5,
-                  size = 350000,
-                  hexagon = FALSE,
-                  selection = "systematic",
-                  iteration = 50)
-
-
-## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
 sb4 <- cv_spatial(x = pa_data,
                   column = "occ",
                   size = 350000,
@@ -121,9 +99,8 @@ nncv <- cv_nndm(x = pa_data,
 
 
 ## ----warning=FALSE, message=FALSE, fig.height=6, fig.width=10-----------------
-cv_plot(cv = scv,
-        x = pa_data, 
-        r = rasters) # optionally add a raster background
+cv_plot(cv = scv, 
+        x = pa_data)
 
 
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=10-----------------
@@ -140,14 +117,7 @@ cv_plot(cv = sb1,
 
 
 ## ----fig.height=4, fig.width=6------------------------------------------------
-cv_similarity(cv = sb1, 
-              x = pa_data, 
-              r = rasters, 
-              progress = FALSE)
-
-
-## ----fig.height=4, fig.width=6------------------------------------------------
-cv_similarity(cv = ecv, 
+cv_similarity(cv = ecv, # the environmental clustering
               x = pa_data, 
               r = rasters, 
               progress = FALSE)

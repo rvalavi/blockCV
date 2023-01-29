@@ -133,35 +133,9 @@ sb1 <- cv_spatial(x = pa_data,
 
 ```
 
-The same setting can be used to create square blocks. You can optionally add a raster layer for to be used for creating blocks and be used in the background of the plot (raster can also be added later only for visualising blocks using `cv_plot`).
+The same setting can be used to create square blocks. You can optionally add a raster layer (using `r` argument) for to be used for creating blocks and be used in the background of the plot (raster can also be added later only for visualising blocks using `cv_plot`).
 
-```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
-sb2 <- cv_spatial(x = pa_data,
-                  column = "occ",
-                  r = rasters, # optionally add a raster background
-                  k = 5,
-                  size = 350000,
-                  hexagon = FALSE,
-                  selection = "random",
-                  iteration = 50,
-                  progress = FALSE,
-                  biomod2 = TRUE)
-```
-
-The assignment of folds to each block can also be done in a systematic manner using `selection = "systematic"`. 
-
-```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
-sb3 <- cv_spatial(x = pa_data,
-                  column = "occ",
-                  k = 5,
-                  size = 350000,
-                  hexagon = FALSE,
-                  selection = "systematic",
-                  iteration = 50)
-
-```
-
-Or a checkerboard pattern using `selection = "checkerboard"`. 
+The assignment of folds to each block can also be done in a systematic manner using `selection = "systematic"`, or a checkerboard pattern using `selection = "checkerboard"`. 
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 sb4 <- cv_spatial(x = pa_data,
@@ -260,9 +234,8 @@ You can visualise the generate folds for all block cross-validation strategies. 
 Let's plot spatial clustering folds created in previous section (using `cv_cluster`):
 
 ```{r warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
-cv_plot(cv = scv,
-        x = pa_data, 
-        r = rasters) # optionally add a raster background
+cv_plot(cv = scv, 
+        x = pa_data)
 
 ```
 
@@ -292,17 +265,7 @@ The `cv_similarity` function can check for environmental similarity between the 
 
 
 ```{r fig.height=4, fig.width=6}
-cv_similarity(cv = sb1, 
-              x = pa_data, 
-              r = rasters, 
-              progress = FALSE)
-
-```
-
-This could be used to see the amount of di
-
-```{r fig.height=4, fig.width=6}
-cv_similarity(cv = ecv, 
+cv_similarity(cv = ecv, # the environmental clustering
               x = pa_data, 
               r = rasters, 
               progress = FALSE)
