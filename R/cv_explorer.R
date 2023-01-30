@@ -1,18 +1,3 @@
-#' Explore the generated folds
-#'
-#' This function is deprecated! Please use \code{\link{cv_plot}} function for plotting the folds.
-#'
-#' @param blocks deprecated!
-#' @param rasterLayer deprecated!
-#' @param speciesData deprecated!
-foldExplorer <- function(blocks, rasterLayer, speciesData){
-  stop(
-    "This function is deprecated! Please use `cv_plot` function for plotting the folds."
-  )
-}
-
-
-
 #' Explore spatial block size
 #'
 #' This function assists selection of block size. It allows the user to visualise the blocks

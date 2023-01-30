@@ -1,4 +1,5 @@
 # version 3.0
+* Dependency to rgdal, rgeos are removed, and overall less dependency
 * Function names have been changed, with all functions now starting with `cv_`
 * The CV blocking functions are: `cv_spatial`, `cv_cluster`, `cv_buffer`, and `cv_nndm`
 * Spatial blocks now support **hexagonal** (default), rectangular, and user-defined blocks

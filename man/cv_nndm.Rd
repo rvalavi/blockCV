@@ -15,7 +15,7 @@ cv_nndm(
   presence_background = FALSE,
   add_background = FALSE,
   plot = TRUE,
-  print = TRUE
+  report = TRUE
 )
 }
 \arguments{
@@ -48,7 +48,7 @@ the background pints to testing points.}
 
 \item{plot}{logical; whether to plot the G functions.}
 
-\item{print}{logical; whether to print summary records; for very big
+\item{report}{logical; whether to generate print summary of records in each fold; for very big
 datasets, set to \code{FALSE} for slightly faster calculation.}
 }
 \value{

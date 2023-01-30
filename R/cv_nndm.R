@@ -35,7 +35,7 @@
 #' @inheritParams cv_buffer
 #' @inheritParams cv_buffer
 #' @param plot logical; whether to plot the G functions.
-#' @param print logical; whether to print summary records; for very big
+#' @param report logical; whether to generate print summary of records in each fold; for very big
 #' datasets, set to \code{FALSE} for slightly faster calculation.
 #'
 #' @seealso \code{\link{cv_buffer}} and \code{\link{cv_spatial_autocor}}
@@ -87,7 +87,7 @@ cv_nndm <- function(
     presence_background = FALSE,
     add_background = FALSE,
     plot = TRUE,
-    print = TRUE
+    report = TRUE
 ){
 
   # check for sampling arg
@@ -190,7 +190,7 @@ cv_nndm <- function(
   }
   )
   # calculate train test table summary
-  if(print){
+  if(report){
     train_test_table <- .ttt(fold_list, x, column, n)
     print(summary(train_test_table)[c(1,4,6), ])
   }
@@ -227,7 +227,7 @@ cv_nndm <- function(
     size = size,
     plot = plt,
     presence_background = presence_background,
-    records = if(print) train_test_table else NULL
+    records = if(report) train_test_table else NULL
   )
 
   class(final_objs) <- c("cv_nndm")
@@ -253,5 +253,7 @@ plot.cv_nndm <- function(x, y, ...){
 #' @method summary cv_nndm
 summary.cv_nndm <- function(object, ...){
   cat("Summary of number of recoreds in each training and testing fold:\n")
-  print(summary(object$records)[c(1,4,6), ])
+  if(!is.null(object$records)){
+    print(summary(object$records)[c(1,4,6), ])
+  }
 }

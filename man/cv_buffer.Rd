@@ -11,7 +11,7 @@ cv_buffer(
   presence_background = FALSE,
   add_background = FALSE,
   progress = TRUE,
-  print = TRUE
+  report = TRUE
 )
 }
 \arguments{
@@ -32,7 +32,7 @@ the background pints to testing points.}
 
 \item{progress}{logical; whether to shows a progress bar.}
 
-\item{print}{logical; whether to print summary records; for very big
+\item{report}{logical; whether to generate print summary of records in each fold; for very big
 datasets, set to \code{FALSE} for faster calculation.}
 }
 \value{

@@ -87,7 +87,7 @@ cv_cluster <- function(
     raster_cluster = FALSE,
     num_sample = 10000L,
     biomod2 = TRUE,
-    print = TRUE,
+    report = TRUE,
     ...
 ){
 
@@ -209,7 +209,7 @@ cv_cluster <- function(
     records = train_test_table
   )
 
-  if(print) print(train_test_table)
+  if(report) print(train_test_table)
   # specify the output class
   class(final_objs) <- c("cv_cluster")
 
@@ -226,6 +226,6 @@ print.cv_cluster <- function(x, ...){
 #' @export
 #' @method summary cv_cluster
 summary.cv_cluster <- function(object, ...){
-  print("Number of recoreds in each category")
+  cat("Number of recoreds in each training and testing fold:\n")
   print(object$records)
 }

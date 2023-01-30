@@ -75,7 +75,7 @@ envBlock <- function(rasterLayer,
                     raster_cluster = rasterBlock,
                     num_sample = sampleNumber,
                     biomod2 = biomod2Format,
-                    print = verbose)
+                    report = verbose)
 
   theList <- list(
     folds = out$folds_list,

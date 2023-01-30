@@ -63,7 +63,7 @@
 #' This option only works when \code{size} is provided.
 #' @param seed integer; a random seed for reproducibility.
 #' @param progress logical; whether to shows a progress bar for random fold selection.
-#' @param print logical; whether to print the report of the records per fold.
+#' @param report logical; whether to print the report of the records per fold.
 #' @param plot logical; whether to plot the final blocks with fold numbers in ggplot.
 #' You can re-create this with \code{\link{cv_plot}}.
 #' @param ... additional option for \code{\link{cv_plot}}.
@@ -139,7 +139,7 @@ cv_spatial <- function(
     offset = c(0, 0),
     seed = NULL,
     progress = TRUE,
-    print = TRUE,
+    report = TRUE,
     plot = TRUE,
     ... # other arguments for cv_plot
 ){
@@ -409,7 +409,7 @@ cv_spatial <- function(
     biomod_table <- biomod_table2
   }
   cat("\n")
-  if(print) print(train_test_table)
+  if(report) print(train_test_table)
 
   if(any(train_test_table < 1)){
     zerofolds <- which(apply(train_test_table, 1, function(x) any(x < 1)))

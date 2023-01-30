@@ -38,7 +38,7 @@
 #' recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 #' the background pints to testing points.
 #' @param progress logical; whether to shows a progress bar.
-#' @param print logical; whether to print summary records; for very big
+#' @param report logical; whether to generate print summary of records in each fold; for very big
 #' datasets, set to \code{FALSE} for faster calculation.
 #'
 #' @seealso \code{\link{cv_nndm}}, \code{\link{cv_spatial}}, and \code{\link{cv_spatial_autocor}}
@@ -79,7 +79,7 @@ cv_buffer <- function(
     presence_background = FALSE,
     add_background = FALSE,
     progress = TRUE,
-    print = TRUE
+    report = TRUE
 ){
 
   # check x is an sf object
@@ -130,7 +130,7 @@ cv_buffer <- function(
   )
 
   # calculate train test table summary
-  if(print){
+  if(report){
     train_test_table <- .ttt(fold_list, x, column, n)
     print(summary(train_test_table)[c(1,4,6), ])
   }
@@ -141,7 +141,7 @@ cv_buffer <- function(
     column = column,
     size = size,
     presence_background = presence_background,
-    records = if(print) train_test_table else NULL
+    records = if(report) train_test_table else NULL
   )
 
   class(final_objs) <- c("cv_buffer")

@@ -113,7 +113,7 @@ spatialBlock <- function(speciesData,
     offset = c(xOffset, yOffset),
     seed = seed,
     progress = progress,
-    print = verbose,
+    report = verbose,
     plot = showBlocks
   )
 

@@ -22,7 +22,7 @@ cv_spatial(
   offset = c(0, 0),
   seed = NULL,
   progress = TRUE,
-  print = TRUE,
+  report = TRUE,
   plot = TRUE,
   ...
 )
@@ -78,7 +78,7 @@ This option only works when \code{size} is provided.}
 
 \item{progress}{logical; whether to shows a progress bar for random fold selection.}
 
-\item{print}{logical; whether to print the report of the records per fold.}
+\item{report}{logical; whether to print the report of the records per fold.}
 
 \item{plot}{logical; whether to plot the final blocks with fold numbers in ggplot.
 You can re-create this with \code{\link{cv_plot}}.}

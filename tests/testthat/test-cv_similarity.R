@@ -15,7 +15,7 @@ test_that("test that cv_similarity function works with cv_spatil",
                               iteration = 1,
                               biomod2 = FALSE,
                               plot = FALSE,
-                              print = FALSE,
+                              report = FALSE,
                               progress = FALSE)
 
             plt <- cv_similarity(cv = scv, x = pa_data, r = aus)
@@ -32,7 +32,7 @@ test_that("test that cv_similarity function works with cv_buffer",
             bloo <- cv_buffer(x = pa_data,
                               size = 250000,
                               progress = FALSE,
-                              print = FALSE)
+                              report = FALSE)
 
             plt <- cv_similarity(cv = bloo, x = pa_data, r = aus)
 
