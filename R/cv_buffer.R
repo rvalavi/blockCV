@@ -113,8 +113,11 @@ cv_buffer <- function(
   # the k
   n <- length(x_1s)
 
+  # add background only if both true
+  add_bg <- (presence_background && add_background)
+
   if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
-  fold_list <- lapply(x_1s, function(i, pbag = presence_background){
+  fold_list <- lapply(x_1s, function(i, pbag = add_bg){
     if(pbag){
       test_ids <- which(dmatrix[i, ] <= size)
       inside <- x[test_ids, column, drop = TRUE]
