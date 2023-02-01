@@ -122,7 +122,7 @@ cv_buffer <- function(
       test_ids <- which(dmatrix[i, ] <= size)
       inside <- x[test_ids, column, drop = TRUE]
       test_set <- test_ids[which(inside == 0)]
-      test_set <- c(i, test_set)
+      test_set <- c(test_set, i) # change this back
     } else{
       test_set <- i
     }
