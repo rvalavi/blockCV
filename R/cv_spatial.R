@@ -151,14 +151,8 @@ cv_spatial <- function(
     pkg <- c("ggplot2")
     .check_pkgs(pkg)
   }
-
   # check for selection arg
   selection <- match.arg(selection, choices = c("random", "systematic", "checkerboard", "predefined"))
-
-  # turn off progress if...
-  if(selection != "random") progress <- FALSE
-  if(iteration < 3) progress <- FALSE
-
   # check x is an sf object
   x <- .check_x(x)
   # is column in x?
@@ -168,8 +162,6 @@ cv_spatial <- function(
   if(!is.null(user_blocks)){
     user_blocks <- .check_x(user_blocks, name = user_blocks)
   }
-
-
   # checks for pre-defined folds
   if(selection == "predefined"){
     if(is.null(folds_column) || is.null(user_blocks)){
@@ -212,6 +204,10 @@ cv_spatial <- function(
       message("'iteration' must be a natural number.")
     }
   )
+
+  # turn off progress if...
+  if(selection != "random") progress <- FALSE
+  if(iteration < 3) progress <- FALSE
 
   if(progress){
     pb <- utils::txtProgressBar(min = 0, max = iteration, style = 3)

@@ -45,8 +45,8 @@ spatialBlock <- function(speciesData,
                          species = NULL,
                          rasterLayer = NULL,
                          theRange = NULL,
-                         rows = 10,
-                         cols = 10,
+                         rows = NULL,
+                         cols = NULL,
                          k = 5L,
                          selection = "random",
                          iteration = 50L,
@@ -60,7 +60,7 @@ spatialBlock <- function(speciesData,
                          biomod2Format = TRUE,
                          xOffset = 0,
                          yOffset = 0,
-                         seed = NULL,
+                         seed = 42,
                          progress = TRUE,
                          verbose = TRUE){
 
@@ -126,8 +126,6 @@ spatialBlock <- function(speciesData,
   #                 range = out$size,
   #                 plots = if(showBlocks) cv_plot(out) else NULL,
   #                 records = out$records)
-
-
 
 
 
@@ -253,6 +251,7 @@ spatialBlock <- function(speciesData,
     if(!is.null(seed)){
       set.seed(seed)
     }
+    # set.seed(42)
     subBlocksDF <- subBlocksDF[sample(nrow(subBlocksDF)), ]
     subBlocksDF <- subBlocksDF[!duplicated(subBlocksDF$records), ]
   } else if(nrow(subBlocksDF) < nrow(speciesData) || anyNA(subBlocksDF)){

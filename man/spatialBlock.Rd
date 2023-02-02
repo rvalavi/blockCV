@@ -9,8 +9,8 @@ spatialBlock(
   species = NULL,
   rasterLayer = NULL,
   theRange = NULL,
-  rows = 10,
-  cols = 10,
+  rows = NULL,
+  cols = NULL,
   k = 5L,
   selection = "random",
   iteration = 50L,
@@ -24,7 +24,7 @@ spatialBlock(
   biomod2Format = TRUE,
   xOffset = 0,
   yOffset = 0,
-  seed = NULL,
+  seed = 42,
   progress = TRUE,
   verbose = TRUE
 )
