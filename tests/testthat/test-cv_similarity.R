@@ -1,5 +1,3 @@
-library(blockCV)
-
 aus <- system.file("extdata/au/", package = "blockCV") |>
   list.files(full.names = TRUE) |>
   terra::rast()

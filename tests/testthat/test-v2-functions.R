@@ -1,14 +1,10 @@
-library(blockCV)
-library(automap)
-
-
 aus <- system.file("extdata/au/", package = "blockCV") |>
   list.files(full.names = TRUE) |>
-  terra::rast()
-nl <- terra::nlyr(aus)
+  raster::stack()
+nl <- raster::nlayers(aus)
 
 pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
-  sf::st_as_sf(coords = c("x", "y"), crs = 7845)
+  sf::st_as_sf(coords = c("x", "y"), crs = raster::crs(aus))
 
 
 # spatialAutoRange --------------------------------------------------------

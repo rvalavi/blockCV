@@ -1,6 +1,3 @@
-library(blockCV)
-
-
 test_that("test that the data exist", {
 
   expect_true(file.exists(system.file("extdata/au", "bio_5.tif", package = "blockCV")))

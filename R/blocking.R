@@ -239,9 +239,12 @@ spatialBlock <- function(speciesData,
   } else if(is.numeric(iteration) && iteration >= 1000){
     message("The process might take a while, due to the large number of iterations.\n")
   }
-  if(progress==TRUE && numLimit == 0){
-    pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
-                                     total=iteration, clear=FALSE, width=75) # add progress bar
+  # if(progress==TRUE && numLimit == 0){
+  #   pb <- progress::progress_bar$new(format = " Progress [:bar] :percent in :elapsed",
+  #                                    total=iteration, clear=FALSE, width=75) # add progress bar
+  # }
+  if(progress && numLimit == 0){
+    pb <- utils::txtProgressBar(min = 0, max = iteration, style = 3)
   }
   ## do the intersection once and outside of the loop
   subBlocksDF <- as.data.frame(sf::st_intersects(sf::st_geometry(speciesData), sf::st_geometry(subBlocks)))
@@ -343,8 +346,11 @@ spatialBlock <- function(speciesData,
           iter <- i
         }
       } else stop("numLimit argument should be a numeric value equal or hagher than 0 or be NULL")
-      if(progress == TRUE && numLimit == 0){
-        pb$tick() # update progress bar
+      # if(progress == TRUE && numLimit == 0){
+      #   pb$tick() # update progress bar
+      # }
+      if(progress && numLimit == 0){ # if iteration is higher than 5?
+        utils::setTxtProgressBar(pb, i)
       }
     } else{
       break
@@ -380,7 +386,7 @@ spatialBlock <- function(speciesData,
                          fill ="orangered4",
                          alpha = 0.04,
                          size = 0.2) +
-        ggplot2::geom_sf_text(ggplot2::aes_string(label = "folds"),
+        ggplot2::geom_sf_text(ggplot2::aes(label = get("folds")),
                               data = subBlocks) +
         ggplot2::labs(x = "", y = "") + # or set the axes labes to NULL
         ggplot2::ggtitle("Spatial blocks",
@@ -393,7 +399,9 @@ spatialBlock <- function(speciesData,
         colnames(map_df) <- c("Easting", "Northing", "MAP")
         mid <- stats::median(map_df$MAP)
         p2 <- ggplot2::ggplot() +
-          ggplot2::geom_raster(data = map_df, ggplot2::aes_string(y="Northing", x="Easting", fill="MAP")) +
+          ggplot2::geom_tile(
+            data = map_df,
+            ggplot2::aes(y=get("Northing"), x=get("Easting"), fill=get("MAP"))) +
           ggplot2::scale_fill_gradient2(low="darkred", mid="yellow", high="darkgreen", midpoint=mid) +
           ggplot2::guides(fill = "none") +
           ggplot2::geom_sf(data = subBlocks,
@@ -401,7 +409,7 @@ spatialBlock <- function(speciesData,
                            fill ="orangered4",
                            alpha = 0.04,
                            size = 0.2) +
-          ggplot2::geom_sf_text(ggplot2::aes_string(label = "folds"),
+          ggplot2::geom_sf_text(ggplot2::aes(label = get("folds")),
                                 data = subBlocks) +
           ggplot2::labs(x = "", y = "") + # set the axes labes to NULL
           ggplot2::ggtitle("Spatial blocks",

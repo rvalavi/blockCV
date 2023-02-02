@@ -23,22 +23,23 @@ LazyData: true
 Depends:
   R (>= 3.5.0)
 Imports:
-    sf (>= 1.0),
-    Rcpp (>= 1.0.2)
+  sf (>= 1.0),
+  Rcpp (>= 1.0.2)
 Suggests:
-    terra (>= 1.6-41),
-    ggplot2 (>= 3.3.6),
-    cowplot,
-    automap (>= 1.0-16),
-    shiny (>= 1.7),
-    tmap (>= 2.0),
-    methods,
-    knitr,
-    rmarkdown,
-    testthat (>= 3.0.0),
-    covr
+  terra (>= 1.6-41),
+  raster (>= 2.5-8),
+  ggplot2 (>= 3.3.6),
+  cowplot,
+  automap (>= 1.0-16),
+  shiny (>= 1.7),
+  tmap (>= 2.0),
+  methods,
+  knitr,
+  rmarkdown,
+  testthat (>= 3.0.0),
+  covr
 RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LinkingTo: 
-    Rcpp
+  Rcpp

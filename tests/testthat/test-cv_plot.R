@@ -1,6 +1,3 @@
-library(blockCV)
-
-
 pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
   sf::st_as_sf(coords = c("x", "y"), crs = 7845)
 

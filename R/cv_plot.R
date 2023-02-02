@@ -104,7 +104,6 @@ cv_plot <- function(
   if(!missing(x)){
     x_long <- .x_to_long(x, cv, num_plot = num_plots)
     # exclude NAs from cv_buffer
-    # if(methods::is(cv, "cv_buffer") && remove_na){
     if(.is_loo(cv) && remove_na){
       x_long <- x_long[which(stats::complete.cases(x_long$value)), ]
     }

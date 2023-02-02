@@ -1,5 +1,3 @@
-library(blockCV)
-
 expect_names <- c("folds_list",
                   "k",
                   "column",
