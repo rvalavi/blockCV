@@ -1,28 +1,22 @@
 ## Test environments
-* local Ubuntu install, R v4.1.0
+* MacOS on R v4.2.2
 * Windows Server 2008 R2 SP1, R-release, 32/64 bit
-* Oracle Solaris 10, x86, 32 bit, R-release
 
 ## R CMD check results
 There were no ERRORs or WARNINGs.
 
 NOTES:
-
-* checking CRAN incoming feasibility ... NOTE
-Maintainer: ‘Roozbeh Valavi <valavi.r@gmail.com>’
-
 * checking installed package size ... NOTE
-  installed size is  8.7Mb
+  installed size is  5.9Mb
   sub-directories of 1Mb or more:
-    extdata   7.8Mb
+    doc       3.6Mb
+    extdata   1.9Mb
 
-* checking Rd cross-references ... NOTE
-Package unavailable to check Rd xrefs: ‘biomod2’
+checking Rd cross-references ... NOTE Package unavailable to check Rd xrefs: ‘biomod2’
 
-Resonse:
-- This is the main email I use and it will always be available.
-- the size of tallbal is less than 5MB
-- 'biomod' package is not directly used in vignette or the package (the code related to this package is will not be run in vignette due to slow runtime).
+Response:
+- the size of tallbal is less than 4.3MB
+- 'biomod' package is not directly used in vignette or the package (the code related to this package is not executed in the vignette due to slow runtime).
 
 ## Downstream dependencies
-The both downstream dependencies (forestecology and sdmApp packages) are checked and they are fine.
+All downstream dependencies are checked and they are fine.

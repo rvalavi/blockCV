@@ -48,8 +48,8 @@ buffering <- function(speciesData,
   out <- cv_buffer(x = speciesData,
                    column = species,
                    size = theRange,
-                   presence_background = ifelse(spDataType == "PA", FALSE, TRUE),
-                   add_background = addBG,
+                   presence_bg = ifelse(spDataType == "PA", FALSE, TRUE),
+                   add_bg = addBG,
                    progress = progress)
 
 
@@ -62,7 +62,7 @@ buffering <- function(speciesData,
     records = out$records
   )
 
- 
+
   class(theList) <- c("BufferedBlock")
   return(theList)
 }

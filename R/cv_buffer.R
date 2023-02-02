@@ -8,10 +8,10 @@
 #' directly abuts a training sample (e.g. presence or absence; 0s and 1s). For more information see the details section.
 #'
 #' When working with presence-background (presence and pseudo-absence) species distribution
-#' data (should be specified by \code{presence_background = TRUE} argument), only presence records are used
+#' data (should be specified by \code{presence_bg = TRUE} argument), only presence records are used
 #' for specifying the folds (recommended). Consider a target presence point. The buffer is defined around this target point,
 #' using the specified range (\code{size}). By default, the testing fold comprises only the target presence point (all background
-#' points within the buffer are also added when \code{add_background = TRUE}).
+#' points within the buffer are also added when \code{add_bg = TRUE}).
 #' Any non-target presence points inside the buffer are excluded.
 #' All points (presence and background) outside of buffer are used for the training set.
 #' The methods cycles through all the \emph{presence} data, so the number of folds is equal to
@@ -22,19 +22,19 @@
 #' presence and absence points other than the target point within the buffer are ignored, and the training
 #' set comprises all presences and absences outside the buffer. Apart from the folds, the number
 #' of \emph{training-presence}, \emph{training-absence}, \emph{testing-presence} and \emph{testing-absence}
-#' records is stored and returned in the \code{records} table. If \code{column = NULL} and \code{presence_background = FALSE},
+#' records is stored and returned in the \code{records} table. If \code{column = NULL} and \code{presence_bg = FALSE},
 #' the procedure is like presence-absence data. All other data types (continuous, count or multi-class responses) should be
-#' done by \code{presence_background = FALSE}.
+#' done by \code{presence_bg = FALSE}.
 #'
 #'
 #' @inheritParams cv_spatial
 #' @param column character; indicating the name of the column in which response variable (e.g. species data as a binary
-#'  response i.e. 0s and 1s) is stored. This is required when \code{presence_background = TRUE}, otherwise optional.
+#'  response i.e. 0s and 1s) is stored. This is required when \code{presence_bg = TRUE}, otherwise optional.
 #' @param size numeric value of the specified range by which training/testing data are separated.
 #' This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}.
-#' @param presence_background logical; whether to treat data as species presence-background data. For all other data
+#' @param presence_bg logical; whether to treat data as species presence-background data. For all other data
 #' types (presence-absence, continuous, count or multi-class responses), this option should be \code{FALSE}.
-#' @param add_background logical; add background points to the test set when \code{presence_background = TRUE}. We do not
+#' @param add_bg logical; add background points to the test set when \code{presence_bg = TRUE}. We do not
 #' recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 #' the background pints to testing points.
 #' @param progress logical; whether to shows a progress bar.
@@ -52,7 +52,7 @@
 #'     \item{k - number of the folds}
 #'     \item{size - the defined range of spatial autocorrelation)}
 #'     \item{column - the name of the column if provided}
-#'     \item{presence_background - whether this was treated as presence-background data}
+#'     \item{presence_bg - whether this was treated as presence-background data}
 #'     \item{records - a table with the number of points in each category of training and testing}
 #'     }
 #' @export
@@ -69,15 +69,15 @@
 #' bloo <- cv_buffer(x = pa_data,
 #'                   column = "occ",
 #'                   size = 350000, # size in metres no matter the CRS
-#'                   presence_background = FALSE)
+#'                   presence_bg = FALSE)
 #'
 #' }
 cv_buffer <- function(
     x,
     column = NULL,
     size,
-    presence_background = FALSE,
-    add_background = FALSE,
+    presence_bg = FALSE,
+    add_bg = FALSE,
     progress = TRUE,
     report = TRUE
 ){
@@ -92,14 +92,14 @@ cv_buffer <- function(
     stop("The coordinate reference system of 'x' must be defined.")
   }
 
-  if(is.null(column) && presence_background) stop("'column' must be provided for presence-background data.")
+  if(is.null(column) && presence_bg) stop("'column' must be provided for presence-background data.")
 
 
   # distance matrix by sf
   dmatrix <- sf::st_distance(x)
   units(dmatrix) <- NULL
 
-  if(presence_background){
+  if(presence_bg){
     unqsp <- unique(x[, column, drop = TRUE])
     if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
       stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n", "The data should be numeric.\n")
@@ -114,7 +114,7 @@ cv_buffer <- function(
   n <- length(x_1s)
 
   # add background only if both true
-  add_bg <- (presence_background && add_background)
+  add_bg <- (presence_bg && add_bg)
 
   if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
   fold_list <- lapply(x_1s, function(i, pbag = add_bg){
@@ -143,7 +143,7 @@ cv_buffer <- function(
     k = n,
     column = column,
     size = size,
-    presence_background = presence_background,
+    presence_bg = presence_bg,
     records = if(report) train_test_table else NULL
   )
 

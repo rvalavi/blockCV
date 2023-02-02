@@ -94,7 +94,7 @@ cv_similarity <- function(cv,
   # to set as nrow for df; cv_buffer has only one target points unless P-BG
   n <- nrow(points)
   if(.is_loo(cv)){
-    n <- ifelse(cv$presence_background, nrow(points), 1)
+    n <- ifelse(cv$presence_bg, nrow(points), 1)
   }
   # number of predictors
   m <- ncol(points)

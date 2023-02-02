@@ -6,9 +6,9 @@
 #' distance distribution function between the target prediction and training points (Milà et al., 2022).
 #'
 #' When working with presence-background (presence and pseudo-absence) species distribution
-#' data (should be specified by \code{presence_background = TRUE} argument), only presence records are used
+#' data (should be specified by \code{presence_bg = TRUE} argument), only presence records are used
 #' for specifying the folds (recommended). The testing fold comprises only the target \emph{presence} point (optionally,
-#' all background points within the distance are also included when \code{add_background = TRUE}; this is the
+#' all background points within the distance are also included when \code{add_bg = TRUE}; this is the
 #' distance that matches the nearest neighbour distance distribution function of training-testing presences and
 #' training-presences and prediction points; often lower than \code{size}).
 #' Any non-target presence points inside the distance are excluded.
@@ -17,7 +17,7 @@
 #' the number of presence points in the dataset.
 #'
 #' For all other types of data (including presence-absence, count, continuous, and multi-class)
-#' set \code{presence_background = FALE}, and the function behaves similar to the methods
+#' set \code{presence_bg = FALE}, and the function behaves similar to the methods
 #' explained by Milà and colleagues (2022).
 #'
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species
@@ -49,7 +49,7 @@
 #'     \item{k - number of the folds}
 #'     \item{size - the distance band to separated trainig and testing folds)}
 #'     \item{column - the name of the column if provided}
-#'     \item{presence_background - whether this was treated as presence-background data}
+#'     \item{presence_bg - whether this was treated as presence-background data}
 #'     \item{records - a table with the number of points in each category of training and testing}
 #'     }
 #' @export
@@ -84,8 +84,8 @@ cv_nndm <- function(
     num_sample = 1e4,
     sampling = "random",
     min_train = 0.05,
-    presence_background = FALSE,
-    add_background = FALSE,
+    presence_bg = FALSE,
+    add_bg = FALSE,
     plot = TRUE,
     report = TRUE
 ){
@@ -123,7 +123,7 @@ cv_nndm <- function(
   # convert to sf object
   rx <- sf::st_as_sf(rx)
 
-  if(presence_background){
+  if(presence_bg){
     unqsp <- unique(x[, column, drop = TRUE])
     if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
       stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n", "The data should be numeric.\n")
@@ -170,13 +170,13 @@ cv_nndm <- function(
   msize <- apply(distmat, 1, function(x) min(x, na.rm=TRUE))
 
   # get a complete dist matrix for PBG
-  if(presence_background){
+  if(presence_bg){
     full_distmat <- sf::st_distance(x)
     units(full_distmat) <- NULL
   }
 
   # add background only if both true
-  add_bg <- (presence_background && add_background)
+  add_bg <- (presence_bg && add_bg)
   # Note: in presnec-background, length of full-matrix is longer than msize
   fold_list <- lapply(1:n, function(i, pbag = add_bg){
     if(pbag){
@@ -228,7 +228,7 @@ cv_nndm <- function(
     column = column,
     size = size,
     plot = plt,
-    presence_background = presence_background,
+    presence_bg = presence_bg,
     records = if(report) train_test_table else NULL
   )
 

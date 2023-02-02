@@ -12,8 +12,8 @@ cv_nndm(
   num_sample = 10000,
   sampling = "random",
   min_train = 0.05,
-  presence_background = FALSE,
-  add_background = FALSE,
+  presence_bg = FALSE,
+  add_bg = FALSE,
   plot = TRUE,
   report = TRUE
 )
@@ -23,7 +23,7 @@ cv_nndm(
 data or ground truth sample for image classification).}
 
 \item{column}{character; indicating the name of the column in which response variable (e.g. species data as a binary
-response i.e. 0s and 1s) is stored. This is required when \code{presence_background = TRUE}, otherwise optional.}
+response i.e. 0s and 1s) is stored. This is required when \code{presence_bg = TRUE}, otherwise optional.}
 
 \item{r}{a terra SpatRaster object of a predictor variable. This defines the area that model is going to predict.}
 
@@ -39,10 +39,10 @@ for non-rectangular rasters (points falling on no-value areas are removed).}
 
 \item{min_train}{numeric; between 0 and 1. A constraint on the minimum proportion of train points in each fold.}
 
-\item{presence_background}{logical; whether to treat data as species presence-background data. For all other data
+\item{presence_bg}{logical; whether to treat data as species presence-background data. For all other data
 types (presence-absence, continuous, count or multi-class responses), this option should be \code{FALSE}.}
 
-\item{add_background}{logical; add background points to the test set when \code{presence_background = TRUE}. We do not
+\item{add_bg}{logical; add background points to the test set when \code{presence_bg = TRUE}. We do not
 recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 the background pints to testing points.}
 
@@ -58,7 +58,7 @@ An object of class S3. A list of objects including:
     \item{k - number of the folds}
     \item{size - the distance band to separated trainig and testing folds)}
     \item{column - the name of the column if provided}
-    \item{presence_background - whether this was treated as presence-background data}
+    \item{presence_bg - whether this was treated as presence-background data}
     \item{records - a table with the number of points in each category of training and testing}
     }
 }
@@ -70,9 +70,9 @@ distance distribution function between the target prediction and training points
 }
 \details{
 When working with presence-background (presence and pseudo-absence) species distribution
-data (should be specified by \code{presence_background = TRUE} argument), only presence records are used
+data (should be specified by \code{presence_bg = TRUE} argument), only presence records are used
 for specifying the folds (recommended). The testing fold comprises only the target \emph{presence} point (optionally,
-all background points within the distance are also included when \code{add_background = TRUE}; this is the
+all background points within the distance are also included when \code{add_bg = TRUE}; this is the
 distance that matches the nearest neighbour distance distribution function of training-testing presences and
 training-presences and prediction points; often lower than \code{size}).
 Any non-target presence points inside the distance are excluded.
@@ -81,7 +81,7 @@ The methods cycles through all the presence data, so the number of folds is equa
 the number of presence points in the dataset.
 
 For all other types of data (including presence-absence, count, continuous, and multi-class)
-set \code{presence_background = FALE}, and the function behaves similar to the methods
+set \code{presence_bg = FALE}, and the function behaves similar to the methods
 explained by Milà and colleagues (2022).
 }
 \examples{

@@ -8,8 +8,8 @@ cv_buffer(
   x,
   column = NULL,
   size,
-  presence_background = FALSE,
-  add_background = FALSE,
+  presence_bg = FALSE,
+  add_bg = FALSE,
   progress = TRUE,
   report = TRUE
 )
@@ -18,15 +18,15 @@ cv_buffer(
 \item{x}{a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species data or ground truth sample for image classification).}
 
 \item{column}{character; indicating the name of the column in which response variable (e.g. species data as a binary
-response i.e. 0s and 1s) is stored. This is required when \code{presence_background = TRUE}, otherwise optional.}
+response i.e. 0s and 1s) is stored. This is required when \code{presence_bg = TRUE}, otherwise optional.}
 
 \item{size}{numeric value of the specified range by which training/testing data are separated.
 This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}.}
 
-\item{presence_background}{logical; whether to treat data as species presence-background data. For all other data
+\item{presence_bg}{logical; whether to treat data as species presence-background data. For all other data
 types (presence-absence, continuous, count or multi-class responses), this option should be \code{FALSE}.}
 
-\item{add_background}{logical; add background points to the test set when \code{presence_background = TRUE}. We do not
+\item{add_bg}{logical; add background points to the test set when \code{presence_bg = TRUE}. We do not
 recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 the background pints to testing points.}
 
@@ -42,7 +42,7 @@ An object of class S3. A list of objects including:
     \item{k - number of the folds}
     \item{size - the defined range of spatial autocorrelation)}
     \item{column - the name of the column if provided}
-    \item{presence_background - whether this was treated as presence-background data}
+    \item{presence_bg - whether this was treated as presence-background data}
     \item{records - a table with the number of points in each category of training and testing}
     }
 }
@@ -56,10 +56,10 @@ directly abuts a training sample (e.g. presence or absence; 0s and 1s). For more
 }
 \details{
 When working with presence-background (presence and pseudo-absence) species distribution
-data (should be specified by \code{presence_background = TRUE} argument), only presence records are used
+data (should be specified by \code{presence_bg = TRUE} argument), only presence records are used
 for specifying the folds (recommended). Consider a target presence point. The buffer is defined around this target point,
 using the specified range (\code{size}). By default, the testing fold comprises only the target presence point (all background
-points within the buffer are also added when \code{add_background = TRUE}).
+points within the buffer are also added when \code{add_bg = TRUE}).
 Any non-target presence points inside the buffer are excluded.
 All points (presence and background) outside of buffer are used for the training set.
 The methods cycles through all the \emph{presence} data, so the number of folds is equal to
@@ -70,9 +70,9 @@ presences and absences. As above, a target observation (presence or absence) for
 presence and absence points other than the target point within the buffer are ignored, and the training
 set comprises all presences and absences outside the buffer. Apart from the folds, the number
 of \emph{training-presence}, \emph{training-absence}, \emph{testing-presence} and \emph{testing-absence}
-records is stored and returned in the \code{records} table. If \code{column = NULL} and \code{presence_background = FALSE},
+records is stored and returned in the \code{records} table. If \code{column = NULL} and \code{presence_bg = FALSE},
 the procedure is like presence-absence data. All other data types (continuous, count or multi-class responses) should be
-done by \code{presence_background = FALSE}.
+done by \code{presence_bg = FALSE}.
 }
 \examples{
 \donttest{
@@ -86,7 +86,7 @@ pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 bloo <- cv_buffer(x = pa_data,
                   column = "occ",
                   size = 350000, # size in metres no matter the CRS
-                  presence_background = FALSE)
+                  presence_bg = FALSE)
 
 }
 }
