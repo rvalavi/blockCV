@@ -95,6 +95,8 @@ spatialBlock <- function(speciesData,
     rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
   }
 
+  st_crs(speciesData) <- NA
+
   out <- cv_spatial(
     x = speciesData,
     column = species,
@@ -128,7 +130,7 @@ spatialBlock <- function(speciesData,
                   records = out$records)
 
 
-  
+
   class(theList) <- c("SpatialBlock")
   return(theList)
 }
