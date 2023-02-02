@@ -110,7 +110,6 @@ tm_shape(rasters[[1]]) +
 ```
 
 
-
 ## Block cross-validation strategies
 
 ### Spatial blocks
@@ -199,7 +198,6 @@ The function `cv_buffer` generates spatially separated training and testing fold
 Using buffering to create CV folds:
 
 ```{r results='hide', fig.keep='all'}
-# buffering with presence-background data
 bloo <- cv_buffer(x = pa_data,
                   column = "occ",
                   size = 350000)
