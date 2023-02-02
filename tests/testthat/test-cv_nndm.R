@@ -3,7 +3,7 @@ expect_names <- c("folds_list",
                   "column",
                   "size",
                   "plot",
-                  "presence_background",
+                  "presence_bg",
                   "records")
 
 
@@ -23,7 +23,7 @@ test_that("test that cv_nndm function works properly with presence-absence data"
               r = aus,
               size = 250000,
               num_sample = 3000,
-              presence_background = FALSE
+              presence_bg = FALSE
             )
 
             expect_true(exists("bloo"))
@@ -34,7 +34,7 @@ test_that("test that cv_nndm function works properly with presence-absence data"
             expect_type(bloo$k, "integer")
             expect_type(bloo$column, "character")
             expect_type(bloo$size, "double")
-            expect_equal(bloo$presence_background, FALSE)
+            expect_equal(bloo$presence_bg, FALSE)
             expect_equal(dim(bloo$records), c(nrow(pa_data), 4))
             expect_true(!all(bloo$records == 0))
 
@@ -49,7 +49,7 @@ test_that("test that cv_nndm function works properly with presence-background da
               r = aus,
               size = 250000,
               sampling = "regular",
-              presence_background = TRUE
+              presence_bg = TRUE
             )
 
             expect_true(exists("bloo"))
@@ -60,7 +60,7 @@ test_that("test that cv_nndm function works properly with presence-background da
             expect_type(bloo$k, "integer")
             expect_type(bloo$column, "character")
             expect_type(bloo$size, "double")
-            expect_equal(bloo$presence_background, TRUE)
+            expect_equal(bloo$presence_bg, TRUE)
             expect_equal(dim(bloo$records), c(sum(pa_data$occ), 4))
             expect_true(!all(bloo$records == 0))
 
@@ -84,7 +84,7 @@ test_that("test that cv_nndm function works properly with no species specified",
             expect_type(bloo$k, "integer")
             expect_null(bloo$species)
             expect_type(bloo$size, "double")
-            expect_equal(bloo$presence_background, FALSE)
+            expect_equal(bloo$presence_bg, FALSE)
             expect_equal(dim(bloo$records), c(nrow(pa_data), 2))
             expect_true(!all(bloo$records == 0))
 
@@ -102,7 +102,7 @@ test_that("test cv_nndm function with no matching species column", {
       r = aus,
       size = 250000,
       num_sample = 3000,
-      presence_background = FALSE
+      presence_bg = FALSE
     )
   )
 

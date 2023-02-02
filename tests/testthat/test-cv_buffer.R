@@ -2,7 +2,7 @@ expect_names <- c("folds_list",
                   "k",
                   "column",
                   "size",
-                  "presence_background",
+                  "presence_bg",
                   "records")
 
 
@@ -16,7 +16,7 @@ test_that("test that cv_buffer function works properly with presence-absence dat
               x = pa_data,
               column = "occ",
               size = 250000,
-              presence_background = FALSE,
+              presence_bg = FALSE,
               progress = TRUE
             )
 
@@ -28,7 +28,7 @@ test_that("test that cv_buffer function works properly with presence-absence dat
             expect_type(bloo$k, "integer")
             expect_type(bloo$column, "character")
             expect_type(bloo$size, "double")
-            expect_equal(bloo$presence_background, FALSE)
+            expect_equal(bloo$presence_bg, FALSE)
             expect_equal(dim(bloo$records), c(nrow(pa_data), 4))
             expect_true(!all(bloo$records == 0))
 
@@ -41,7 +41,7 @@ test_that("test that cv_buffer function works properly with presence-background 
               x = pa_data,
               column = "occ",
               size = 250000,
-              presence_background = TRUE,
+              presence_bg = TRUE,
               progress = FALSE
             )
 
@@ -53,7 +53,7 @@ test_that("test that cv_buffer function works properly with presence-background 
             expect_type(bloo$k, "integer")
             expect_type(bloo$column, "character")
             expect_type(bloo$size, "double")
-            expect_equal(bloo$presence_background, TRUE)
+            expect_equal(bloo$presence_bg, TRUE)
             expect_equal(dim(bloo$records), c(sum(pa_data$occ), 4))
             expect_true(!all(bloo$records == 0))
 
@@ -74,7 +74,7 @@ test_that("test that cv_buffer function works properly with no species specified
             expect_type(bloo$k, "integer")
             expect_null(bloo$species)
             expect_type(bloo$size, "double")
-            expect_equal(bloo$presence_background, FALSE)
+            expect_equal(bloo$presence_bg, FALSE)
             expect_equal(dim(bloo$records), c(nrow(pa_data), 2))
             expect_true(!all(bloo$records == 0))
 
@@ -90,7 +90,7 @@ test_that("test cv_buffer function with no matching species column", {
       x = pa_data,
       column = "response",
       size = 250000,
-      presence_background = FALSE,
+      presence_bg = FALSE,
       progress = TRUE
     )
   )
