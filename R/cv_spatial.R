@@ -229,7 +229,7 @@ cv_spatial <- function(
       blocks <- sf::st_make_grid(x_obj, n=rev(rows_cols), square=!hexagon, what="polygons", flat_topped=flat_top)
     } else{
       # convert metres to degrees
-      # if(sf::st_is_longlat(x_obj)) size <- size / deg_to_metre
+      if(sf::st_is_longlat(x_obj)) size <- size / deg_to_metre
       # prepare the offset values
       offset <- size * (abs(offset) %% 1)
       if(length(offset) < 2) offset[2] <- 0
