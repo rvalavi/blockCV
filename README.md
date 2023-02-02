@@ -28,7 +28,7 @@ The package `blockCV` offers a range of functions for generating train and test 
 * Spatial blocks now support **hexagonal** (default), rectangular, and user-defined blocks
 * A fast C++ implementation of **Nearest Neighbour Distance Matching (NNDM)** algorithm (Milà et al. 2022) is now added
 * The NNDM algorithm can handle species presence-background data and other types of data
-* The `cv_cluster` function generates blocks based on kmeans clustering. It now works on both environmental rasters and the spatial coordinates of sample points
+* The `cv_cluster` function generates blocks based on kmeans clustering. It now works on both environmental rasters and the **spatial coordinates of sample points**
 * The `cv_spatial_autocor` function now calculates the spatial autocorrelation range for both the response (i.e. the binary or continuous data) and a set of continuous raster covariates
 * The new `cv_plot` function allows for visualization of folds from all blocking strategies using ggplot facets
 * The `terra` package is now used for all raster processing and supports both `stars` and `raster` objects, as well as files on disk.
