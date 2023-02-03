@@ -416,6 +416,9 @@ cv_spatial <- function(
     }
   }
 
+  # remove the NA blocks
+  sub_blocks <- sub_blocks[stats::complete.cases(sub_blocks$folds), ]
+
   # final objects for exporting
   final_objs <- list(
     folds_list = fold_list,
