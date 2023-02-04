@@ -9,7 +9,6 @@ cv_similarity(
   x,
   r,
   num_plot = seq_along(cv$folds_list),
-  mess = TRUE,
   jitter_width = 0.1,
   points_size = 2,
   points_alpha = 0.7,
@@ -28,8 +27,6 @@ the \code{cv} object.}
 is used to calculate similarity between the training and testing points.}
 
 \item{num_plot}{a vector of indices of folds.}
-
-\item{mess}{logical; whether to compute MESS.}
 
 \item{jitter_width}{numeric; the width of jitter points.}
 

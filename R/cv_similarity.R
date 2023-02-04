@@ -12,7 +12,6 @@
 #' @param r a terra SpatRaster object of environmental predictor that are going to be used for modelling. This
 #' is used to calculate similarity between the training and testing points.
 #' @param num_plot a vector of indices of folds.
-#' @param mess logical; whether to compute MESS.
 #' @param jitter_width numeric; the width of jitter points.
 #' @param points_size numeric; the size of points.
 #' @param points_alpha numeric; the opacity of points
@@ -51,7 +50,6 @@ cv_similarity <- function(cv,
                           x,
                           r,
                           num_plot = seq_along(cv$folds_list),
-                          mess = TRUE,
                           jitter_width = 0.1,
                           points_size = 2,
                           points_alpha = 0.7,

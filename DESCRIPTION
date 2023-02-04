@@ -28,6 +28,7 @@ Imports:
 Suggests:
   terra (>= 1.6-41),
   raster (>= 2.5-8),
+  sp (>= 1.4-5),
   ggplot2 (>= 3.3.6),
   cowplot,
   automap (>= 1.0-16),
