@@ -141,8 +141,7 @@ sb4 <- cv_spatial(x = pa_data,
                   column = "occ",
                   size = 350000,
                   hexagon = FALSE,
-                  selection = "checkerboard",
-                  iteration = 50)
+                  selection = "checkerboard")
 
 ```
 
@@ -204,9 +203,9 @@ bloo <- cv_buffer(x = pa_data,
 
 ```
 
-For species **presence-absence** data and any other types of data (such as **continuous**, **counts**, and **multi-class** targets) keep `presence_background = FALSE`. In this case, all sample points other than the target point within the buffer are excluded, and the training set comprises all points outside the buffer.
+For species **presence-absence** data and any other types of data (such as **continuous**, **counts**, and **multi-class** targets) keep `presence_bg = FALSE`. In this case, all sample points other than the target point within the buffer are excluded, and the training set comprises all points outside the buffer.
 
-When using species **presence-background** data (or presence and pseudo-absence), you need to supply the `column` and set `presence_background = TRUE`. In this case, only presence points are considered as target points. For more information read the details section in the help of the function (i.e. `help(cv_buffer)`). 
+When using species **presence-background** data (or presence and pseudo-absence), you need to supply the `column` and set `presence_bg = TRUE`. In this case, only presence points are considered as target points. For more information read the details section in the help of the function (i.e. `help(cv_buffer)`). 
 
 ## Nearest Neighbour Distance Matching (NNDM) LOO
 
@@ -348,11 +347,11 @@ Note that the interactive plots cannot be shown here, as they require opening an
 
 
 ## References:
-- Hiemstra, P. H., Pebesma, E. J., Twenhöfel, C. J., & Heuvelink, G. B. (2009). Real-time automatic interpolation of ambient gamma dose rates from the Dutch radioactivity monitoring network. Computers & Geosciences, 35(8), 1711–1721.
+- Hiemstra, P. H., Pebesma, E. J., Twenhöfel, C. J., & Heuvelink, G. B. (2009) Real-time automatic interpolation of ambient gamma dose rates from the Dutch radioactivity monitoring network. Computers & Geosciences, 35(8), 1711–1721.
 
-- O’Sullivan, D., & Unwin, D. J. (2010). Geographic Information Analysis (2nd ed.). John Wiley & Sons.
+- O’Sullivan, D., & Unwin, D. J. (2010) Geographic Information Analysis (2nd ed.). John Wiley & Sons.
 
--  C. Milà, J. Mateu, E. Pebesma, and H. Meyer, Nearest Neighbour Distance Matching Leave-One-Out Cross-Validation for map validation, Methods in Ecology and Evolution (2022).
+-  Milà, C., Mateu, J. , Pebesma, E. and Meyer H. (2022) Nearest Neighbour Distance Matching Leave-One-Out Cross-Validation for map validation. Methods in Ecology and Evolution.
 
-- Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. **blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models**. *Methods Ecol Evol.* 2019; 10:225–232. [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
+- Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. (2019) **blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models**. *Methods Ecol Evol.* 10:225–232. [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
 

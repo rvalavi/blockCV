@@ -4,7 +4,7 @@ Title: Spatial and Environmental Blocking for K-Fold and LOO Cross-Validation
 Version: 3.0-0
 Date: 2023-01-28
 Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
-                    email = "valavi.r@gmail.com"),
+                    email = "valavi.r@gmail.com", comment = c(ORCID = "0000-0003-2495-5277")),
              person("Jane", "Elith", role = "aut",
                     email = "j.elith@unimelb.edu.au"),
              person("José", "Lahoz-Monfort", role = "aut",
