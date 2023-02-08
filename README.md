@@ -52,9 +52,8 @@ install.packages("blockCV", dependencies = TRUE)
 ## Vignettes
 To see the vignettes of the package use:
 
-1. blockCV introduction: how to create block cross-validation folds
-<!--- (https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/vignettes/tutorial_1.html) --->
-2. Block cross-validation for species distribution modelling
+1. [blockCV introduction: how to create block cross-validation folds](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_1.html)
+2. [Block cross-validation for species distribution modelling]((https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_2.html))
 3. Using blockCV with `caret` and `tidymodels` (coming soon!)
 
 
