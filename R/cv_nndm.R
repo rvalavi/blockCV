@@ -151,18 +151,18 @@ cv_nndm <- function(
   tp_cdf <- stats::ecdf(Gjstar)
 
   # starting point
-  rmin <- min(Gjstar)
-  imin <- which.min(Gjstar)[1]
-  jmin <- which(tdist[imin, ] == rmin)
+  # rmin <- min(Gjstar)
+  # imin <- which.min(Gjstar)[1]
+  # jmin <- which(tdist[imin, ] == rmin)
 
   # run nndm in cpp
   distmat <- nndm_cpp(
     X = tdist,
-    Gjstar = Gjstar,
+    # Gjstar = Gjstar,
     Gij = Gij,
-    rmin = rmin,
-    imin = as.numeric(imin) - 1,
-    jmin = as.numeric(jmin) - 1,
+    # rmin = rmin,
+    # imin = as.numeric(imin) - 1,
+    # jmin = as.numeric(jmin) - 1,
     phi = size,
     min_train = min_train
   )
