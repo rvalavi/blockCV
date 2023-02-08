@@ -11,13 +11,13 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // nndm_cpp
-Rcpp::NumericMatrix nndm_cpp(NumericMatrix X, NumericVector Gij, double phi, double min_train);
+Rcpp::NumericMatrix nndm_cpp(Rcpp::NumericMatrix X, Rcpp::NumericVector Gij, double phi, double min_train);
 RcppExport SEXP _blockCV_nndm_cpp(SEXP XSEXP, SEXP GijSEXP, SEXP phiSEXP, SEXP min_trainSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type Gij(GijSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type Gij(GijSEXP);
     Rcpp::traits::input_parameter< double >::type phi(phiSEXP);
     Rcpp::traits::input_parameter< double >::type min_train(min_trainSEXP);
     rcpp_result_gen = Rcpp::wrap(nndm_cpp(X, Gij, phi, min_train));

@@ -1,3 +1,6 @@
+# version 3.0.1
+* Massive performance improvement in the C++ code of `cv_nndm` function for large datasets
+
 # version 3.0
 * Dependency to rgdal and rgeos are removed, and overall less dependency
 * Function names have been changed, with all functions now starting with `cv_`
@@ -11,7 +14,6 @@
 * The new `cv_plot` function allows for visualization of folds from all blocking strategies using ggplot facets
 * The `terra` package is now used for all raster processing and supports both `stars` and `raster` objects, as well as files on disk.
 * The new `cv_similarity` provides measures on possible extrapolation to testing folds
-
 
 # version 2.1.4
 * fixed CRAN error for ggplot guide 

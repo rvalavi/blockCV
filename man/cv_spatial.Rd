@@ -94,7 +94,7 @@ An object of class S3. A list of objects including:
     \item{k - number of the folds}
     \item{size - input size, if not null}
     \item{column - the name of the column if provided}
-    \item{blocks - SpatialPolygon of the blocks}
+    \item{blocks - spatial polygon of the blocks}
     \item{records - a table with the number of points in each category of training and testing}
     }
 }
