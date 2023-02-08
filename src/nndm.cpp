@@ -3,8 +3,6 @@
 #include <limits>
 #include <vector>
 
-using namespace Rcpp;
-
 template<typename T>
 class Lightweight_matrix {
 private:
@@ -47,8 +45,8 @@ private:
 };
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix nndm_cpp(NumericMatrix X,
-                             NumericVector Gij,
+Rcpp::NumericMatrix nndm_cpp(Rcpp::NumericMatrix X,
+                             Rcpp::NumericVector Gij,
                              double phi,
                              double min_train){
 
