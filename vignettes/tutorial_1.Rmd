@@ -207,7 +207,7 @@ When using species **presence-background** data (or presence and pseudo-absence)
 
 The `cv_nndm` is a fast implementation of the Nearest Neighbour Distance Matching (NNDM) algorithm (Milà et al., 2022) in C++. Similar to `cv_buffer`, this is a variation of leave-one-out (LOO) cross-validation. It tries to match the nearest neighbour distance distribution function between the test and training data to the nearest neighbour distance distribution function between the target prediction and training points (Milà et al., 2022).
 
-```{r}
+```{r fig.height=5, fig.width=7}
 nncv <- cv_nndm(x = pa_data,
                 column = "occ",
                 r = rasters,
@@ -226,7 +226,7 @@ You can visualise the generate folds for all block cross-validation strategies. 
 
 Let's plot spatial clustering folds created in previous section (using `cv_cluster`):
 
-```{r warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+```{r warning=FALSE, message=FALSE, fig.height=6, fig.width=8}
 cv_plot(cv = scv, 
         x = pa_data)
 
@@ -234,7 +234,7 @@ cv_plot(cv = scv,
 
 When `cv_buffer` is used for plotting, only first 10 folds are shown. You can choose any set of CV folds for plotting. If `remove_na = FALSE` (default is `TRUE`), the `NA` in legend shows the excluded points.
 
-```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=10}
+```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=8}
 cv_plot(cv = bloo,
         x = pa_data,
         num_plots = c(1, 50, 100)) 

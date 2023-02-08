@@ -74,7 +74,7 @@ scv2 <- cv_nndm(
 scv2$k
 
 
-## ----fig.height=5, fig.width=10-----------------------------------------------
+## ----fig.height=5, fig.width=8------------------------------------------------
 cv_plot(
   cv = scv2, # cv object
   x = pa_data, # species spatial data

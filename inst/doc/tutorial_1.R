@@ -85,7 +85,7 @@ bloo <- cv_buffer(x = pa_data,
                   size = 350000)
 
 
-## -----------------------------------------------------------------------------
+## ----fig.height=5, fig.width=7------------------------------------------------
 nncv <- cv_nndm(x = pa_data,
                 column = "occ",
                 r = rasters,
@@ -96,12 +96,12 @@ nncv <- cv_nndm(x = pa_data,
                 plot = TRUE)
 
 
-## ----warning=FALSE, message=FALSE, fig.height=6, fig.width=10-----------------
+## ----warning=FALSE, message=FALSE, fig.height=6, fig.width=8------------------
 cv_plot(cv = scv, 
         x = pa_data)
 
 
-## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=10-----------------
+## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=8------------------
 cv_plot(cv = bloo,
         x = pa_data,
         num_plots = c(1, 50, 100)) 
