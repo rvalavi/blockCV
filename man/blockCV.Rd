@@ -3,8 +3,7 @@
 \docType{package}
 \name{blockCV}
 \alias{blockCV}
-\title{blockCV: A package for generating spatially or environmentally separated
-        folds for k-fold cross-validation of species distribution modelling.}
+\title{blockCV: Spatial and Environmental Blocking for K-Fold and LOO Cross-Validation}
 \description{
 Simple random selection of training and testing folds in the structured environment leads to
 an underestimation of error in the evaluation of spatial

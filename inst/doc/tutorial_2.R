@@ -129,47 +129,37 @@ read.csv("../man/figures/roc_rf.csv")
 #  # loading the library
 #  library(biomod2)
 #  
-#  # species occurrences
-#  DataSpecies <- points
-#  # the name of studied species
-#  myRespName <- "occ"
-#  # the presence/absences data for our species
-#  myResp <- as.numeric(DataSpecies[,myRespName])
-#  # the XY coordinates of species data
-#  myRespXY <- DataSpecies[,c("x","y")]
 #  # extract the raster values for the species points as a dataframe
-#  RasterValues <- terra::extract(rasters, pa_data, df = TRUE, ID = FALSE)
+#  raster_values <- terra::extract(rasters, pa_data, df = TRUE, ID = FALSE)
 #  
 #  # 1. Formatting Data
-#  myBiomodData <- BIOMOD_FormatingData(resp.var = myResp,
-#                                       expl.var = RasterValues,
-#                                       resp.xy = myRespXY,
-#                                       resp.name = myRespName,
-#                                       na.rm = TRUE)
+#  biomod_data <- BIOMOD_FormatingData(resp.var = pa_data$occ,
+#                                      expl.var = raster_values,
+#                                      resp.xy = sf::st_coordinates(pa_data),
+#                                      resp.name = "occ",
+#                                      na.rm = TRUE)
 #  
-#  # 2. Defining the folds for DataSplitTable
+#  # 2. Defining the folds for data.split.table
 #  # note that biomod_table should be used here not folds
 #  # use generated folds from cv_spatial in previous section
-#  DataSplitTable <- scv1$biomod_table
+#  spatial_cv_folds <- scv1$biomod_table
 #  
 #  # 3. Defining Models Options using default options.
-#  myBiomodOption <- BIOMOD_ModelingOptions()
+#  biomod_options <- BIOMOD_ModelingOptions()
 #  
 #  # 4. Model fitting
-#  myBiomodModelOut <- BIOMOD_Modeling( myBiomodData,
-#                                       models = c('GLM','MARS','GBM'),
-#                                       models.options = myBiomodOption,
-#                                       DataSplitTable = DataSplitTable, # blocking folds
-#                                       VarImport = 0,
-#                                       models.eval.meth = c('ROC'),
-#                                       do.full.models=FALSE,
-#                                       modeling.id="test")
+#  biomod_model_out <- BIOMOD_Modeling(biomod_data,
+#                                      models = c('GLM','MARS','GBM'),
+#                                      bm.options = biomod_options,
+#                                      data.split.table = spatial_cv_folds,
+#                                      var.import = 0,
+#                                      metric.eval = c('ROC'),
+#                                      do.full.models = TRUE)
 #  
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  # 5. Model evaluation
-#  # get all models evaluation
-#  myBiomodModelEval <- get_evaluations(myBiomodModelOut)
-#  myBiomodModelEval["ROC","Testing.data",,,]
+#  biomod_model_eval <- get_evaluations(biomod_model_out)
+#  biomod_model_eval[c("run", "algo", "metric.eval", "calibration", "validation")]
 #  
 

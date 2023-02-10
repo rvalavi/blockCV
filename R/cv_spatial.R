@@ -58,7 +58,7 @@
 #' This argument is necessary if you choose the 'predefined' selection.
 #' @param deg_to_metre integer. The conversion rate of metres to degree. See the details section for more information.
 #' @param biomod2 logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
-#' a \emph{DataSplitTable} for cross-validation.
+#' a \emph{data.split.table} for cross-validation.
 #' @param offset two number between 0 and 1 to shift blocks by that proportion of block size.
 #' This option only works when \code{size} is provided.
 #' @param seed integer; a random seed for reproducibility.
@@ -70,7 +70,7 @@
 #'
 #'
 #' @seealso \code{\link{cv_buffer}} and \code{\link{cv_cluster}}; \code{\link{cv_spatial_autocor}} and \code{\link{cv_block_size}} for selecting block size
-#' @seealso For \emph{DataSplitTable} see \code{\link[biomod2]{BIOMOD_cv}} in \pkg{biomod2} package
+#' @seealso For \emph{data.split.table} see \code{\link[biomod2]{BIOMOD_cv}} in \pkg{biomod2} package
 #'
 #' @references Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321-331.
 #'
@@ -365,7 +365,7 @@ cv_spatial <- function(
         train_test_table[p, which(cl %in% names(countrain))] <- countrain
         train_test_table[p, clen + which(cl %in% names(countest))] <- countest
       }
-      if(biomod2){ # creating a biomod2 DataSplitTable for validation
+      if(biomod2){ # creating a biomod2 data.split.table for validation
         colm <- paste0("RUN", p)
         biomod_table[, colm] <- FALSE
         biomod_table[train_set, colm] <- TRUE
