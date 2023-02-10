@@ -15,9 +15,9 @@ vignette: >
 
 Species distribution models (SDMs) are widely used tools for predicting the potential distribution of a species based on environmental variables. However, it is crucial to evaluate the performance of these models to ensure their accuracy and reliability. One commonly used method for evaluating the performance of SDMs is **block cross-validation** (read more in *Valavi et al. 2019* and the Tutorial 1). This approach allows for a more robust evaluation of the model as it accounts for spatial autocorrelation and other spatial dependencies (Roberts et al. 2017). This document illustrates how to utilize the `blockCV` package to evaluate the performance of SDMs using block cross-validation.
 
-Three examples are provided: modelling using the **randomForest**, and **biomod2** packages.
+Three examples are provided: modelling using the `randomForest`, and `biomod2` packages.
 
-**Check new updates of `blockCV` in the tutorial 1- blockCV introduction: how to create block cross-validation folds.**
+Check new updates of `blockCV` in the tutorial 1- blockCV introduction: how to create block cross-validation folds.
 
 Please cite `blockCV` by: *Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods Ecol Evol. 2019; 10:225–232.* [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
 
@@ -78,7 +78,7 @@ tm_shape(rasters[[1]]) +
 
 Here, we generate two CV strategy, one k-fold CV using `cv_spatial` and one LOO CV using `cv_nndm`. See more options and configurations in the *Tutorial 1 - introduction to `blockCV`*.
 
-```{r}
+```{r message=TRUE, warning=TRUE}
 library(blockCV)
 
 ```

@@ -6,7 +6,7 @@
 #  remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
 #  
 
-## ---- results="hide", warning=FALSE, message=FALSE----------------------------
+## ----message=TRUE, warning=TRUE-----------------------------------------------
 # loading the package
 library(blockCV)
 
