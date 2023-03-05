@@ -308,9 +308,6 @@ cv_spatial <- function(
 
   # iteration for creating folds --------------------------------------------
 
-  if(!is.null(seed)){
-    set.seed(seed)
-  }
   # iteration if random selection, otherwise only 1 round
   for(i in seq_len(iteration)){
 
@@ -338,6 +335,9 @@ cv_spatial <- function(
       blocks_df <- blocks_df[, c("records", "block_id")] # to avoid repetition in iterations
       fold_df <- data.frame(block_id = seq_len(blocks_len), folds = 0)
       # create random folds with equal proportion
+      if(!is.null(seed)){
+        set.seed(seed)
+      }
       num <- floor(blocks_len / k)
       fold_df$folds[seq_len(num * k)] <- sample(rep(seq_len(k), num), num * k)
       if(blocks_len %% k != 0){
@@ -404,8 +404,10 @@ cv_spatial <- function(
     fold_vect <- fold_vect2
     biomod_table <- biomod_table2
   }
-  cat("\n")
-  if(report) print(train_test_table)
+  if(report){
+    cat("\n")
+    print(train_test_table)
+  }
 
   if(any(train_test_table < 1)){
     zerofolds <- which(apply(train_test_table, 1, function(x) any(x < 1)))

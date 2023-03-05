@@ -264,9 +264,7 @@ spatialBlock <- function(speciesData,
   nrowBlocks <- length(unique(subBlocksDF$blocks))
   maxNumRecord <- 0
   maxSD <- Inf
-  if(!is.null(seed)){
-    set.seed(seed)
-  }
+
   for(i in seq_len(iteration)){
     if(k > nrowBlocks){
       stop("'k' is bigger than the number of spatial blocks\n",
@@ -283,7 +281,10 @@ spatialBlock <- function(speciesData,
     } else if(selection=='random'){
       subBlocksDF <- subBlocksDF[, c("records", "blocks")] # to avoid repetition in iterations
       foldDF <- data.frame(blocks = seq_len(nrowBlocks), folds = 0)
-      # create random folds
+      # create random folds with equal proportion
+      if(!is.null(seed)){
+        set.seed(seed)
+      }
       num <- floor(nrowBlocks / k)
       foldDF$folds[seq_len(num * k)] <- sample(rep(seq_len(k), num), num * k)
       if(nrowBlocks %% k != 0){
