@@ -1,3 +1,9 @@
+# version 3.0.3
+# fixing a bug in counting records in the reporting of cv_spatial
+
+# version 3.0.2
+# fixing fold numbering of cv_spatial to reproducibility of ealier versions
+
 # version 3.0.1
 * Massive performance improvement in the C++ code of `cv_nndm` function for large datasets
 

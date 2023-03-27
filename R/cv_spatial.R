@@ -348,6 +348,8 @@ cv_spatial <- function(
       blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
     }
 
+    # reset the table to 0 for each iteration
+    train_test_table[] <- 0
     # count the number of points in each fold
     fold_list <- list()
     fold_vect <- rep(NA, nrow(blocks_df))
@@ -382,7 +384,6 @@ cv_spatial <- function(
         fold_list2 <- fold_list
         fold_vect2 <- fold_vect
         biomod_table2 <- biomod_table
-        iter <- i
       }
       if(progress){ # if iteration is higher than 5?
         utils::setTxtProgressBar(pb, i)
@@ -390,6 +391,7 @@ cv_spatial <- function(
     } else{
       break
     }
+
   }
 
   if(selection == "random"){ # return the best bloks, table etc.
