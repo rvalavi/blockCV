@@ -100,9 +100,7 @@ To see the practical examples of the package see:
 
 ## Basic usage
 
-The following is an example of using spatial block cross-validation for
-evaluation of species distribution modelling. You can find a
-comprehensive tutorial in the vignette of the package.
+This code snippet showcases some of the package's functionalities, but for more comprehensive tutorials, please refer to the vignette included with the package (and above).
 
 ``` r
 # loading the package
