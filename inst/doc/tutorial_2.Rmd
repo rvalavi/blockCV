@@ -15,7 +15,7 @@ vignette: >
 
 Species distribution models (SDMs) are widely used tools for predicting the potential distribution of a species based on environmental variables. However, it is crucial to evaluate the performance of these models to ensure their accuracy and reliability. One commonly used method for evaluating the performance of SDMs is **block cross-validation** (read more in *Valavi et al. 2019* and the Tutorial 1). This approach allows for a more robust evaluation of the model as it accounts for spatial autocorrelation and other spatial dependencies (Roberts et al. 2017). This document illustrates how to utilize the `blockCV` package to evaluate the performance of SDMs using block cross-validation.
 
-Three examples are provided: modelling using the `randomForest`, and `biomod2` packages.
+Two examples are provided: modelling using the `randomForest`, and `biomod2` packages.
 
 Check new updates of `blockCV` in the tutorial 1- blockCV introduction: how to create block cross-validation folds.
 
