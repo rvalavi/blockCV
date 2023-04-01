@@ -1,9 +1,3 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
-
 # blockCV <img src="man/figures/logo.png" align="right" width="120"/>
 
 [![R build
