@@ -161,7 +161,7 @@ print.cv_buffer <- function(x, ...){
 #' @export
 #' @method plot cv_buffer
 plot.cv_buffer <- function(x, ...){
-  message("Please use cv_plot function to plot each fold interactively.")
+  message("Please use cv_plot function to plot each fold.")
 }
 
 #' @export

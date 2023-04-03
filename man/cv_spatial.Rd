@@ -20,6 +20,7 @@ cv_spatial(
   deg_to_metre = 111325,
   biomod2 = TRUE,
   offset = c(0, 0),
+  extend = 0.5,
   seed = NULL,
   progress = TRUE,
   report = TRUE,
@@ -74,7 +75,12 @@ a \emph{data.split.table} for cross-validation.}
 \item{offset}{two number between 0 and 1 to shift blocks by that proportion of block size.
 This option only works when \code{size} is provided.}
 
-\item{seed}{integer; a random seed for reproducibility.}
+\item{extend}{numeric; This parameter specifies the percentage by which the map's extent is
+expanded to increase the size of the square spatial blocks, ensuring that all points fall
+within a block. The value should be a numeric between 0 and 5.}
+
+\item{seed}{integer; a random seed for reproducibility (although an external seed
+should also work).}
 
 \item{progress}{logical; whether to shows a progress bar for random fold selection.}
 

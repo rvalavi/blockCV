@@ -144,15 +144,11 @@ test_that("test cv_spatial with checkerboard assingment and only row blocks", {
 
 test_that("test cv_spatial with user-defined blocks", {
 
-  sb <- cv_spatial(x = pa_data,
-                   size = 450000,
-                   selection = "random",
-                   iteration = 1,
-                   biomod2 = FALSE,
-                   plot = FALSE)
+  # make a spatial block polygon
+  user_poly <- .make_blocks(x_obj = pa_data, blocksize = 450000)
 
   scv <- cv_spatial(x = pa_data,
-                    user_blocks = sb$blocks,
+                    user_blocks = user_poly,
                     selection = "random",
                     iteration = 5,
                     biomod2 = FALSE,

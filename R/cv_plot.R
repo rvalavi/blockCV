@@ -57,8 +57,7 @@ cv_plot <- function(
     label_size = 4
 ){
   # check for availability of ggplot2
-  pkg <- c("ggplot2")
-  .check_pkgs(pkg)
+  .check_pkgs(c("ggplot2"))
 
   if(!class(cv) %in% c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm")){
     stop("'cv' must be a blockCV cv_* object.")

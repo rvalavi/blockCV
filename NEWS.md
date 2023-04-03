@@ -1,3 +1,7 @@
+# version 3.1.0
+* the result of the `cv_spatial` function for square blocks now matches the one of version 2 function `spatialBlock` (i.e. fold assignment starts from top-right corner; this is not the case for hexagon blocks)
+* square spatial blocks are expanded 0.5 percent of the extent on each side (e.g. 1% on both left and right) to make sure no points fall outside on the border of the blocks. This can be controlled by `extend` parameter.
+
 # version 3.0.3
 # fixing a bug in counting records in the reporting of cv_spatial
 

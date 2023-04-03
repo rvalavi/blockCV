@@ -45,6 +45,10 @@ data for predictor variables.
 
 ## New updates of the version 3.0
 
+The latest version `blockCV` (v3.0) features significant updates and changes. All function names have been revised to more general names, beginning with `cv_*`. Although the previous functions (version 2.x) will continue to work, they will be removed in future updates after being available for an extended period. It is highly recommended to update your code with the new functions provided below.
+
+Some new updates:
+
 -   Function names have been changed, with all functions now starting
     with `cv_`
 -   The CV blocking functions are now: `cv_spatial`, `cv_cluster`,
@@ -68,11 +72,6 @@ data for predictor variables.
     disk.
 -   The new `cv_similarity` provides measures on possible extrapolation
     to testing folds
-
-**Note**: All function names have changed to more general names starting
-with `cv_*`. The old functions (v2.x) still work, but they will be
-removed in future versions after being available for an extended period.
-Please update your code with the new functions.
 
 ## Installation
 

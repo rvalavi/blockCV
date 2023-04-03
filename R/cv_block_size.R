@@ -168,5 +168,5 @@ cv_block_size <- function(r, # priority
     })
   }
   # starting the shiny app
-  shiny::shinyApp(ui = ui, server = server, )
+  shiny::shinyApp(ui = ui, server = server)
 }

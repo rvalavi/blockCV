@@ -66,69 +66,9 @@ spatialBlock <- function(speciesData,
 
   message("This function is deprecated! Please use 'cv_spatial' instead.")
 
-  # speciesData <- .check_x(speciesData, name = "speciesData")
-  #
-  # .check_pkgs("sf")
-  #
-  # if(!is.null(species)){
-  #   if(!species %in% colnames(speciesData)){
-  #     warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
-  #     species <- NULL
-  #   }
-  # }
-  #
-  # # checks for pre-defined folds
-  # if(selection == "predefined"){
-  #   if(is.null(foldsCol) || is.null(blocks)){
-  #     stop("The 'blocks' and 'foldsCol' should be specified for 'predefined' selection")
-  #   }
-  #   if(!foldsCol %in% colnames(blocks)){
-  #     stop(sprintf("There is no column named '%s' in 'blocks'.\n", foldsCol))
-  #   }
-  #   if(!is.numeric(blocks[,foldsCol, drop = TRUE])){
-  #     stop("The fold numbers in 'foldsCol' must be integer numbers.")
-  #   }
-  # }
-  #
-  # # change the r to terra object
-  # if(!is.null(rasterLayer)){
-  #   rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
-  # }
-  #
-  # out <- cv_spatial(
-  #   x = speciesData,
-  #   column = species,
-  #   r = rasterLayer,
-  #   k = k,
-  #   hexagon = FALSE,
-  #   flat_top = FALSE,
-  #   size = theRange,
-  #   rows_cols = c(rows, cols),
-  #   selection = selection,
-  #   iteration = iteration,
-  #   user_blocks = blocks,
-  #   folds_column = foldsCol,
-  #   deg_to_metre = degMetre,
-  #   biomod2 = biomod2Format,
-  #   offset = c(xOffset, yOffset),
-  #   seed = seed,
-  #   progress = progress,
-  #   report = verbose,
-  #   plot = showBlocks
-  # )
-  #
-  # theList <- list(folds = out$folds_list,
-  #                 foldID = out$folds_ids,
-  #                 biomodTable = out$biomod_table,
-  #                 k = k,
-  #                 blocks = sf::as_Spatial(out$blocks),
-  #                 species = out$column,
-  #                 range = out$size,
-  #                 plots = if(showBlocks) cv_plot(out) else NULL,
-  #                 records = out$records)
 
-
-
+  ##** this function is an old version function (from 2018) kept for compatibility of dependent packages **##
+  ##** see cv_spatial for newer version **##
 
   if(showBlocks){
     # check for availability of ggplot2

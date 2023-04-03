@@ -49,7 +49,31 @@ sb1 <- cv_spatial(x = pa_data,
                   biomod2 = TRUE) # also create folds for biomod2
 
 
+## ---- warning=FALSE, message=FALSE, fig.height=5, fig.width=7-----------------
+sb2 <- cv_spatial(x = pa_data,
+                  column = "occ",
+                  r = rasters,
+                  k = 5, 
+                  size = 350000, 
+                  hexagon = FALSE, # use square blocks
+                  selection = "random",
+                  progress = FALSE, # turn off progress bar for vignette
+                  iteration = 50, 
+                  biomod2 = TRUE)
+
+
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
+# systematic fold assignment 
+# and also use row/column for creating blocks instead of size
+sb2 <- cv_spatial(x = pa_data,
+                  column = "occ",
+                  rows_cols = c(12, 10),
+                  hexagon = FALSE,
+                  selection = "systematic")
+
+
+## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
+# checkerboard block to CV fold assignment
 sb4 <- cv_spatial(x = pa_data,
                   column = "occ",
                   size = 350000,

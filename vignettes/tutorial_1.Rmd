@@ -22,7 +22,7 @@ Please cite `blockCV` by: *Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita
 
 ## New updates of the version 3.0
 
-The latest version `blockCV v3.0` features significant updates and changes. All function names have been revised to more general names, beginning with `cv_*`. Although the previous functions (version 2.x) will continue to work, they will be removed in future updates. It is highly recommended to update your code with the new functions provided below.
+The latest version `blockCV` (v3.0) features significant updates and changes. All function names have been revised to more general names, beginning with `cv_*`. Although the previous functions (version 2.x) will continue to work, they will be removed in future updates after being available for an extended period. It is highly recommended to update your code with the new functions provided below.
 
 Some new updates:
 
@@ -128,11 +128,39 @@ sb1 <- cv_spatial(x = pa_data,
 
 ```
 
-The same setting can be used to create square blocks. You can optionally add a raster layer (using `r` argument) for to be used for creating blocks and be used in the background of the plot (raster can also be added later only for visualising blocks using `cv_plot`).
+The same setting can be used to create square blocks (by `hexagon = FALSE`). You can optionally add a raster layer (using `r` argument) for to be used for creating blocks and be used in the background of the plot (raster can also be added later only for visualising blocks using `cv_plot`).
+
+```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
+sb2 <- cv_spatial(x = pa_data,
+                  column = "occ",
+                  r = rasters,
+                  k = 5, 
+                  size = 350000, 
+                  hexagon = FALSE, # use square blocks
+                  selection = "random",
+                  progress = FALSE, # turn off progress bar for vignette
+                  iteration = 50, 
+                  biomod2 = TRUE)
+
+```
 
 The assignment of folds to each block can also be done in a systematic manner using `selection = "systematic"`, or a checkerboard pattern using `selection = "checkerboard"`. 
 
+
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
+# systematic fold assignment 
+# and also use row/column for creating blocks instead of size
+sb2 <- cv_spatial(x = pa_data,
+                  column = "occ",
+                  rows_cols = c(12, 10),
+                  hexagon = FALSE,
+                  selection = "systematic")
+
+```
+
+
+```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
+# checkerboard block to CV fold assignment
 sb4 <- cv_spatial(x = pa_data,
                   column = "occ",
                   size = 350000,

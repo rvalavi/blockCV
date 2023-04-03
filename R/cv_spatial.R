@@ -61,7 +61,11 @@
 #' a \emph{data.split.table} for cross-validation.
 #' @param offset two number between 0 and 1 to shift blocks by that proportion of block size.
 #' This option only works when \code{size} is provided.
-#' @param seed integer; a random seed for reproducibility.
+#' @param extend numeric; This parameter specifies the percentage by which the map's extent is
+#' expanded to increase the size of the square spatial blocks, ensuring that all points fall
+#' within a block. The value should be a numeric between 0 and 5.
+#' @param seed integer; a random seed for reproducibility (although an external seed
+#' should also work).
 #' @param progress logical; whether to shows a progress bar for random fold selection.
 #' @param report logical; whether to print the report of the records per fold.
 #' @param plot logical; whether to plot the final blocks with fold numbers in ggplot.
@@ -137,6 +141,7 @@ cv_spatial <- function(
     deg_to_metre = 111325,
     biomod2 = TRUE,
     offset = c(0, 0),
+    extend = 0.5,
     seed = NULL,
     progress = TRUE,
     report = TRUE,
@@ -147,10 +152,7 @@ cv_spatial <- function(
   # pre-run checks ----------------------------------------------------------
 
   # check for availability of ggplot2
-  if(plot){
-    pkg <- c("ggplot2")
-    .check_pkgs(pkg)
-  }
+  if(plot) .check_pkgs(c("ggplot2"))
   # check for selection arg
   selection <- match.arg(selection, choices = c("random", "systematic", "checkerboard", "predefined"))
   # check x is an sf object
@@ -160,7 +162,7 @@ cv_spatial <- function(
 
   # check for user_blocks format
   if(!is.null(user_blocks)){
-    user_blocks <- .check_x(user_blocks, name = user_blocks)
+    user_blocks <- .check_x(user_blocks, name = "user_blocks")
   }
   # checks for pre-defined folds
   if(selection == "predefined"){
@@ -184,13 +186,21 @@ cv_spatial <- function(
   # if hex; selection muse random or systematic
   if(hexagon && selection %in% c("checkerboard", "predefined")){
     selection <- "random"
-    message("Hexagon blocks can only be used with random or systematic selection!")
-    message("The random selection is used.")
+    message("Hexagon blocks can only be used with random or systematic selection!\nThe random selection is used.")
   }
 
-  if(selection == "checkerboard"){
-    k <- 2
-  }
+  if(selection=="checkerboard") k <- 2
+
+  tryCatch(
+    {
+      extend <- abs(extend)
+      extend <- min(5, extend)
+      extend <- max(0, extend) / 100
+    },
+    error = function(cond) {
+      message("'extend' must be a numeric value between 0 and 5.")
+    }
+  )
 
   # iterations --------------------------------------------------------------
 
@@ -216,48 +226,29 @@ cv_spatial <- function(
   # creating blocks ---------------------------------------------------------
 
   if(is.null(user_blocks)){
-    # select the object to make grid
-    x_obj <- if(is.null(r)) x else r
-
-    if(is.null(size)){
-      # select only row for hexagonal blocks
-      if(hexagon) rows_cols <- rows_cols[1]
-      blocks <- sf::st_make_grid(x_obj, n=rev(rows_cols), square=!hexagon, what="polygons", flat_topped=flat_top)
-    } else{
-      # convert metres to degrees
-      if(sf::st_is_longlat(x_obj)) size <- size / deg_to_metre
-      # prepare the offset values
-      offset <- size * (abs(offset) %% 1)
-      if(length(offset) < 2) offset[2] <- 0
-      xm <- as.numeric(sf::st_bbox(x_obj)[1])
-      ym <- as.numeric(sf::st_bbox(x_obj)[2])
-      xoff <- xm - offset[1]
-      yoff <- ym - offset[2]
-
-      tryCatch(
-        {
-          blocks <- sf::st_make_grid(x_obj,
-                                     cellsize = size,
-                                     offset = c(xoff, yoff),
-                                     square = !hexagon,
-                                     what = "polygons",
-                                     flat_topped = flat_top)
-        },
-        error = function(cond) {
-          message("Could not create spatial blocks! possibly because of using a very small block size.")
-          message("Remember, size is in metres not the unit of the CRS.")
-        }
-      )
-    }
+    # create rectangular and hexagonal spatial blocks using terra and sf packages
+    blocks <- .make_blocks(
+      x_obj = if(is.null(r)) x else r, # select the object to make grid
+      blocksize = size,
+      blockcols = rows_cols[2],
+      blockrows = rows_cols[1],
+      hexagonal = hexagon,
+      flat_top = flat_top,
+      extend_perc = extend,
+      degree = deg_to_metre,
+      xy_offset = offset,
+      checkerboard = ifelse(selection == "checkerboard", TRUE, FALSE)
+    )
   } else{
-    blocks <- sf::st_geometry(user_blocks)
+    # make sure user_blocks is a data.frame/sf
+    blocks <- if(methods::is(user_blocks, "sfc")) sf::st_sf(user_blocks) else user_blocks
   }
 
   ## subset the blocks by x
-  sub_blocks <- blocks[x]
-  blocks_len <- length(sub_blocks)
+  sub_blocks <- blocks[x, ]
+  blocks_len <- nrow(sub_blocks)
 
-  # The iteration must be a natural number
+  # k must be a natural number
   tryCatch(
     {
       k <- abs(as.integer(k))
@@ -266,7 +257,7 @@ cv_spatial <- function(
       message("'k' must be a natural number.")
     }
   )
-
+  # check k is not larger than len blocks
   if(k > blocks_len){
     stop("'k' is bigger than the number of spatial blocks: ", blocks_len, ".\n")
   } else if(k < 2){
@@ -276,20 +267,23 @@ cv_spatial <- function(
   # x and block intersection ------------------------------------------------
 
   ## do the intersection once and outside of the loop
-  blocks_df <- as.data.frame(sf::st_intersects(sf::st_geometry(x), sub_blocks))
+  blocks_df <- as.data.frame(
+    sf::st_intersects(sf::st_geometry(x), sf::st_geometry(sub_blocks))
+  )
   names(blocks_df) <- c("records", "block_id")
+  if(!is.null(seed)){
+    set.seed(seed)
+  }
   # randomly remove the repeated records occurred on the edges of blocks
   if(nrow(blocks_df) > nrow(x)){
-    if(!is.null(seed)){
-      set.seed(seed)
-    }
     blocks_df <- blocks_df[sample(nrow(blocks_df)), ]
     blocks_df <- blocks_df[!duplicated(blocks_df$records), ]
   } else if(nrow(blocks_df) < nrow(x) || anyNA(blocks_df)){
     nonoverlap <- nrow(x) - nrow(blocks_df)
-    warning("At least ", nonoverlap, " of the points are not within the defined spatial blocks")
+    warning("At least ", nonoverlap, " of the points are not within the defined spatial blocks!")
   }
 
+  # iteration for creating folds --------------------------------------------
   # create records table
   if(is.null(column)){
     train_test_table <- data.frame(train = rep(0, k), test = 0)
@@ -306,28 +300,29 @@ cv_spatial <- function(
   min_num <- 0
   max_sd <- Inf
 
-  # iteration for creating folds --------------------------------------------
-
   # iteration if random selection, otherwise only 1 round
   for(i in seq_len(iteration)){
 
     if(selection=='checkerboard'){
-      # use the full blocks for checkerboard pattern
-      blocks <- .fold_assign(blocks, n = 2, checkerboard = TRUE)
-      sub_blocks <- blocks[x, ]
-      sub_blocks$block_id <- seq_len(nrow(sub_blocks))
+      sub_blocks$folds <- sub_blocks$id
+      sub_blocks$block_id <- seq_len(blocks_len)
       fold_df <- sf::st_drop_geometry(sub_blocks)
       blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
     }
 
     if(selection=='systematic'){
-      sub_blocks <- .fold_assign(sub_blocks, n = k)
+      if(hexagon){
+        sub_blocks <- .fold_assign(sf::st_geometry(sub_blocks), n = k)
+      } else{
+        sub_blocks$block_id <- seq_len(blocks_len)
+        sub_blocks$folds <- rep(1:k, length.out = blocks_len)
+      }
       fold_df <- sf::st_drop_geometry(sub_blocks)
       blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
     }
 
     if(selection=='predefined'){
-      fold_df <- data.frame(block_id = seq_len(blocks_len), folds = user_blocks[, folds_column, drop = TRUE])
+      fold_df <- data.frame(block_id = seq_len(blocks_len), folds = sub_blocks[, folds_column, drop = TRUE])
       blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
     }
 
@@ -348,7 +343,7 @@ cv_spatial <- function(
       blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
     }
 
-    # reset the table to 0 for each iteration
+    # reset the table to 0s for each iteration
     train_test_table[] <- 0
     # count the number of points in each fold
     fold_list <- list()
@@ -394,10 +389,10 @@ cv_spatial <- function(
 
   }
 
-  if(selection == "random"){ # return the best bloks, table etc.
-    sub_blocks <- sf::st_sf(sub_blocks)
+  if(selection == "random"){ # return the best blocks, table etc.
+    # sub_blocks <- sf::st_sf(sub_blocks)
     sub_blocks$block_id <- seq_len(nrow(sub_blocks))
-    blocks_df_filter <- blocks_df2[,c("block_id","folds")]
+    blocks_df_filter <- blocks_df2[, c("block_id","folds")]
     blocks_df_filter <- blocks_df_filter[!duplicated(blocks_df_filter), ]
     sub_blocks <- merge(x = sub_blocks, y = blocks_df_filter, by = "block_id", all.x = TRUE)
     blocks_df <- blocks_df2
@@ -410,18 +405,19 @@ cv_spatial <- function(
     cat("\n")
     print(train_test_table)
   }
-
+  # throw warning if there is folds with zero cases
   if(any(train_test_table < 1)){
     zerofolds <- which(apply(train_test_table, 1, function(x) any(x < 1)))
     if(length(zerofolds) > 1){
-      warning("The folds ", paste(zerofolds, collapse = ", "), " have class(es) with zero records")
+      warning("Folds ", paste(zerofolds, collapse = ", "), " have class(es) with zero records")
     } else{
-      warning("The fold ", zerofolds, " has class(es) with zero records")
+      warning("Fold ", zerofolds, " has class(es) with zero records")
     }
   }
-
-  # remove the NA blocks
-  sub_blocks <- sub_blocks[stats::complete.cases(sub_blocks$folds), ]
+  # remove the NA blocks; not for user-blocks
+  if(is.null(user_blocks)){
+    sub_blocks <- sub_blocks[stats::complete.cases(sub_blocks$folds), ]
+  }
 
   # final objects for exporting
   final_objs <- list(
@@ -460,8 +456,12 @@ print.cv_spatial <- function(x, ...){
 #' @export
 #' @method plot cv_spatial
 plot.cv_spatial <- function(x, y, ...){
-  plot(x$blocks["folds"])
-  message("Please use cv_plot function to plot each fold")
+  if("folds" %in% names(x$blocks)){
+    plot(x$blocks["folds"])
+  } else{
+    plot(x$blocks)
+  }
+  message("Please use cv_plot function to plot each fold.")
 }
 
 
@@ -473,8 +473,163 @@ summary.cv_spatial <- function(object, ...){
 }
 
 
+# create rectangular and hexagonal spatial blocks using terra and sf packages
+.make_blocks <- function(x_obj,
+                         blocksize = NULL,
+                         blockcols = NULL,
+                         blockrows = NULL,
+                         hexagonal = FALSE,
+                         flat_top = FALSE,
+                         extend_perc = 0.005,
+                         degree = 111325,
+                         xy_offset = c(0, 0),
+                         checkerboard = FALSE){
+  # xpoints and rasters inputs are checked in the parent function (cv_spatial);
+  # so no need to check them here;
 
-# generate fold number in checkerboard pattern or systematic
+  # check if size/row/col are not all null
+  if(all(sapply(list(blocksize, blockcols, blockrows), is.null))){
+    stop("Size or the number of rows/columns should be defined for making spatial blocks.")
+  }
+  # extract the extent of the layer
+  mapext <- terra::ext(x_obj)[1:4]
+  # make sure offset is working only when size is provided
+  if(is.null(blocksize)){
+    xy_offset <- c(0, 0)
+  } else{
+    # ignore the integer part
+    tryCatch(
+      {
+        xy_offset <- blocksize * (abs(xy_offset) %% 1)
+      },
+      error = function(cond) {
+        message("Offsets should be numeric values between 0 and 1. For any higher values, only the decimal part is used.")
+      }
+    )
+    # and make x offset for vector of length 1
+    if(length(xy_offset) < 2) xy_offset[2] <- 0
+
+    # adjust blocksize & infer the wgs crs when missing
+    if(is.na(sf::st_crs(x_obj))){
+      if(all(mapext >= -180) && all(mapext <= 180)){
+        blocksize <- blocksize / degree
+        warning("The input layer has no CRS defined. Based on the extent of the input map it is assumed to have an un-projected reference system.")
+      }
+    } else{
+      # terra::is.lonlat is not working for sf objects currently
+      if(sf::st_is_longlat(x_obj)){
+        blocksize <- blocksize / degree
+      }
+    }
+  }
+
+  if(hexagonal){
+    # prepare offset values for hexagon
+    xm <- as.numeric(sf::st_bbox(x_obj)[1])
+    ym <- as.numeric(sf::st_bbox(x_obj)[2])
+    # make sure the shift match terra blocks
+    if(!xy_offset[1] %in% 0:1) xy_offset[1] <- 1 - xy_offset[1]
+    if(!xy_offset[2] %in% 0:1) xy_offset[2] <- 1 - xy_offset[2]
+    xoff <- xm - xy_offset[1]
+    yoff <- ym - xy_offset[2]
+    # calculate the hexagon size with size or nrow parameter similar to sf package
+    hexsize <- ifelse(is.null(blocksize),
+                      diff(sf::st_bbox(x_obj)[c(1, 3)]) / blockrows,
+                      blocksize)
+    # make the hexagonal blocks
+    tryCatch(
+      {
+        fishnet_poly <- sf::st_make_grid(
+          x_obj,
+          cellsize = hexsize,
+          offset = c(xoff, yoff),
+          square = FALSE,
+          what = "polygons",
+          flat_topped = flat_top
+        )
+      },
+      error = function(cond) {
+        message("Could not create spatial blocks! possibly because of using a very small block size.")
+        message("Remember, size is in metres not the unit of the CRS.")
+      }
+    )
+    # return sf/data.frame object
+    fishnet_poly <- sf::st_sf(fishnet_poly)
+    sf::st_geometry(fishnet_poly) <- "geometry"
+    fishnet_poly$id <- seq_len(nrow(fishnet_poly))
+
+  } else{
+    # keep the reference extent to advise on adding extra cells
+    ref_ext <- mapext
+    # add 1% on both side to guarantee all points fall inside blocks
+    xrange <- mapext["xmax"] - mapext["xmin"] # number of columns
+    yrange <- mapext["ymax"] - mapext["ymin"] # number of rows
+    mapext["xmin"] <- mapext["xmin"] - (xrange * extend_perc) # parenthesis for readability of code
+    mapext["xmax"] <- mapext["xmax"] + (xrange * extend_perc)
+    mapext["ymin"] <- mapext["ymin"] - (yrange * extend_perc)
+    mapext["ymax"] <- mapext["ymax"] + (yrange * extend_perc)
+    # make blocks based on blocksize and possible offsets
+    if(!is.null(blocksize)){
+      xPix <- ceiling(xrange / blocksize)
+      yPix <- ceiling(yrange / blocksize)
+      # calculate extra extent and divided by 2 to split on both sides
+      xdif <- ((xPix * blocksize) - xrange) / 2
+      ydif <- ((yPix * blocksize) - yrange) / 2
+      # add both extra extent and offset to mapext
+      mapext["xmin"] <- mapext["xmin"] - xdif + xy_offset[1]
+      mapext["xmax"] <- mapext["xmax"] + xdif + xy_offset[1]
+      mapext["ymin"] <- mapext["ymin"] - ydif + xy_offset[2]
+      mapext["ymax"] <- mapext["ymax"] + ydif + xy_offset[2]
+      # adding cells if needed and adjust the extent
+      if(mapext["xmin"] > ref_ext["xmin"]){ # add one column by increasing the extent and number of bins
+        mapext["xmin"] <- mapext["xmin"] - blocksize
+        xPix <- xPix + 1
+      }
+      if(mapext["ymin"] > ref_ext["ymin"]){
+        mapext["ymin"] <- mapext["ymin"] - blocksize
+        yPix <- yPix + 1
+      }
+      # now update blockcols and blockrows for making the blocks
+      # in this case priority is with blocksize rather than blockcols/blockrows
+      blockcols <- xPix
+      blockrows <- yPix
+    }
+
+    # make the raster blocks
+    fishnet <- terra::rast(
+      terra::ext(mapext),
+      nrows = max(1, blockrows, na.rm = TRUE), # make sure it runs when one is provided
+      ncols = max(1, blockcols, na.rm = TRUE),
+      crs = terra::crs(x_obj)
+    )
+
+    # add default cell values
+    terra::values(fishnet) <- seq_len(terra::ncell(fishnet))
+    # make checkerboard folds
+    if(checkerboard){
+      net_rows <- seq_len(terra::nrow(fishnet))
+      net_cols <- seq_len(terra::ncol(fishnet))
+      net_ncol <- terra::ncol(fishnet)
+      for(i in net_rows){
+        row_cells <- terra::cellFromRowCol(fishnet, row = i, col = net_cols)
+        if(i %% 2 == 0){
+          fishnet[row_cells] <- rep(1:2, length.out = net_ncol)
+        } else{
+          fishnet[row_cells] <- rep(2:1, length.out = net_ncol)
+        }
+      }
+    }
+
+    fishnet_poly <- terra::as.polygons(fishnet, dissolve = FALSE)
+    names(fishnet_poly) <- "id"
+    fishnet_poly <- sf::st_as_sf(fishnet_poly)
+  }
+
+  return(fishnet_poly)
+}
+
+
+# generate fold number in systematic selection for hexagonal blocks
 .fold_assign <- function(blocks, n, checkerboard=FALSE){
   # solve problems of digits in R
   old <- options("digits") # save away original options
