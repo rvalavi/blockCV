@@ -280,7 +280,8 @@ cv_spatial <- function(
     blocks_df <- blocks_df[!duplicated(blocks_df$records), ]
   } else if(nrow(blocks_df) < nrow(x) || anyNA(blocks_df)){
     nonoverlap <- nrow(x) - nrow(blocks_df)
-    warning("At least ", nonoverlap, " of the points are not within the defined spatial blocks!")
+    warning("At least ", nonoverlap, " of the points are not within the defined spatial blocks!\n")
+    warning("Consider using the 'extend' parameter to ensure points are covered by blocks e.g. extend = 0.5.")
   }
 
   # iteration for creating folds --------------------------------------------
