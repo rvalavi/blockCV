@@ -20,7 +20,7 @@ cv_spatial(
   deg_to_metre = 111325,
   biomod2 = TRUE,
   offset = c(0, 0),
-  extend = 0.5,
+  extend = 0,
   seed = NULL,
   progress = TRUE,
   report = TRUE,

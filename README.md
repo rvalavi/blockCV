@@ -28,7 +28,7 @@ data for predictor variables.
 ## Main features
 
 -   There are four blocking methods: **spatial**, **clustering**,
-    **buffers**, and **Nearest Neighbour Distance Matching (NNDM)**
+    **buffers**, and **NNDM** (Nearest Neighbour Distance Matching)
     blocks
 -   Several ways to construct spatial blocks
 -   The assignment of the spatial blocks to cross-validation folds can
