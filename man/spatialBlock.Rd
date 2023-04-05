@@ -24,6 +24,7 @@ spatialBlock(
   biomod2Format = TRUE,
   xOffset = 0,
   yOffset = 0,
+  extend = 0,
   seed = 42,
   progress = TRUE,
   verbose = TRUE
@@ -80,6 +81,10 @@ a \emph{DataSplitTable} for cross-validation.}
 The value is the proportion of block size.}
 
 \item{yOffset}{Numeric value between \strong{0} and \strong{1} for shifting the blocks vertically. The value is the proportion of block size.}
+
+\item{extend}{numeric; This parameter specifies the percentage by which the map's extent is
+expanded to increase the size of the square spatial blocks, ensuring that all points fall
+within a block. The value should be a numeric between 0 and 5.}
 
 \item{seed}{Integer. A random seed generator for reproducibility.}
 

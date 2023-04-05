@@ -5,18 +5,20 @@
 #' in a \strong{checkerboard pattern}. The distance (\code{size})
 #' should be in \strong{metres}, regardless of the unit of the reference system of
 #' the input data (for more information see the details section). By default,
-#' the function creates blocks according to the extent and shape of the spatial sample data (\code{x} e.g. the species occurrence),
-#' Alternatively, blocks can be created based on \code{r} assuming that the user has considered the
-#' landscape for the given species and case study.
+#' the function creates blocks according to the extent and shape of the spatial sample data (\code{x} e.g.
+#' the species occurrence), Alternatively, blocks can be created based on \code{r} assuming that the
+#' user has considered the landscape for the given species and case study.
 #' Blocks can also be offset so the origin is not at the outer corner of the rasters.
 #' Instead of providing a distance, the blocks can also be created by specifying a number of rows and/or
-#' columns and divide the study area into vertical or horizontal bins, as presented in Wenger & Olden (2012) and Bahn & McGill (2012).
-#' Finally, the blocks can be specified by a user-defined spatial polygon layer.
+#' columns and divide the study area into vertical or horizontal bins, as presented in Wenger & Olden (2012)
+#' and Bahn & McGill (2012). Finally, the blocks can be specified by a user-defined spatial polygon layer.
 #'
-#' To keep the consistency, all the functions use \strong{metres} as their unit. In this function, when the input map
-#' has geographic coordinate system (decimal degrees), the block size is calculated based on dividing \code{size} by
-#' \code{deg_to_metre} (111325 as default, the standard distance of a degree in metres, on the Equator) to change
-#' the unit to degree.
+#' To maintain consistency, all functions in this package use \strong{meters} as their unit of
+#' measurement. However, when the input map has a geographic coordinate system (in decimal degrees),
+#' the block size is calculated by dividing the \code{size} parameter by \code{deg_to_metre} (which
+#' defaults to 111325 meters, the standard distance of one degree of latitude on the Equator).
+#' This converts the unit to degrees, which varies along the latitude by a factor of the cosine of
+#' the latitude. So, a better value could be \code{cos(mean(sf::st_bbox(x)[c(2,4)]) * pi/180) * 111325}.
 #'
 #' The \code{offset} can be used to change the spatial position of the blocks. It can also be used to
 #' assess the sensitivity of analysis results to shifting in the blocking arrangements.
@@ -163,6 +165,11 @@ cv_spatial <- function(
   # check for user_blocks format
   if(!is.null(user_blocks)){
     user_blocks <- .check_x(user_blocks, name = "user_blocks")
+    # limit user defined blocks for checkerboard selection
+    if(selection=="checkerboard"){
+      warning("The checkerboard selection cannot be used with 'user_blocks`.\nThe random selection is used!")
+      selection <- "random"
+    }
   }
   # checks for pre-defined folds
   if(selection == "predefined"){
@@ -186,16 +193,15 @@ cv_spatial <- function(
   # if hex; selection muse random or systematic
   if(hexagon && selection %in% c("checkerboard", "predefined")){
     selection <- "random"
-    message("Hexagon blocks can only be used with random or systematic selection!\nThe random selection is used.")
+    message("Hexagon blocks can only be used with random or systematic selections!\nThe random selection is used.")
   }
 
   if(selection=="checkerboard") k <- 2
 
   tryCatch(
     {
-      extend <- abs(extend)
-      extend <- min(5, extend)
-      extend <- max(0, extend) / 100
+      extend <- abs(extend) # this correctly identifies invalid values rather than max(0, val)
+      extend <- min(5, extend) / 100
     },
     error = function(cond) {
       message("'extend' must be a numeric value between 0 and 5.")
@@ -281,7 +287,7 @@ cv_spatial <- function(
   } else if(nrow(blocks_df) < nrow(x) || anyNA(blocks_df)){
     nonoverlap <- nrow(x) - nrow(blocks_df)
     warning("At least ", nonoverlap, " of the points are not within the defined spatial blocks!\n")
-    warning("Consider using the 'extend' parameter to ensure points are covered by blocks e.g. extend = 0.5.")
+    message("Consider using the 'extend' parameter to ensure points are covered by blocks e.g. extend = 0.5.")
   }
 
   # iteration for creating folds --------------------------------------------
@@ -406,7 +412,7 @@ cv_spatial <- function(
     cat("\n")
     print(train_test_table)
   }
-  # throw warning if there is folds with zero cases
+  # throw a warning if there are folds with zero cases
   if(any(train_test_table < 1)){
     zerofolds <- which(apply(train_test_table, 1, function(x) any(x < 1)))
     if(length(zerofolds) > 1){
@@ -498,6 +504,11 @@ summary.cv_spatial <- function(object, ...){
   if(is.null(blocksize)){
     xy_offset <- c(0, 0)
   } else{
+    # make sure the shift match terra blocks
+    if(hexagonal){
+      if(!xy_offset[1] %in% 0:1) xy_offset[1] <- 1 - xy_offset[1]
+      if(!xy_offset[2] %in% 0:1) xy_offset[2] <- 1 - xy_offset[2]
+    }
     # ignore the integer part
     tryCatch(
       {
@@ -528,9 +539,6 @@ summary.cv_spatial <- function(object, ...){
     # prepare offset values for hexagon
     xm <- as.numeric(sf::st_bbox(x_obj)[1])
     ym <- as.numeric(sf::st_bbox(x_obj)[2])
-    # make sure the shift match terra blocks
-    if(!xy_offset[1] %in% 0:1) xy_offset[1] <- 1 - xy_offset[1]
-    if(!xy_offset[2] %in% 0:1) xy_offset[2] <- 1 - xy_offset[2]
     xoff <- xm - xy_offset[1]
     yoff <- ym - xy_offset[2]
     # calculate the hexagon size with size or nrow parameter similar to sf package

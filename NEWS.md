@@ -1,12 +1,18 @@
+# version 3.1.1
+* some internal fix.
+* the `extend` parameter is now added to `spatialBlock` and the function now uses `cv_spatial` internally.
+* the `user_blocks` in `cv_spatial` is restricted to random and predefined and systematic selection.
+* no `raster` package dependency
+
 # version 3.1.0
 * the result of the `cv_spatial` function for square blocks now matches the one of version 2 function `spatialBlock` (i.e. fold assignment starts from top-right corner; this is not the case for hexagon blocks)
 * square spatial blocks can be expanded to ensure no points fall outside the border of the blocks. This can be controlled by `extend` parameter now.
 
 # version 3.0.3
-# fixing a bug in counting records in the reporting of cv_spatial
+* fixing a bug in counting records in the reporting of `cv_spatial`
 
 # version 3.0.2
-# fixing fold numbering of cv_spatial to reproducibility of ealier versions
+* fixing fold numbering of `cv_spatial` to reproducibility of earlier versions
 
 # version 3.0.1
 * Massive performance improvement in the C++ code of `cv_nndm` function for large datasets
