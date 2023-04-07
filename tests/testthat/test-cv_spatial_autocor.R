@@ -3,8 +3,7 @@ aus <- system.file("extdata/au/", package = "blockCV") |>
   terra::rast()
 nl <- terra::nlyr(aus)
 
-pa_data <-
-  read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
+pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
   sf::st_as_sf(coords = c("x", "y"), crs = 7845)
 
 

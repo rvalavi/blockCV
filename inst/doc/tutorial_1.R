@@ -52,7 +52,7 @@ sb1 <- cv_spatial(x = pa_data,
 ## ---- warning=FALSE, message=FALSE, fig.height=5, fig.width=7-----------------
 sb2 <- cv_spatial(x = pa_data,
                   column = "occ",
-                  r = rasters,
+                  r = rasters, # optionally add a raster layer
                   k = 5, 
                   size = 350000, 
                   hexagon = FALSE, # use square blocks
@@ -65,7 +65,7 @@ sb2 <- cv_spatial(x = pa_data,
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
 # systematic fold assignment 
 # and also use row/column for creating blocks instead of size
-sb2 <- cv_spatial(x = pa_data,
+sb3 <- cv_spatial(x = pa_data,
                   column = "occ",
                   rows_cols = c(12, 10),
                   hexagon = FALSE,
@@ -128,7 +128,7 @@ cv_plot(cv = scv,
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=8------------------
 cv_plot(cv = bloo,
         x = pa_data,
-        num_plots = c(1, 50, 100)) 
+        num_plots = c(1, 50, 100)) # only show folds 1, 50 and 100
 
 
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------

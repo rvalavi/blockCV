@@ -123,8 +123,8 @@ To maintain consistency, all functions in this package use \strong{meters} as th
 measurement. However, when the input map has a geographic coordinate system (in decimal degrees),
 the block size is calculated by dividing the \code{size} parameter by \code{deg_to_metre} (which
 defaults to 111325 meters, the standard distance of one degree of latitude on the Equator).
-This converts the unit to degrees, which varies along the latitude by a factor of the cosine of
-the latitude. So, a better value could be \code{cos(mean(sf::st_bbox(x)[c(2,4)]) * pi/180) * 111325}.
+In reality, this value varies by a factor of the cosine of the latitude. So, an alternative sensible
+value could be \code{cos(mean(sf::st_bbox(x)[c(2,4)]) * pi/180) * 111325}.
 
 The \code{offset} can be used to change the spatial position of the blocks. It can also be used to
 assess the sensitivity of analysis results to shifting in the blocking arrangements.

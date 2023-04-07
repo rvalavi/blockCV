@@ -108,12 +108,14 @@ tm_shape(rasters[[1]]) +
 
 ## Block cross-validation strategies
 
+The `blockCV` stores training and testing folds in three different formats. The common format for all three blocking strategies is a list of the indices of observations in each fold. For `cv_spatial` and `cv_cluster` (but not `cv_buffer` and `cv_nndm`), the folds are also stored in a matrix format suitable for the `biomod2` package and a vector of fold's number for each observation. This is equal to the number of observation in spatial sample data (argument `x` in functions). These three formats are stored in the cv objects as `folds_list`, `biomod_table` and `folds_ids` respectively.
+
 ### Spatial blocks
-The function `cv_spatial` creates spatial blocks/polygons then assigns blocks to the training and testing folds with *random*, *checkerboard pattern* or a *systematic* way. Spatial blocks can be defined either by `size` or number of rows and columns.
+The function `cv_spatial` creates spatial blocks/polygons then assigns blocks to the training and testing folds with *random*, *checkerboard pattern* or a *systematic* way (with the selection argument). When `selection = "random"`, the function tries to find evenly distributed records in training and testing folds. Spatial blocks can be defined either by `size` or number of rows and columns.
 
-Consistent with other functions, the distance (`size`) should be in **metres**, regardless of the unit of the reference system of the input data. When the input map has *geographic coordinate system* (decimal degrees), the block size is calculated based on dividing `size` by 111325 (the standard distance of a degree in metres, on the Equator) to change metre to degree. This value can be changed by the user via the `deg_to_metre` argument.
+Consistent with other functions, the distance (`size`) should be in **metres**, regardless of the unit of the reference system of the input data. When the input map has *geographic coordinate system* (i.e. decimal degrees), the block size is calculated based on dividing `size` by 111325 (the standard distance of a degree in metres, on the Equator) to change metre to degree. In reality, this value varies by a factor of the cosine of the latitude. So,  an alternative sensible value could be `cos(mean(sf::st_bbox(x)[c(2,4)]) * pi/180) * 111325`.
 
-The `offset` can be used to shift the spatial position of the blocks in horizontal and vertical axes, respectively. This only works when the block have been built based on `size`. The blocks argument allows users to define an external spatial polygon as blocking layer.
+The `offset` argument can be used to shift the spatial position of the blocks in horizontal and vertical axes, respectively. This only works when the block have been built based on `size`, and the `extend` option allows user to enlarge the blocks ensuring all points fall inside the blocks (most effectve when `rows_cols` is used). The blocks argument allows users to define an external spatial polygon as blocking layer.
 
 Here are some spatial block settings:
 
@@ -128,12 +130,14 @@ sb1 <- cv_spatial(x = pa_data,
 
 ```
 
-The same setting can be used to create square blocks (by `hexagon = FALSE`). You can optionally add a raster layer (using `r` argument) for to be used for creating blocks and be used in the background of the plot (raster can also be added later only for visualising blocks using `cv_plot`).
+The output object is an R S3 object and you can get its elements by a `$`. Explore `sb1$folds_ids`, `sb1$folds_list`, and `sb1$biomod_table` for the three types of generated folds from the `cv_spatial` object `sb1`. Use the one suitable for you modelling practice to evaluate your models. See the explanation of all other outputs/elements of the function in the help file of the function.
+
+The same setting from previous code can be used to create square blocks by using `hexagon = FALSE`. You can optionally add a raster layer (using `r` argument) for to be used for creating blocks and be used in the background of the plot (raster can also be added later only for visualising blocks using `cv_plot`).
 
 ```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 sb2 <- cv_spatial(x = pa_data,
                   column = "occ",
-                  r = rasters,
+                  r = rasters, # optionally add a raster layer
                   k = 5, 
                   size = 350000, 
                   hexagon = FALSE, # use square blocks
@@ -144,13 +148,12 @@ sb2 <- cv_spatial(x = pa_data,
 
 ```
 
-The assignment of folds to each block can also be done in a systematic manner using `selection = "systematic"`, or a checkerboard pattern using `selection = "checkerboard"`. 
-
+The assignment of folds to each block can also be done in a systematic manner using `selection = "systematic"`, or a checkerboard pattern using `selection = "checkerboard"`. The blocks can also be created by number of rows and columns when no `size` is supplied by e.g. `rows_cols = c(12, 10)`.
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 # systematic fold assignment 
 # and also use row/column for creating blocks instead of size
-sb2 <- cv_spatial(x = pa_data,
+sb3 <- cv_spatial(x = pa_data,
                   column = "occ",
                   rows_cols = c(12, 10),
                   hexagon = FALSE,
@@ -158,6 +161,7 @@ sb2 <- cv_spatial(x = pa_data,
 
 ```
 
+The output report of the function shows that when the selection is set to 'random', the number of presence/absence instances in the train and test folds are more evenly distributed compared to when it is set to 'systematic'.
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 # checkerboard block to CV fold assignment
@@ -178,8 +182,6 @@ tm_shape(sb4$blocks) +
 
 ```
 
-The blocks can also be created by number of rows and columns when no `size` is supplied by e.g. `rows_cols = c(10, 2)`.
-
 
 ### Spatial and environemntal clustering
 
@@ -196,7 +198,7 @@ scv <- cv_cluster(x = pa_data,
 ```
 
 
-The clustering can be done in environmental space by supplying `r`. Notice, this could be an extreme case of cross-validation as the testing folds could possibly fall in novel environmental conditions than what the training points are (check `cv_similarity` for testing this). Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster value should be deleted prior to the analysis.
+The clustering can be done in environmental space by supplying `r`. Notice, this could be an extreme case of cross-validation as the testing folds could possibly fall in novel environmental conditions than what the training points are (check `cv_similarity` for testing this). Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster value should be deleted prior to the analysis or a different raster be used.
 
 ```{r warning=FALSE, message=FALSE}
 # environmental clustering
@@ -209,7 +211,7 @@ ecv <- cv_cluster(x = pa_data,
 
 ```
 
-When `r` is supplied, all the input rasters are first centred and scaled to avoid one raster variable dominate the clusters.
+When `r` is supplied, all the input rasters are first centred and scaled to avoid one raster variable dominate the clusters using `scale = TRUE` option.
 
 By default, the clustering will be done based only on the values of the predictors at the sample points. In this case, and the number of the folds will be the same as `k`. If `raster_cluster = TRUE`, the clustering is done in the raster space. In this approach, the clusters will be consistent throughout the region and across species (in the same region). However, this may result in cluster(s) that cover none of the species records especially when species data is not dispersed throughout the region (or environmental ranges) or the number of clusters (`k` or folds) is high. 
 
@@ -227,9 +229,10 @@ bloo <- cv_buffer(x = pa_data,
 
 ```
 
-For species **presence-absence** data and any other types of data (such as **continuous**, **counts**, and **multi-class** targets) keep `presence_bg = FALSE`. In this case, all sample points other than the target point within the buffer are excluded, and the training set comprises all points outside the buffer.
+When using species **presence-background** data (or presence and pseudo-absence), you need to supply the `column` and set `presence_bg = TRUE`. In this case, only presence points (1s) are considered as target points. For more information read the details section in the help of the function (i.e. `help(cv_buffer)`). 
+  
+For species **presence-absence** data and any other types of data (such as **continuous**, **counts**, and **multi-class** targets) keep `presence_bg = FALSE` (default). In this case, all sample points other than the target point within the buffer are excluded, and the training set comprises all points outside the buffer.
 
-When using species **presence-background** data (or presence and pseudo-absence), you need to supply the `column` and set `presence_bg = TRUE`. In this case, only presence points are considered as target points. For more information read the details section in the help of the function (i.e. `help(cv_buffer)`). 
 
 ## Nearest Neighbour Distance Matching (NNDM) LOO
 
@@ -250,7 +253,7 @@ nncv <- cv_nndm(x = pa_data,
 
 ## Visualising the folds
 
-You can visualise the generate folds for all block cross-validation strategies. You can optionally add a raster layer for background maps using `r` option. When `r` is supplied the plots might be slightly slower.
+You can visualise the generate folds for all block cross-validation strategies. You can optionally add a raster layer as background map using `r` option. When `r` is supplied the plots might be slightly slower.
 
 Let's plot spatial clustering folds created in previous section (using `cv_cluster`):
 
@@ -260,12 +263,12 @@ cv_plot(cv = scv,
 
 ```
 
-When `cv_buffer` is used for plotting, only first 10 folds are shown. You can choose any set of CV folds for plotting. If `remove_na = FALSE` (default is `TRUE`), the `NA` in legend shows the excluded points.
+When `cv_buffer` is used for plotting, only first 10 folds are shown. You can choose any set of CV folds for plotting. If `remove_na = FALSE` (default is `TRUE`), the `NA` in the legend shows the excluded points.
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=8}
 cv_plot(cv = bloo,
         x = pa_data,
-        num_plots = c(1, 50, 100)) 
+        num_plots = c(1, 50, 100)) # only show folds 1, 50 and 100
 
 ```
 
@@ -282,8 +285,7 @@ cv_plot(cv = sb1,
 
 ## Check similarity
 
-The `cv_similarity` function can check for environmental similarity between the training and testing folds and thus possible extrapolation. It computes multivariate environmental similarity surface (MESS) as described in Elith et al. (2010). MESS represents how similar a point in a testing fold is to a training fold (as a reference set of points), with respect to a set of predictor variables in `r`. The negative values are the sites where at least one variable has a value that is outside the range of environments over the reference set, so these are novel environments.
-
+The `cv_similarity` function can check for environmental similarity between the training and testing folds and thus possible extrapolation in the testing folds. It computes multivariate environmental similarity surface (MESS) as described in Elith et al. (2010). MESS represents how similar a point in a testing fold is to a training fold (as a reference set of points), with respect to a set of predictor variables in `r`. The negative values are the sites where at least one variable has a value that is outside the range of environments over the reference set, so these are novel environments.
 
 ```{r fig.height=4, fig.width=6}
 cv_similarity(cv = ecv, # the environmental clustering

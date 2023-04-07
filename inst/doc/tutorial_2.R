@@ -42,7 +42,7 @@ scv1 <- cv_spatial(
   size = 360000, # size of the blocks in metres
   selection = "random", # random blocks-to-fold
   iteration = 50, # find evenly dispersed folds
-  progress = FALSE, # trun off progress bar
+  progress = FALSE, # turn off progress bar
   biomod2 = TRUE, # also create folds for biomod2
   raster_colors = terrain.colors(10, rev = TRUE) # options from cv_plot for a better colour contrast
 ) 
@@ -64,7 +64,7 @@ scv2 <- cv_nndm(
   r = rasters,
   size = 360000, # range of spatial autocorrelation
   num_sample = 10000, # number of samples of prediction points
-  sampling = "regular", # sampling methods
+  sampling = "regular", # sampling methods; it can be random as well
   min_train = 0.1, # minimum portion to keep in each train fold
   plot = TRUE
 )
@@ -116,7 +116,8 @@ cv_plot(
 #  
 
 ## ----echo=FALSE---------------------------------------------------------------
-read.csv("../man/figures/roc_rf.csv")
+# to not run the model and reduce run time; result are calculated and loaded
+read.csv("../man/figures/roc_rf.csv") 
 
 
 ## ---- eval=FALSE, fig.height=3.7, fig.width=7---------------------------------
@@ -144,7 +145,7 @@ read.csv("../man/figures/roc_rf.csv")
 #  # use generated folds from cv_spatial in previous section
 #  spatial_cv_folds <- scv1$biomod_table
 #  
-#  # 3. Defining Models Options using default options.
+#  # 3. Defining Models Options; using default options here.
 #  biomod_options <- BIOMOD_ModelingOptions()
 #  
 #  # 4. Model fitting
@@ -162,4 +163,9 @@ read.csv("../man/figures/roc_rf.csv")
 #  biomod_model_eval <- get_evaluations(biomod_model_out)
 #  biomod_model_eval[c("run", "algo", "metric.eval", "calibration", "validation")]
 #  
+
+## ----echo=FALSE---------------------------------------------------------------
+# to not run the model and reduce run time; result are calculated and loaded
+read.csv("../man/figures/evl_biomod.csv") 
+
 
