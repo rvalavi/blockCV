@@ -94,7 +94,7 @@ cv_plot(
 #  
 #  # extract the fold indices from buffering object
 #  # created in the previous section
-#  # the folds_list works for all three blocking strategies
+#  # the folds_list works for all four blocking strategies
 #  folds <- scv2$folds_list
 #  
 #  # create a data.frame to store the prediction of each fold (record)

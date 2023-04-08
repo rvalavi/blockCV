@@ -161,7 +161,7 @@ sb3 <- cv_spatial(x = pa_data,
 
 ```
 
-The output report of the function shows that when the selection is set to 'random', the number of presence/absence instances in the train and test folds are more evenly distributed compared to when it is set to 'systematic'.
+The function's output report reveals that setting the selection to 'random' results in a more even distribution of presence/absence instances between the train and test folds compared to 'systematic'. This is because the random assignment process is repeated multiple times, controlled by the `iteration` parameter, to ensure that the folds are evenly distributed.
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 # checkerboard block to CV fold assignment
