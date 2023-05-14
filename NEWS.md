@@ -1,4 +1,7 @@
 # version 3.1.1
+* The *iteration* in `cv_spatial` and `spatialBlock` is increased to 100 to make the result matches with v2.1.4
+
+# version 3.1.1
 * some internal fix.
 * the `extend` parameter is now added to `spatialBlock` and the function now uses `cv_spatial` internally.
 * the `user_blocks` in `cv_spatial` is restricted to random and predefined and systematic selection.

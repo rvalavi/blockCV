@@ -137,7 +137,7 @@ cv_spatial <- function(
     size = NULL,
     rows_cols = c(10, 10),
     selection = "random",
-    iteration = 50L,
+    iteration = 100L,
     user_blocks = NULL,
     folds_column = NULL,
     deg_to_metre = 111325,
@@ -277,11 +277,11 @@ cv_spatial <- function(
     sf::st_intersects(sf::st_geometry(x), sf::st_geometry(sub_blocks))
   )
   names(blocks_df) <- c("records", "block_id")
-  if(!is.null(seed)){
-    set.seed(seed)
-  }
   # randomly remove the repeated records occurred on the edges of blocks
   if(nrow(blocks_df) > nrow(x)){
+    if(!is.null(seed)){
+      set.seed(seed)
+    }
     blocks_df <- blocks_df[sample(nrow(blocks_df)), ]
     blocks_df <- blocks_df[!duplicated(blocks_df$records), ]
   } else if(nrow(blocks_df) < nrow(x) || anyNA(blocks_df)){
@@ -307,16 +307,11 @@ cv_spatial <- function(
   min_num <- 0
   max_sd <- Inf
 
+  if(!is.null(seed)){
+    set.seed(seed)
+  }
   # iteration if random selection, otherwise only 1 round
   for(i in seq_len(iteration)){
-
-    if(selection=='checkerboard'){
-      sub_blocks$folds <- sub_blocks$id
-      sub_blocks$block_id <- seq_len(blocks_len)
-      fold_df <- sf::st_drop_geometry(sub_blocks)
-      blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
-    }
-
     if(selection=='systematic'){
       if(hexagon){
         sub_blocks <- .fold_assign(sf::st_geometry(sub_blocks), n = k)
@@ -328,8 +323,10 @@ cv_spatial <- function(
       blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
     }
 
-    if(selection=='predefined'){
-      fold_df <- data.frame(block_id = seq_len(blocks_len), folds = sub_blocks[, folds_column, drop = TRUE])
+    if(selection=='checkerboard'){
+      sub_blocks$folds <- sub_blocks$id
+      sub_blocks$block_id <- seq_len(blocks_len)
+      fold_df <- sf::st_drop_geometry(sub_blocks)
       blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
     }
 
@@ -337,16 +334,18 @@ cv_spatial <- function(
       blocks_df <- blocks_df[, c("records", "block_id")] # to avoid repetition in iterations
       fold_df <- data.frame(block_id = seq_len(blocks_len), folds = 0)
       # create random folds with equal proportion
-      if(!is.null(seed)){
-        set.seed(seed)
-      }
       num <- floor(blocks_len / k)
       fold_df$folds[seq_len(num * k)] <- sample(rep(seq_len(k), num), num * k)
       if(blocks_len %% k != 0){
         rest <- blocks_len %% k
-        unfold <- which(fold_df$folds==0)
+        unfold <- which(fold_df$folds == 0)
         fold_df$folds[unfold] <- sample(seq_len(k), rest, replace = FALSE)
       }
+      blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
+    }
+
+    if(selection=='predefined'){
+      fold_df <- data.frame(block_id = seq_len(blocks_len), folds = sub_blocks[, folds_column, drop = TRUE])
       blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
     }
 

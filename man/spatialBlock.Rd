@@ -13,7 +13,7 @@ spatialBlock(
   cols = NULL,
   k = 5L,
   selection = "random",
-  iteration = 50L,
+  iteration = 100L,
   blocks = NULL,
   foldsCol = NULL,
   numLimit = 0L,
@@ -54,7 +54,7 @@ This distance should be in \strong{metres}. The range could be explored by \code
 The checkerboard does not work with user-defined spatial blocks. If the selection = 'predefined', user-defined blocks and foldsCol must be supplied.}
 
 \item{iteration}{Integer value. The number of attempts to create folds that fulfil the set requirement for minimum number
-of points in each trainig and testing fold (for each response class e.g. \emph{train_0}, \emph{train_1}, \emph{test_0}
+of points in each training and testing fold (for each response class e.g. \emph{train_0}, \emph{train_1}, \emph{test_0}
 and \emph{test_1}), as specified by \code{species} and \code{numLimit} arguments.}
 
 \item{blocks}{A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all

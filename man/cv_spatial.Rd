@@ -14,7 +14,7 @@ cv_spatial(
   size = NULL,
   rows_cols = c(10, 10),
   selection = "random",
-  iteration = 50L,
+  iteration = 100L,
   user_blocks = NULL,
   folds_column = NULL,
   deg_to_metre = 111325,

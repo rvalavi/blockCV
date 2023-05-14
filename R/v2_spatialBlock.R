@@ -14,7 +14,7 @@
 #' @param selection Type of assignment of blocks into folds. Can be \strong{random} (default), \strong{systematic}, \strong{checkerboard}, or \strong{predefined}.
 #' The checkerboard does not work with user-defined spatial blocks. If the selection = 'predefined', user-defined blocks and foldsCol must be supplied.
 #' @param iteration Integer value. The number of attempts to create folds that fulfil the set requirement for minimum number
-#' of points in each trainig and testing fold (for each response class e.g. \emph{train_0}, \emph{train_1}, \emph{test_0}
+#' of points in each training and testing fold (for each response class e.g. \emph{train_0}, \emph{train_1}, \emph{test_0}
 #' and \emph{test_1}), as specified by \code{species} and \code{numLimit} arguments.
 #' @param blocks A sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
 #' the species (response) points. If the selection = 'predefined', this argument (and foldsCol) must be supplied.
@@ -52,7 +52,7 @@ spatialBlock <- function(speciesData,
                          cols = NULL,
                          k = 5L,
                          selection = "random",
-                         iteration = 50L,
+                         iteration = 100L,
                          blocks = NULL,
                          foldsCol = NULL,
                          numLimit = 0L,
