@@ -14,7 +14,7 @@ public:
 
   template<typename Matrix>
   explicit Lightweight_matrix(Matrix matrix):
-    Lightweight_matrix(matrix.nrow(), matrix.ncol()) {
+    rows_(matrix.nrow()), columns_(matrix.ncol()), matrix_(matrix.nrow() * matrix.ncol()) {
     for(int i(0); i < rows_; ++i) {
       for(int j(0); j < columns_; ++j) {
         operator()(i, j) = static_cast<T>(matrix(i, j));
@@ -54,7 +54,7 @@ Rcpp::NumericMatrix nndm_cpp(Rcpp::NumericMatrix X,
   const double na_value(-1.);
 
   // C++ representation of Gij
-  const std::vector<double> Gij_vec(Rcpp::as<std::vector<double>>(Gij));
+  const std::vector<double> Gij_vec(Rcpp::as<std::vector<double> >(Gij));
 
   // C++ representation of X
   Lightweight_matrix<double> X_cpp(X);
