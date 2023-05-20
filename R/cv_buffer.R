@@ -186,6 +186,7 @@ summary.cv_buffer <- function(object, ...){
   } else{
     cl <- sort(unique(x[, column, drop = TRUE]))
     clen <- length(cl)
+    .check_classes(clen, column) # column should be binary or categorical
     tt_count <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
     names(tt_count) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
     for(i in seq_len(n)){

@@ -177,7 +177,7 @@ cv_nndm <- function(
 
   # add background only if both true
   add_bg <- (presence_bg && add_bg)
-  # Note: in presnec-background, length of full-matrix is longer than msize
+  # Note: in presence-background, length of full-matrix is longer than msize
   fold_list <- lapply(1:n, function(i, pbag = add_bg){
     if(pbag){
       test_ids <- which(full_distmat[x_1s[i], ] <= msize[i])

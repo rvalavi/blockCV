@@ -24,7 +24,7 @@ rasters <- system.file("extdata/au/", package = "blockCV") |>
 
 
 ## ---- fig.height=4.5, fig.width=7.1-------------------------------------------
-# load species presence-asence data and convert to sf
+# load species presence-absence data and convert to sf
 points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 head(points)
 

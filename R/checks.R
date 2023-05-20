@@ -31,6 +31,22 @@
   return(column)
 }
 
+# column should be binary or categorical
+.check_classes <- function(clen, column, th = 15){
+  if(clen > th){
+    warning(
+      sprintf(
+        paste(
+          "The are too many unique values in '%s'.",
+          "Use 'column' only for binary or categorical responses",
+          "(ignore this if it is)"
+        ),
+        column
+      )
+    )
+  }
+}
+
 # check for r
 .check_r <- function(r, name = "r"){
   if(!methods::is(r, "SpatRaster")){

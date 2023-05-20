@@ -104,6 +104,19 @@ This code snippet showcases some of the package's functionalities, but for more 
 ``` r
 # loading the package
 library(blockCV)
+library(sf) # working with spatial vector data
+library(terra) # working with spatial raster data
+
+# load raster data
+# the pipe operator |> is available for R version 4.1 or higher
+myrasters <- system.file("extdata/au/", package = "blockCV") |>
+  list.files(full.names = TRUE) |>
+  terra::rast()
+
+# load species presence-absence data and convert to sf
+pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
+  sf::st_as_sf(coords = c("x", "y"), crs = 7845)
+
 
 # spatial blocking by specified range and random assignment
 sb <- cv_spatial(x = pa_data, # sf or SpatialPoints of sample data (e.g. species data)

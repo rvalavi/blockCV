@@ -160,6 +160,7 @@ cv_cluster <- function(
   } else{
     cl <- sort(unique(x[, column, drop = TRUE]))
     clen <- length(cl)
+    .check_classes(clen, column) # column should be binary or categorical
     train_test_table <- as.data.frame(matrix(0, nrow = k, ncol = clen * 2))
     names(train_test_table) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
   }
