@@ -38,8 +38,7 @@
       sprintf(
         paste(
           "The are too many unique values in '%s'.",
-          "Use 'column' only for binary or categorical responses",
-          "(ignore this if it is)"
+          "Use 'column' only for binary or categorical responses (ignore this if it is)."
         ),
         column
       )
