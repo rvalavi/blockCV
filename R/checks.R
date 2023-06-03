@@ -1,7 +1,7 @@
 # Author: Roozbeh Valavi
 # contact: valavi.r@gmail.com
-# Date : January 2023
-# Version 0.1
+# Date : May 2023
+# Version 0.2
 # Licence GPL v3
 
 # check for x
@@ -38,7 +38,7 @@
       sprintf(
         paste(
           "The are too many unique values in '%s'.",
-          "Use 'column' only for binary or categorical responses (ignore this if it is)."
+          "Use 'column' only for binary or categorical responses (ignore this if it is).\n"
         ),
         column
       )
