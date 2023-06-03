@@ -32,6 +32,8 @@ Suggests:
   automap (>= 1.0-16),
   shiny (>= 1.7),
   tmap (>= 2.0),
+  biomod2,
+  gstat,
   methods,
   knitr,
   rmarkdown,
