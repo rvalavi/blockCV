@@ -1,3 +1,7 @@
+# version 3.1.3
+* the `biomod2` and `gstat` packages are added to the Suggests section
+* Some minor edits in messages
+
 # version 3.1.2
 * The *iteration* in `cv_spatial` and `spatialBlock` is increased to 100 to make the result matches with v2.1.4
 * Removed the requirement of C++11
