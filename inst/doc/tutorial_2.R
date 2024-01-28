@@ -1,7 +1,7 @@
 ## ----echo=FALSE---------------------------------------------------------------
 options(scipen = 10)
 
-## ---- fig.height=5, fig.width=7.2, warning=FALSE, message=FALSE---------------
+## ----fig.height=5, fig.width=7.2, warning=FALSE, message=FALSE----------------
 library(sf) # working with spatial vector data
 library(terra) # working with spatial raster data
 library(tmap) # plotting maps
@@ -13,16 +13,16 @@ rasters <- system.file("extdata/au/", package = "blockCV") |>
   terra::rast()
 
 
-## ---- fig.height=4.5, fig.width=7.1-------------------------------------------
+## ----fig.height=4.5, fig.width=7.1--------------------------------------------
 # load species presence-asence data and convert to sf
 points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 head(points)
 
 
-## ---- fig.height=4.5, fig.width=7.1-------------------------------------------
+## ----fig.height=4.5, fig.width=7.1--------------------------------------------
 pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
-## ---- fig.height=4.5, fig.width=7.1-------------------------------------------
+## ----fig.height=4.5, fig.width=7.1--------------------------------------------
 tm_shape(rasters[[1]]) +
   tm_raster(legend.show = FALSE, n = 30, palette = gray.colors(10)) +
   tm_shape(pa_data) +
@@ -33,7 +33,7 @@ tm_shape(rasters[[1]]) +
 library(blockCV)
 
 
-## ---- fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
+## ----fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
 scv1 <- cv_spatial(
   x = pa_data,
   column = "occ", # the response column (binary or multi-class)
@@ -81,7 +81,7 @@ cv_plot(
   num_plots = c(1, 10, 100) # three of folds to plot
 )
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  # loading the libraries
 #  library(randomForest)
 #  library(precrec)
@@ -120,7 +120,7 @@ cv_plot(
 read.csv("../man/figures/roc_rf.csv") 
 
 
-## ---- eval=FALSE, fig.height=3.7, fig.width=7---------------------------------
+## ----eval=FALSE, fig.height=3.7, fig.width=7----------------------------------
 #  library(ggplot2)
 #  
 #  autoplot(precrec_obj)
@@ -144,21 +144,25 @@ read.csv("../man/figures/roc_rf.csv")
 #  # note that biomod_table should be used here not folds
 #  # use generated folds from cv_spatial in previous section
 #  spatial_cv_folds <- scv1$biomod_table
+#  # the new update of the package biomod2 (v4.2-3 <) requires the names to be as below
+#  # and the `data.split.table` argument is depricated.
+#  colnames(spatial_cv_folds) <- paste0("_allData_RUN", 1:ncol(spatial_cv_folds))
 #  
-#  # 3. Defining Models Options; using default options here.
+#  # 3. Defining Models Options; using default options here. You can use your own settting here.
 #  biomod_options <- BIOMOD_ModelingOptions()
 #  
 #  # 4. Model fitting
 #  biomod_model_out <- BIOMOD_Modeling(biomod_data,
 #                                      models = c('GLM','MARS','GBM'),
 #                                      bm.options = biomod_options,
-#                                      data.split.table = spatial_cv_folds,
+#                                      CV.strategy = "user.defined",
+#                                      CV.user.table	= spatial_cv_folds,
 #                                      var.import = 0,
 #                                      metric.eval = c('ROC'),
 #                                      do.full.models = TRUE)
 #  
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  # 5. Model evaluation
 #  biomod_model_eval <- get_evaluations(biomod_model_out)
 #  biomod_model_eval[c("run", "algo", "metric.eval", "calibration", "validation")]
