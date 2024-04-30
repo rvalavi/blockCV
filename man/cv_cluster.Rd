@@ -36,7 +36,7 @@ otherwise it will be over the extracted raster values of the sample points. See 
 \item{num_sample}{integer; the number of samples from raster layers to build the clusters (when \code{raster_cluster = FALSE}).}
 
 \item{biomod2}{logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
-a \emph{data.split.table} for cross-validation.}
+a \emph{CV.user.table} for cross-validation.}
 
 \item{report}{logical; whether to print the report of the records per fold.}
 

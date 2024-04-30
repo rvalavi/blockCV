@@ -2,6 +2,7 @@
 % Please edit documentation in R/blockCV.R
 \docType{package}
 \name{blockCV}
+\alias{blockCV-package}
 \alias{blockCV}
 \title{blockCV: Spatial and Environmental Blocking for K-Fold and LOO Cross-Validation}
 \description{

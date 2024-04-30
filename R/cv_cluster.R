@@ -183,7 +183,7 @@ cv_cluster <- function(
       train_test_table[i, which(cl %in% names(countrain))] <- countrain
       train_test_table[i, clen + which(cl %in% names(countest))] <- countest
     }
-    if(biomod2){ # creating a biomod2 data.split.table for validation
+    if(biomod2){ # creating a biomod2 CV.user.table for validation
       colm <- paste0("RUN", i)
       biomod_table[,colm] <- FALSE
       biomod_table[train_set, colm] <- TRUE
