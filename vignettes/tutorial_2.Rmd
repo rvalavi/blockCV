@@ -232,23 +232,22 @@ biomod_data <- BIOMOD_FormatingData(resp.var = pa_data$occ,
                                     resp.name = "occ",
                                     na.rm = TRUE)
 
-# 2. Defining the folds for data.split.table
+# 2. Defining the folds for CV.user.table
 # note that biomod_table should be used here not folds
 # use generated folds from cv_spatial in previous section
 spatial_cv_folds <- scv1$biomod_table
 # the new update of the package biomod2 (v4.2-3 <) requires the names to be as below
-# and the `data.split.table` argument is depricated.
 colnames(spatial_cv_folds) <- paste0("_allData_RUN", 1:ncol(spatial_cv_folds))
 
 # 3. Defining Models Options; using default options here. You can use your own settting here.
-biomod_options <- BIOMOD_ModelingOptions()
+biomod_options <- bm_ModelingOptions(data.type = "binary", strategy = "bigboss")
 
 # 4. Model fitting
 biomod_model_out <- BIOMOD_Modeling(biomod_data,
                                     models = c('GLM','MARS','GBM'),
-                                    bm.options = biomod_options,
                                     CV.strategy = "user.defined",
                                     CV.user.table	= spatial_cv_folds,
+                                    OPT.user = biomod_options,
                                     var.import = 0,
                                     metric.eval = c('ROC'),
                                     do.full.models = TRUE)
@@ -276,6 +275,6 @@ The `validation` column shows the result of spatial cross-validation and each RU
 
 - Roberts, D.R., Bahn, V., Ciuti, S., Boyce, M.S., Elith, J., Guillera-Arroita, G., Hauenstein, S., Lahoz-Monfort, J.J., Schröder, B., Thuiller, W., others, 2017. Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography. 40: 913-929.
 
-- Thuiller, W., Georges, D., Engler, R., & Breiner, F. (2017). biomod2: Ensemble Platform for Species Distribution Modeling. R package version 3.3-7. https://CRAN.R-project.org/package=biomod2.
+- Thuiller W, Georges D, Guéguen M, Engler R, Breiner F, Lafourcade B, Patin R, Blancheteau H (2024). biomod2: Ensemble Platform for Species Distribution Modeling. R package version 4.2-5. https://CRAN.R-project.org/package=biomod2.
 
 - Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. **blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models**. *Methods Ecol Evol.* 2019; 10:225–232. [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)

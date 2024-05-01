@@ -70,7 +70,7 @@ This argument is necessary if you choose the 'predefined' selection.}
 \item{deg_to_metre}{integer. The conversion rate of metres to degree. See the details section for more information.}
 
 \item{biomod2}{logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
-a \emph{data.split.table} for cross-validation.}
+a \emph{CV.user.table} for cross-validation.}
 
 \item{offset}{two number between 0 and 1 to shift blocks by that proportion of block size.
 This option only works when \code{size} is provided.}
@@ -178,5 +178,5 @@ validation. Methods Ecol. Evol. 3, 260-267.
 \seealso{
 \code{\link{cv_buffer}} and \code{\link{cv_cluster}}; \code{\link{cv_spatial_autocor}} and \code{\link{cv_block_size}} for selecting block size
 
-For \emph{data.split.table} see \code{\link[biomod2]{BIOMOD_cv}} in \pkg{biomod2} package
+For \emph{CV.user.table} see \code{\link[biomod2]{BIOMOD_Modeling}} in \pkg{biomod2} package
 }
