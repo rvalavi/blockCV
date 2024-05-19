@@ -27,7 +27,7 @@
 #' Valavi, R., Elith, J., Lahoz-Monfort, J. J., & Guillera-Arroita, G. (2019). blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods in Ecology and Evolution, 10(2), 225-232. doi:10.1111/2041-210X.13107.
 #'
 #' @name blockCV
-#' @docType package
+#' @docType "_PACKAGE"
 #' @author Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita
 #' @import sf
 NULL
