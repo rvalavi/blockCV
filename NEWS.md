@@ -1,3 +1,6 @@
+# version 3.1.4
+* the `biomod2` example is updated in vignettes; and the link in help file
+
 # version 3.1.3
 * the `biomod2` and `gstat` packages are added to the Suggests section
 * Some minor edits in messages

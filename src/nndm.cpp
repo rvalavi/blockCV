@@ -66,10 +66,10 @@ Rcpp::NumericMatrix nndm_cpp(Rcpp::NumericMatrix X,
   // along row i of X
   std::vector<int> Gjstar_indices(X.ncol());
   double rmin = std::numeric_limits<double>::infinity();
-  int imin;
-  for(int i=0; i<X_cpp.nrow() ;i++){
+  int imin = 0;
+  for(int i=0; i<X_cpp.nrow(); i++) {
     double minimum_i = std::numeric_limits<double>::infinity();
-    for(int j=0; j<X_cpp.ncol() ;j++){
+    for(int j=0; j<X_cpp.ncol(); j++){
       if(i != j && X_cpp(i, j) < minimum_i) {
         minimum_i = X_cpp(i, j);
         Gjstar_indices[i] = j;
@@ -85,7 +85,7 @@ Rcpp::NumericMatrix nndm_cpp(Rcpp::NumericMatrix X,
 
     // Number of entries of Gjstar that are less than rmin
     int Gjstar_less_than_rmin(0);
-    for(int i=0; i < Gjstar_indices.size(); i++){
+    for(std::size_t i = 0; i < Gjstar_indices.size(); i++){
       if(X_cpp(i, Gjstar_indices[i]) <= rmin){
         ++Gjstar_less_than_rmin;
       }
@@ -93,7 +93,7 @@ Rcpp::NumericMatrix nndm_cpp(Rcpp::NumericMatrix X,
 
     // Number of entries of Gij that are less than rmin
     int Gij_less_than_rmin(0);
-    for(int i=0; i < Gij_vec.size(); i++){
+    for(std::size_t i = 0; i < Gij_vec.size(); i++){
       if(Gij_vec[i] <= rmin){
         ++Gij_less_than_rmin;
       }
@@ -132,10 +132,10 @@ Rcpp::NumericMatrix nndm_cpp(Rcpp::NumericMatrix X,
           imin = i;
         }
       }
-    } else if( Gjstar_indices.size() == Gjstar_less_than_rmin ){
+    } else if( static_cast<int>(Gjstar_indices.size()) == Gjstar_less_than_rmin ){
       break;
     } else {
-      for(int i=0; i<Gjstar_indices.size(); i++){
+      for(std::size_t i = 0; i<Gjstar_indices.size(); i++){
         if(X_cpp(i, Gjstar_indices[i]) > rmin && X_cpp(i, Gjstar_indices[i]) < new_rmin) {
           new_rmin = X_cpp(i, Gjstar_indices[i]);
           imin = i;
