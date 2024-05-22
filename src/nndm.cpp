@@ -44,6 +44,7 @@ private:
   MatrixType matrix_;
 };
 
+
 // [[Rcpp::export]]
 Rcpp::NumericMatrix nndm_cpp(Rcpp::NumericMatrix X,
                              Rcpp::NumericVector Gij,
