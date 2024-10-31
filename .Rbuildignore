@@ -13,3 +13,4 @@ man/figures/logo.png
 tests/testthat/_snaps/
 tests/testthat/Rplots.pdf
 ^LICENSE\.md$
+cran.md

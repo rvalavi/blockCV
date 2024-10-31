@@ -1,3 +1,6 @@
+# version 3.1.5
+* Resolved background pattern artifacts in raster plotting; issue [#50](https://github.com/rvalavi/blockCV/issues/50) by Camila Neder.
+
 # version 3.1.4
 * Just the `biomod2` example is updated in vignettes; and the link in help file
 

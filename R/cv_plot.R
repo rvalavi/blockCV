@@ -76,16 +76,20 @@ cv_plot <- function(
 
   # make geom_tile for raster plots
   if(!is.null(r)){
-    map_df <- terra::spatSample(r,
-                                size = max_pixels,
-                                method = "regular",
-                                xy = TRUE,
-                                na.rm = TRUE)
+    map_df <- terra::as.data.frame(
+      x = terra::spatSample(
+        x = r,
+        size = max_pixels,
+        method = "regular",
+        as.raster = TRUE
+      ),
+      xy = TRUE,
+      na.rm = TRUE
+    )
     colnames(map_df) <- c("x", "y", "value")
 
     geom_rast <- ggplot2::geom_tile(
       data = map_df,
-      # ggplot2::aes(x = rlang::.data$x, y = rlang::.data$y, fill = rlang::.data$value))
       ggplot2::aes(x = get("x"), y = get("y"), fill = get("value")))
     geom_rast_col <- ggplot2::scale_fill_gradientn(colours = raster_colors)
   }
