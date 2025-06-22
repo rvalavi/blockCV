@@ -16,7 +16,6 @@ test_that("test that cv_plot function works",
             plt <- cv_plot(cv = scv, x = pa_data)
 
             expect_true(exists("plt"))
-            expect_s3_class(plt, "ggplot")
-            expect_type(plt, "list")
+            expect_true(ggplot2::is_ggplot(plt))
 
 })

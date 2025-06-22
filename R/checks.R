@@ -4,6 +4,20 @@
 # Version 0.2
 # Licence GPL v3
 
+# check points fall within the raster layer
+.check_within <- function(x, r) {
+  bbox <- sf::st_bbox(x)
+  ex <- terra::ext(r)
+
+  y <- bbox[1] >= terra::xmin(ex) &
+    bbox[3] <= terra::xmax(ex) &
+    bbox[2] >= terra::ymin(ex) &
+    bbox[4] <= terra::ymax(ex)
+
+  if(!y) stop("The x's bounding box lies outside the raster extent.")
+}
+
+
 # check for x
 .check_x <- function(x, name = "x"){
   if(!methods::is(x, "sf")){
@@ -46,6 +60,26 @@
   }
 }
 
+
+# check raster extent is valid
+.check_ext <- function(r) {
+  tryCatch(
+    {
+      e <- terra::ext(r)
+      vals <- e[1:4]
+    },
+    error = function(cond) {
+      stop("Failed to extract raster extent: ", conditionMessage(cond))
+    }
+  )
+
+  y <- all(is.finite(vals)) &&
+    (terra::xmax(e) > terra::xmin(e)) &&
+    (terra::ymax(e) > terra::ymin(e))
+
+  if (!y) stop("Invalid raster extent: values are non-finite, degenerate, or out of range.")
+}
+
 # check for r
 .check_r <- function(r, name = "r"){
   if(!methods::is(r, "SpatRaster")){
@@ -59,6 +93,8 @@
       }
     )
   }
+  .check_ext(r) # check for valid extent
+
   return(r)
 }
 
@@ -76,3 +112,4 @@
     }
   }
 }
+

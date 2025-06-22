@@ -5,9 +5,10 @@ status](https://github.com/rvalavi/blockCV/workflows/R-CMD-check/badge.svg)](htt
 [![codecov](https://codecov.io/gh/rvalavi/blockCV/branch/master/graph/badge.svg)](https://codecov.io/gh/rvalavi/blockCV)
 [![CRAN
 version](https://www.r-pkg.org/badges/version/blockCV)](https://CRAN.R-project.org/package=blockCV)
-[![total](https://cranlogs.r-pkg.org/badges/grand-total/blockCV)](https://www.rpackages.io/package/blockCV)
+[![total](https://cranlogs.r-pkg.org/badges/grand-total/blockCV)](https://CRAN.R-project.org/package=blockCV)
 [![License](https://img.shields.io/badge/license-GPL%20(%3E=%203)-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
 [![DOI](https://zenodo.org/badge/116337503.svg)](https://zenodo.org/badge/latestdoi/116337503)
+[![Methods in Ecology & Evolution](https://img.shields.io/badge/Methods%20in%20Ecology%20&%20Evolution-10,%20225-232-blue.svg)](https://doi.org/10.1111/2041-210X.13107)
 
 ### Spatial and environmental blocking for k-fold and LOO cross-validation
 

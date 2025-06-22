@@ -28,7 +28,7 @@ test_that("test spatialAutoRange function works", {
   expect_equal(nrow(range1$rangeTable), nl)
   expect_equal(length(range1$variograms), nl)
   expect_equal(dim(range1$rangeTable), c(nl, 3))
-  expect_s3_class(range1$plots[[1]], "ggplot")
+  expect_true(ggplot2::is_ggplot(range1$plots[[1]]))
   expect_s3_class(range1$variograms[[1]], "autofitVariogram")
   expect_s3_class(range1$rangeTable, "data.frame")
   expect_type(range1$variograms, "list")
@@ -56,7 +56,7 @@ test_that("test spatialAutoRange function with x", {
 
   expect_true(exists("range3"))
   expect_s3_class(range3, "SpatialAutoRange")
-  expect_s3_class(range3$plots[[1]], "ggplot")
+  expect_true(ggplot2::is_ggplot(range3$plots[[1]]))
   expect_s3_class(range3$variograms[[1]], "autofitVariogram")
   expect_type(range3$range, "double")
   expect_true(range3$range >= 0)

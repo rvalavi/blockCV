@@ -19,8 +19,7 @@ test_that("test that cv_similarity function works with cv_spatil",
             plt <- cv_similarity(cv = scv, x = pa_data, r = aus)
 
             expect_true(exists("plt"))
-            expect_s3_class(plt, "ggplot")
-            expect_type(plt, "list")
+            expect_true(ggplot2::is_ggplot(plt))
 
 })
 
@@ -35,7 +34,6 @@ test_that("test that cv_similarity function works with cv_buffer",
             plt <- cv_similarity(cv = bloo, x = pa_data, r = aus)
 
             expect_true(exists("plt"))
-            expect_s3_class(plt, "ggplot")
-            expect_type(plt, "list")
+            expect_true(ggplot2::is_ggplot(plt))
 
 })
