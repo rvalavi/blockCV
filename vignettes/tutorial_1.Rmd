@@ -22,7 +22,7 @@ Please cite `blockCV` by: *Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita
 
 ## New updates of the version 3.0
 
-The latest version `blockCV` (v3.0) features significant updates and changes. All function names have been revised to more general names, beginning with `cv_*`. Although the previous functions (version 2.x) will continue to work, they will be removed in future updates after being available for an extended period. It is highly recommended to update your code with the new functions provided below.
+The latest major version of `blockCV` (v3.0) features significant updates and changes. All function names have been revised to more general names, beginning with `cv_*`. Although the previous functions (version 2.x) will continue to work, they will be removed in future updates after being available for an extended period. It is highly recommended to update your code with the new functions provided below.
 
 Some new updates:
 
@@ -99,9 +99,17 @@ Let's plot the species data using [`tmap`](https://cran.r-project.org/package=tm
 
 ```{r, fig.height=4.5, fig.width=7.1}
 tm_shape(rasters[[1]]) +
-  tm_raster(legend.show = FALSE, n = 30, palette = gray.colors(10)) +
+  tm_raster(
+    col.scale = tm_scale_continuous(values = gray.colors(10)),
+    col.legend = tm_legend_hide()
+  ) +
   tm_shape(pa_data) +
-  tm_dots(col = "occ", style = "cat", size = 0.1)
+  tm_dots(
+    fill = "occ",
+    fill.scale = tm_scale_categorical(),
+    size = 0.5,
+    fill_alpha = 0.5
+  )
 
 ```
 
@@ -178,7 +186,10 @@ Let's visualise the checkerboard blocks with `tmap`:
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 tm_shape(sb4$blocks) +
-  tm_fill(col = "folds", style = "cat")
+  tm_fill(
+    fill = "folds",
+    fill.scale = tm_scale_categorical()
+  )
 
 ```
 

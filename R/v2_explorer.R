@@ -6,9 +6,9 @@
 #' @param rasterLayer deprecated!
 #' @param speciesData deprecated!
 foldExplorer <- function(blocks, rasterLayer, speciesData){
-  stop(
-    "This function is deprecated! Please use `cv_plot` function for plotting the folds."
-  )
+    stop(
+        "This function is deprecated! Please use `cv_plot` function for plotting the folds."
+    )
 }
 
 
@@ -37,28 +37,28 @@ rangeExplorer <- function(rasterLayer,
                           minRange=NULL,
                           maxRange=NULL){
 
-  message("This function is deprecated! Please use 'cv_block_size' instead.")
-  # check x is an sf object
-  if(!is.null(speciesData)){
-    speciesData <- .check_x(speciesData, name = "speciesData")
-  }
-
-  # is column in x?
-  if(!is.null(species)){
-    if(!species %in% colnames(speciesData)){
-      warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
-      species <- NULL
+    message("This function is deprecated! Please use 'cv_block_size' instead.")
+    # check x is an sf object
+    if(!is.null(speciesData)){
+        speciesData <- .check_x(speciesData, name = "speciesData")
     }
-  }
 
-  # check r
-  rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
+    # is column in x?
+    if(!is.null(species)){
+        if(!species %in% colnames(speciesData)){
+            warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
+            species <- NULL
+        }
+    }
 
-  cv_block_size(r = rasterLayer, # priority
-                x = speciesData,
-                column = species,
-                min_size = minRange,
-                max_size = maxRange)
+    # check r
+    rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
+
+    cv_block_size(r = rasterLayer, # priority
+                  x = speciesData,
+                  column = species,
+                  min_size = minRange,
+                  max_size = maxRange)
 
 
 }

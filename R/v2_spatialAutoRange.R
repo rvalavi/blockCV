@@ -37,74 +37,74 @@ spatialAutoRange <- function(rasterLayer,
                              progress = TRUE){
 
 
-  message("This function is deprecated! Please use 'cv_spatial_autocor' instead.")
+    message("This function is deprecated! Please use 'cv_spatial_autocor' instead.")
 
-  if(missing(rasterLayer)) stop("'rasterLayer' must be provided!")
+    if(missing(rasterLayer)) stop("'rasterLayer' must be provided!")
 
-  .check_pkgs(c("ggplot2", "terra"))
-  # check r
-  rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
-  # check r layers
-  if(terra::nlyr(rasterLayer) < 1){
-    stop("'rasterLayer' is not a valid raster.")
-  }
+    .check_pkgs(c("ggplot2", "terra"))
+    # check r
+    rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
+    # check r layers
+    if(terra::nlyr(rasterLayer) < 1){
+        stop("'rasterLayer' is not a valid raster.")
+    }
 
-  # check x is an sf object
-  if(!is.null(speciesData)){
-    speciesData <- .check_x(speciesData, name = "speciesData")
+    # check x is an sf object
+    if(!is.null(speciesData)){
+        speciesData <- .check_x(speciesData, name = "speciesData")
 
-    df <- terra::extract(rasterLayer, speciesData, ID = FALSE)
-    speciesData <- cbind(speciesData, df)
+        df <- terra::extract(rasterLayer, speciesData, ID = FALSE)
+        speciesData <- cbind(speciesData, df)
 
-    out <- cv_spatial_autocor(x = speciesData,
-                              column = names(df),
-                              deg_to_metre = degMetre,
-                              plot = showPlots,
-                              progress = progress)
-  } else{
+        out <- cv_spatial_autocor(x = speciesData,
+                                  column = names(df),
+                                  deg_to_metre = degMetre,
+                                  plot = showPlots,
+                                  progress = progress)
+    } else{
 
-    out <- cv_spatial_autocor(r = rasterLayer,
-                              num_sample = sampleNumber,
-                              deg_to_metre = degMetre,
-                              plot = showPlots,
-                              progress = progress)
-  }
+        out <- cv_spatial_autocor(r = rasterLayer,
+                                  num_sample = sampleNumber,
+                                  deg_to_metre = degMetre,
+                                  plot = showPlots,
+                                  progress = progress)
+    }
 
 
-  finalList <- list(range = out$range,
-                    rangeTable = out$range_table,
-                    plots = out$plots,
-                    sampleNumber = out$num_sample,
-                    variograms = out$variograms)
+    finalList <- list(range = out$range,
+                      rangeTable = out$range_table,
+                      plots = out$plots,
+                      sampleNumber = out$num_sample,
+                      variograms = out$variograms)
 
- 
-  # specify the output class
-  class(finalList) <- c("SpatialAutoRange")
-  return(finalList)
+
+    # specify the output class
+    class(finalList) <- c("SpatialAutoRange")
+    return(finalList)
 }
 
 
 #' @export
 #' @method print SpatialAutoRange
 print.SpatialAutoRange <- function(x, ...){
-  print(class(x))
+    print(class(x))
 }
 
 
 #' @export
 #' @method plot SpatialAutoRange
 plot.SpatialAutoRange <- function(x, y, ...){
-  if(length(x$plots) == 2){
-    plot(cowplot::plot_grid(x$plots[[1]], x$plots[[2]]))
-  } else{
-    plot(x$plots[[1]])
-  }
+    if(length(x$plots) == 2){
+        plot(cowplot::plot_grid(x$plots[[1]], x$plots[[2]]))
+    } else{
+        plot(x$plots[[1]])
+    }
 }
 
 #' @export
 #' @method summary SpatialAutoRange
 summary.SpatialAutoRange <- function(object, ...){
-  cat("Summary statistics of spatial autocorrelation ranges of all input layers:\n")
-  print(summary(object$rangeTable$range))
-  print(object$rangeTable[,1:2])
+    cat("Summary statistics of spatial autocorrelation ranges of all input layers:\n")
+    print(summary(object$rangeTable$range))
+    print(object$rangeTable[,1:2])
 }

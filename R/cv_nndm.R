@@ -77,185 +77,178 @@
 #'
 #' }
 cv_nndm <- function(
-    x,
-    column = NULL,
-    r,
-    size,
-    num_sample = 1e4,
-    sampling = "random",
-    min_train = 0.05,
-    presence_bg = FALSE,
-    add_bg = FALSE,
-    plot = TRUE,
-    report = TRUE
+        x,
+        column = NULL,
+        r,
+        size,
+        num_sample = 1e4,
+        sampling = "random",
+        min_train = 0.05,
+        presence_bg = FALSE,
+        add_bg = FALSE,
+        plot = TRUE,
+        report = TRUE
 ){
 
-  # check for sampling arg
-  sampling <- match.arg(sampling, choices = c("random", "regular"))
+    # check for sampling arg
+    sampling <- match.arg(sampling, choices = c("random", "regular"))
 
-  # check x is an sf object
-  x <- .check_x(x)
-  # is column in x?
-  column <- .check_column(column, x)
-  # x's CRS must be defined
-  if(is.na(sf::st_crs(x))){
-    stop("The coordinate reference system of 'x' must be defined.")
-  }
-
-  # check r
-  r <- .check_r(r)
-  r <- r[[1]]
-
-  # get the sample points form raster
-  tryCatch(
-    {
-      rx <- terra::spatSample(x = r,
-                              size = num_sample,
-                              method = sampling,
-                              values = FALSE,
-                              na.rm = TRUE,
-                              as.points = TRUE)
-    },
-    error = function(cond) {
-      message("Sampling raster failed!")
+    # check x is an sf object
+    x <- .check_x(x)
+    # is column in x?
+    column <- .check_column(column, x)
+    # x's CRS must be defined
+    if(is.na(sf::st_crs(x))){
+        stop("The coordinate reference system of 'x' must be defined.")
     }
-  )
-  # convert to sf object
-  rx <- sf::st_as_sf(rx)
 
-  if(presence_bg){
-    unqsp <- unique(x[, column, drop = TRUE])
-    if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
-      stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n", "The data should be numeric.\n")
-    }
-    # indices of presences
-    x_1s <- which(x[, column, drop = TRUE] == 1)
-  } else{
-    x_1s <- 1:nrow(x)
-  }
+    # check r
+    r <- .check_r(r)
+    r <- r[[1]]
 
-  # the k
-  n <- length(x_1s)
+    # get the sample points form raster
+    tryCatch(
+        {
+            rx <- terra::spatSample(
+                x = r,
+                size = num_sample,
+                method = sampling,
+                values = FALSE,
+                na.rm = TRUE,
+                as.points = TRUE
+            )
+        },
+        error = function(cond) {
+            message("Sampling raster failed!")
+        }
+    )
+    # convert to sf object
+    rx <- sf::st_as_sf(rx)
 
-  Gij <- sf::st_distance(rx, x[x_1s, ])
-  units(Gij) <- NULL
-  Gij <- apply(Gij, 1, min)
-
-  tdist <- sf::st_distance(x[x_1s, ])
-  units(tdist) <- NULL
-  full_distmat <- tdist # for calculating indices
-  diag(tdist) <- NA
-  Gj <- apply(tdist, 1, function(i) min(i, na.rm=TRUE))
-  Gjstar <- as.numeric(Gj)
-  # training points CDF
-  tp_cdf <- stats::ecdf(Gjstar)
-
-  # starting point
-  # rmin <- min(Gjstar)
-  # imin <- which.min(Gjstar)[1]
-  # jmin <- which(tdist[imin, ] == rmin)
-
-  # run nndm in cpp
-  distmat <- nndm_cpp(
-    X = tdist,
-    # Gjstar = Gjstar,
-    Gij = Gij,
-    # rmin = rmin,
-    # imin = as.numeric(imin) - 1,
-    # jmin = as.numeric(jmin) - 1,
-    phi = size,
-    min_train = min_train
-  )
-
-  msize <- apply(distmat, 1, function(x) min(x, na.rm=TRUE))
-
-  # get a complete dist matrix for PBG
-  if(presence_bg){
-    full_distmat <- sf::st_distance(x)
-    units(full_distmat) <- NULL
-  }
-
-  # add background only if both true
-  add_bg <- (presence_bg && add_bg)
-  # Note: in presence-background, length of full-matrix is longer than msize
-  fold_list <- lapply(1:n, function(i, pbag = add_bg){
-    if(pbag){
-      test_ids <- which(full_distmat[x_1s[i], ] <= msize[i])
-      inside <- x[test_ids, column, drop = TRUE]
-      test_set <- test_ids[which(inside == 0)]
-      test_set <- c(i, test_set)
+    if(presence_bg){
+        unqsp <- unique(x[, column, drop = TRUE])
+        if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
+            stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n", "The data should be numeric.\n")
+        }
+        # indices of presences
+        x_1s <- which(x[, column, drop = TRUE] == 1)
     } else{
-      test_set <- i
+        x_1s <- 1:nrow(x)
     }
-    list(as.numeric(which(full_distmat[x_1s[i], ] > msize[i])),
-         as.numeric(test_set))
-  }
-  )
-  # calculate train test table summary
-  if(report){
-    train_test_table <- .ttt(fold_list, x, column, n)
-    print(summary(train_test_table)[c(1,4,6), ])
-  }
 
-  # range for plotting
-  r_range <- seq(0, size, length.out = 200)
-  # prediction points CDF
-  pp_cdf <- stats::ecdf(Gij)
-  # NNDM CDF
-  fp_cdf <- stats::ecdf(msize)
-  # plotting datta
-  plot_data <- data.frame(pr = pp_cdf(r_range),
-                          lo = tp_cdf(r_range),
-                          nn = fp_cdf(r_range),
-                          r = r_range)
+    # the k
+    n <- length(x_1s)
 
-  plt <- ggplot2::ggplot(plot_data, ggplot2::aes(x = get("r"))) +
-    ggplot2::geom_step(alpha = 0.7, linewidth = 1.2, ggplot2::aes(y = get("pr"), color = "Prediciton")) +
-    ggplot2::geom_step(alpha = 0.7, linewidth = 0.6, ggplot2::aes(y = get("lo"), color = "LOO")) +
-    ggplot2::geom_step(alpha = 0.7, linewidth = 1.2, ggplot2::aes(y = get("nn"), color = "NNDM")) +
-    ggplot2::scale_color_manual(values = c("Prediciton" = "#000000",
-                                           "LOO" = "#56B4E9",
-                                           "NNDM" = "#E69F00")) +
-    ggplot2::labs(color = "", x = "r", y = expression(G[r])) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(legend.text = ggplot2::element_text(size = 12))
+    Gij <- sf::st_distance(rx, x[x_1s, ])
+    units(Gij) <- NULL
+    Gij <- apply(Gij, 1, min)
 
-  if(plot) plot(plt)
+    tdist <- sf::st_distance(x[x_1s, ])
+    units(tdist) <- NULL
+    full_distmat <- tdist # for calculating indices
+    diag(tdist) <- NA
+    Gj <- apply(tdist, 1, function(i) min(i, na.rm=TRUE))
+    Gjstar <- as.numeric(Gj)
+    # training points CDF
+    tp_cdf <- stats::ecdf(Gjstar)
 
-  final_objs <- list(
-    folds_list = fold_list,
-    k = n,
-    column = column,
-    size = size,
-    plot = plt,
-    presence_bg = presence_bg,
-    records = if(report) train_test_table else NULL
-  )
+    # run nndm in cpp
+    distmat <- nndm_cpp(
+        X = tdist,
+        Gij = Gij,
+        phi = size,
+        min_train = min_train
+    )
 
-  class(final_objs) <- c("cv_nndm")
-  return(final_objs)
+    msize <- apply(distmat, 1, function(x) min(x, na.rm=TRUE))
+
+    # get a complete dist matrix for PBG
+    if(presence_bg){
+        full_distmat <- sf::st_distance(x)
+        units(full_distmat) <- NULL
+    }
+
+    # add background only if both true
+    add_bg <- (presence_bg && add_bg)
+    # Note: in presence-background, length of full-matrix is longer than msize
+    fold_list <- lapply(1:n, function(i, pbag = add_bg){
+        if(pbag){
+            test_ids <- which(full_distmat[x_1s[i], ] <= msize[i])
+            inside <- x[test_ids, column, drop = TRUE]
+            test_set <- test_ids[which(inside == 0)]
+            test_set <- c(i, test_set)
+        } else{
+            test_set <- i
+        }
+        list(as.numeric(which(full_distmat[x_1s[i], ] > msize[i])),
+             as.numeric(test_set))
+    }
+    )
+    # calculate train test table summary
+    if(report){
+        train_test_table <- .ttt(fold_list, x, column, n)
+        print(summary(train_test_table)[c(1,4,6), ])
+    }
+
+    # range for plotting
+    r_range <- seq(0, size, length.out = 200)
+    # prediction points CDF
+    pp_cdf <- stats::ecdf(Gij)
+    # NNDM CDF
+    fp_cdf <- stats::ecdf(msize)
+    # plotting datta
+    plot_data <- data.frame(pr = pp_cdf(r_range),
+                            lo = tp_cdf(r_range),
+                            nn = fp_cdf(r_range),
+                            r = r_range)
+
+    plt <- ggplot2::ggplot(plot_data, ggplot2::aes(x = get("r"))) +
+        ggplot2::geom_step(alpha = 0.7, linewidth = 1.2, ggplot2::aes(y = get("pr"), color = "Prediciton")) +
+        ggplot2::geom_step(alpha = 0.7, linewidth = 0.6, ggplot2::aes(y = get("lo"), color = "LOO")) +
+        ggplot2::geom_step(alpha = 0.7, linewidth = 1.2, ggplot2::aes(y = get("nn"), color = "NNDM")) +
+        ggplot2::scale_color_manual(values = c("Prediciton" = "#000000",
+                                               "LOO" = "#56B4E9",
+                                               "NNDM" = "#E69F00")) +
+        ggplot2::labs(color = "", x = "r", y = expression(G[r])) +
+        ggplot2::theme_bw() +
+        ggplot2::theme(legend.text = ggplot2::element_text(size = 12))
+
+    if(plot) plot(plt)
+
+    final_objs <- list(
+        folds_list = fold_list,
+        k = n,
+        column = column,
+        size = size,
+        plot = plt,
+        presence_bg = presence_bg,
+        records = if(report) train_test_table else NULL
+    )
+
+    class(final_objs) <- c("cv_nndm")
+    return(final_objs)
 }
 
 #' @export
 #' @method print cv_nndm
 print.cv_nndm <- function(x, ...){
-  print(class(x))
+    print(class(x))
 }
 
 
 #' @export
 #' @method plot cv_nndm
 plot.cv_nndm <- function(x, y, ...){
-  plot(x$plot)
-  message("Please use cv_plot function to plot each fold.")
+    plot(x$plot)
+    message("Please use cv_plot function to plot each fold.")
 }
 
 
 #' @export
 #' @method summary cv_nndm
 summary.cv_nndm <- function(object, ...){
-  cat("Summary of number of recoreds in each training and testing fold:\n")
-  if(!is.null(object$records)){
-    print(summary(object$records)[c(1,4,6), ])
-  }
+    cat("Summary of number of recoreds in each training and testing fold:\n")
+    if(!is.null(object$records)){
+        print(summary(object$records)[c(1,4,6), ])
+    }
 }

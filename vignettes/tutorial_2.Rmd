@@ -68,9 +68,17 @@ Let's plot the species data using [`tmap`](https://cran.r-project.org/package=tm
 
 ```{r, fig.height=4.5, fig.width=7.1}
 tm_shape(rasters[[1]]) +
-  tm_raster(legend.show = FALSE, n = 30, palette = gray.colors(10)) +
+  tm_raster(
+    col.scale = tm_scale_continuous(values = gray.colors(10)),
+    col.legend = tm_legend_hide()
+  ) +
   tm_shape(pa_data) +
-  tm_dots(col = "occ", style = "cat", size = 0.1)
+  tm_dots(
+    fill = "occ",
+    fill.scale = tm_scale_categorical(),
+    size = 0.5,
+    fill_alpha = 0.5 
+  )
 
 ```
 

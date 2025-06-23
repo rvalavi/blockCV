@@ -1,3 +1,7 @@
+# version 3.1.6
+* Resolved unclear error messages; issue [#52](https://github.com/rvalavi/blockCV/issues/52) by A. Márcia Barbosa
+* Resolved ggplot testing failure; issue [#54](https://github.com/rvalavi/blockCV/issues/54) by Teun van den Brand
+
 # version 3.1.5
 * Resolved background pattern artifacts in raster plotting; issue [#50](https://github.com/rvalavi/blockCV/issues/50) by Camila Neder.
 

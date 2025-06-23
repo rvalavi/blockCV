@@ -68,99 +68,99 @@ spatialBlock <- function(speciesData,
                          progress = TRUE,
                          verbose = TRUE){
 
-  message("This function is deprecated! Please use 'cv_spatial' instead.")
+    message("This function is deprecated! Please use 'cv_spatial' instead.")
 
 
-  speciesData <- .check_x(speciesData, name = "speciesData")
+    speciesData <- .check_x(speciesData, name = "speciesData")
 
-  .check_pkgs("sf")
+    .check_pkgs("sf")
 
-  if(!is.null(species)){
-    if(!species %in% colnames(speciesData)){
-      warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
-      species <- NULL
+    if(!is.null(species)){
+        if(!species %in% colnames(speciesData)){
+            warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
+            species <- NULL
+        }
     }
-  }
 
-  # checks for pre-defined folds
-  if(selection == "predefined"){
-    if(is.null(foldsCol) || is.null(blocks)){
-      stop("The 'blocks' and 'foldsCol' should be specified for 'predefined' selection")
+    # checks for pre-defined folds
+    if(selection == "predefined"){
+        if(is.null(foldsCol) || is.null(blocks)){
+            stop("The 'blocks' and 'foldsCol' should be specified for 'predefined' selection")
+        }
+        if(!foldsCol %in% colnames(blocks)){
+            stop(sprintf("There is no column named '%s' in 'blocks'.\n", foldsCol))
+        }
+        if(!is.numeric(blocks[,foldsCol, drop = TRUE])){
+            stop("The fold numbers in 'foldsCol' must be integer numbers.")
+        }
     }
-    if(!foldsCol %in% colnames(blocks)){
-      stop(sprintf("There is no column named '%s' in 'blocks'.\n", foldsCol))
+
+    # change the r to terra object
+    if(!is.null(rasterLayer)){
+        rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
     }
-    if(!is.numeric(blocks[,foldsCol, drop = TRUE])){
-      stop("The fold numbers in 'foldsCol' must be integer numbers.")
-    }
-  }
 
-  # change the r to terra object
-  if(!is.null(rasterLayer)){
-    rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
-  }
+    out <- cv_spatial(
+        x = speciesData,
+        column = species,
+        r = rasterLayer,
+        k = k,
+        hexagon = FALSE,
+        flat_top = FALSE,
+        size = theRange,
+        rows_cols = c(rows, cols),
+        selection = selection,
+        iteration = iteration,
+        user_blocks = blocks,
+        folds_column = foldsCol,
+        deg_to_metre = degMetre,
+        biomod2 = biomod2Format,
+        offset = c(xOffset, yOffset),
+        extend = extend,
+        seed = seed,
+        progress = progress,
+        report = verbose,
+        plot = showBlocks
+    )
 
-  out <- cv_spatial(
-    x = speciesData,
-    column = species,
-    r = rasterLayer,
-    k = k,
-    hexagon = FALSE,
-    flat_top = FALSE,
-    size = theRange,
-    rows_cols = c(rows, cols),
-    selection = selection,
-    iteration = iteration,
-    user_blocks = blocks,
-    folds_column = foldsCol,
-    deg_to_metre = degMetre,
-    biomod2 = biomod2Format,
-    offset = c(xOffset, yOffset),
-    extend = extend,
-    seed = seed,
-    progress = progress,
-    report = verbose,
-    plot = showBlocks
-  )
+    theList <- list(folds = out$folds_list,
+                    foldID = out$folds_ids,
+                    biomodTable = out$biomod_table,
+                    k = k,
+                    # blocks = sf::as_Spatial(out$blocks),
+                    blocks = out$blocks,
+                    species = out$column,
+                    range = out$size,
+                    plots = if(showBlocks) cv_plot(out) else NULL,
+                    records = out$records)
 
-  theList <- list(folds = out$folds_list,
-                  foldID = out$folds_ids,
-                  biomodTable = out$biomod_table,
-                  k = k,
-                  # blocks = sf::as_Spatial(out$blocks),
-                  blocks = out$blocks,
-                  species = out$column,
-                  range = out$size,
-                  plots = if(showBlocks) cv_plot(out) else NULL,
-                  records = out$records)
-
-  class(theList) <- c("SpatialBlock")
-  return(theList)
+    class(theList) <- c("SpatialBlock")
+    return(theList)
 }
 
 
 #' @export
 #' @method print SpatialBlock
 print.SpatialBlock <- function(x, ...){
-  print(class(x))
+    print(class(x))
 }
 
 
 #' @export
 #' @method plot SpatialBlock
 plot.SpatialBlock <- function(x, y, ...){
-  if(is.null(x$plots)){
-    plot(x$blocks)
-  } else{
-    plot(x$plots)
-  }
-  message("Please use foldExplorer function to plot each fold interactively.")
+    if(is.null(x$plots)){
+        plot(x$blocks)
+    } else{
+        plot(x$plots)
+    }
+    message("Please use foldExplorer function to plot each fold interactively.")
 }
 
 
 #' @export
 #' @method summary SpatialBlock
 summary.SpatialBlock <- function(object, ...){
-  cat("Number of recoreds in each training and testing fold:\n")
-  print(object$records)
+    cat("Number of recoreds in each training and testing fold:\n")
+    print(object$records)
 }

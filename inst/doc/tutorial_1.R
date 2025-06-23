@@ -1,10 +1,10 @@
 ## ----eval=FALSE---------------------------------------------------------------
-#  # install stable version from CRAN
-#  install.packages("blockCV", dependencies = TRUE)
-#  
-#  # install latest update from GitHub
-#  remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
-#  
+# # install stable version from CRAN
+# install.packages("blockCV", dependencies = TRUE)
+# 
+# # install latest update from GitHub
+# remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
+# 
 
 ## ----message=TRUE, warning=TRUE-----------------------------------------------
 # loading the package
@@ -34,9 +34,17 @@ pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
 ## ----fig.height=4.5, fig.width=7.1--------------------------------------------
 tm_shape(rasters[[1]]) +
-  tm_raster(legend.show = FALSE, n = 30, palette = gray.colors(10)) +
+  tm_raster(
+    col.scale = tm_scale_continuous(values = gray.colors(10)),
+    col.legend = tm_legend_hide()
+  ) +
   tm_shape(pa_data) +
-  tm_dots(col = "occ", style = "cat", size = 0.1)
+  tm_dots(
+    fill = "occ",
+    fill.scale = tm_scale_categorical(),
+    size = 0.5,
+    fill_alpha = 0.5
+  )
 
 
 ## ----results='hide', fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7----
@@ -83,7 +91,10 @@ sb4 <- cv_spatial(x = pa_data,
 
 ## ----warning=FALSE, message=FALSE, fig.height=5, fig.width=7------------------
 tm_shape(sb4$blocks) +
-  tm_fill(col = "folds", style = "cat")
+  tm_fill(
+    fill = "folds",
+    fill.scale = tm_scale_categorical()
+  )
 
 
 ## -----------------------------------------------------------------------------
@@ -170,19 +181,19 @@ plot(sac2$variograms[[1]])
 
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  cv_block_size(r = rasters)
-#  
+# cv_block_size(r = rasters)
+# 
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  cv_block_size(x = pa_data,
-#                column = "occ") # optionally add the response
-#  
+# cv_block_size(x = pa_data,
+#               column = "occ") # optionally add the response
+# 
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  cv_block_size(x = pa_data,
-#                column = "occ",
-#                r = rasters,
-#                min_size = 2e5,
-#                max_size = 9e5)
-#  
+# cv_block_size(x = pa_data,
+#               column = "occ",
+#               r = rasters,
+#               min_size = 2e5,
+#               max_size = 9e5)
+# 
 

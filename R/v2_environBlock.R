@@ -29,78 +29,78 @@ envBlock <- function(rasterLayer,
                      numLimit = 0,
                      verbose = TRUE){
 
-  message("This function is deprecated! Please use 'cv_cluster' instead.")
+    message("This function is deprecated! Please use 'cv_cluster' instead.")
 
-  if(missing(rasterLayer)) stop("'rasterLayer' must br provided!")
-  if(missing(speciesData)) stop("'speciesData' must br provided!")
+    if(missing(rasterLayer)) stop("'rasterLayer' must br provided!")
+    if(missing(speciesData)) stop("'speciesData' must br provided!")
 
-  # check x is an sf object
-  speciesData <- .check_x(speciesData, name = "speciesData")
+    # check x is an sf object
+    speciesData <- .check_x(speciesData, name = "speciesData")
 
-  # is column in x?
-  if(!is.null(species)){
-    if(!species %in% colnames(speciesData)){
-      warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
-      species <- NULL
+    # is column in x?
+    if(!is.null(species)){
+        if(!species %in% colnames(speciesData)){
+            warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
+            species <- NULL
+        }
     }
-  }
 
-  # check r
-  rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
-  # check r layers
-  if(terra::nlyr(rasterLayer) < 1){
-    stop("'rasterLayer' is not a valid raster.")
-  }
+    # check r
+    rasterLayer <- .check_r(rasterLayer, name = "rasterLayer")
+    # check r layers
+    if(terra::nlyr(rasterLayer) < 1){
+        stop("'rasterLayer' is not a valid raster.")
+    }
 
-  scale <- ifelse(standardization == "none", FALSE, TRUE)
+    scale <- ifelse(standardization == "none", FALSE, TRUE)
 
-  # scale?
-  if(scale){
-    tryCatch(
-      {
-        rasterLayer <- terra::scale(rasterLayer)
-      },
-      error = function(cond) {
-        message("Normalising the raster failed!")
-      }
+    # scale?
+    if(scale){
+        tryCatch(
+            {
+                rasterLayer <- terra::scale(rasterLayer)
+            },
+            error = function(cond) {
+                message("Normalising the raster failed!")
+            }
+        )
+    }
+
+
+    out <- cv_cluster(x = speciesData,
+                      column = species,
+                      r = rasterLayer,
+                      k = k,
+                      scale = scale,
+                      raster_cluster = rasterBlock,
+                      num_sample = sampleNumber,
+                      biomod2 = biomod2Format,
+                      report = verbose)
+
+    theList <- list(
+        folds = out$folds_list,
+        foldID = out$folds_ids,
+        biomodTable = out$biomod_table,
+        k = k,
+        species = out$column,
+        records = out$records
     )
-  }
 
 
-  out <- cv_cluster(x = speciesData,
-                    column = species,
-                    r = rasterLayer,
-                    k = k,
-                    scale = scale,
-                    raster_cluster = rasterBlock,
-                    num_sample = sampleNumber,
-                    biomod2 = biomod2Format,
-                    report = verbose)
-
-  theList <- list(
-    folds = out$folds_list,
-    foldID = out$folds_ids,
-    biomodTable = out$biomod_table,
-    k = k,
-    species = out$column,
-    records = out$records
-  )
-
-
-  class(theList) <- c("EnvironmentalBlock")
-  return(theList)
+    class(theList) <- c("EnvironmentalBlock")
+    return(theList)
 }
 
 
 #' @export
 #' @method print EnvironmentalBlock
 print.EnvironmentalBlock <- function(x, ...){
-  print(class(x))
+    print(class(x))
 }
 
 #' @export
 #' @method summary EnvironmentalBlock
 summary.EnvironmentalBlock <- function(object, ...){
-  print("Number of recoreds in each category")
-  print(object$records)
+    print("Number of recoreds in each category")
+    print(object$records)
 }

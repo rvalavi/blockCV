@@ -73,131 +73,131 @@
 #'
 #' }
 cv_buffer <- function(
-    x,
-    column = NULL,
-    size,
-    presence_bg = FALSE,
-    add_bg = FALSE,
-    progress = TRUE,
-    report = TRUE
+        x,
+        column = NULL,
+        size,
+        presence_bg = FALSE,
+        add_bg = FALSE,
+        progress = TRUE,
+        report = TRUE
 ){
 
-  # check x is an sf object
-  x <- .check_x(x)
-  # is column in x?
-  column <- .check_column(column, x)
+    # check x is an sf object
+    x <- .check_x(x)
+    # is column in x?
+    column <- .check_column(column, x)
 
-  # x's CRS must be defined
-  if(is.na(sf::st_crs(x))){
-    stop("The coordinate reference system of 'x' must be defined.")
-  }
-
-  if(is.null(column) && presence_bg) stop("'column' must be provided for presence-background data.")
-
-
-  # distance matrix by sf
-  dmatrix <- sf::st_distance(x)
-  units(dmatrix) <- NULL
-
-  if(presence_bg){
-    unqsp <- unique(x[, column, drop = TRUE])
-    if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
-      stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n", "The data should be numeric.\n")
+    # x's CRS must be defined
+    if(is.na(sf::st_crs(x))){
+        stop("The coordinate reference system of 'x' must be defined.")
     }
-    # indices of presences
-    x_1s <- which(x[, column, drop = TRUE] == 1)
-  } else{
-    x_1s <- 1:nrow(x)
-  }
 
-  # the k
-  n <- length(x_1s)
+    if(is.null(column) && presence_bg) stop("'column' must be provided for presence-background data.")
 
-  # add background only if both true
-  add_bg <- (presence_bg && add_bg)
 
-  if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
-  fold_list <- lapply(x_1s, function(i, pbag = add_bg){
-    if(pbag){
-      test_ids <- which(dmatrix[i, ] <= size)
-      inside <- x[test_ids, column, drop = TRUE]
-      test_set <- test_ids[which(inside == 0)]
-      test_set <- c(test_set, i) # change this back
+    # distance matrix by sf
+    dmatrix <- sf::st_distance(x)
+    units(dmatrix) <- NULL
+
+    if(presence_bg){
+        unqsp <- unique(x[, column, drop = TRUE])
+        if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
+            stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n", "The data should be numeric.\n")
+        }
+        # indices of presences
+        x_1s <- which(x[, column, drop = TRUE] == 1)
     } else{
-      test_set <- i
+        x_1s <- 1:nrow(x)
     }
-    if(progress) utils::setTxtProgressBar(pb, i)
-    list(as.numeric(which(dmatrix[i, ] > size)),
-         as.numeric(test_set))
-  }
-  )
 
-  # calculate train test table summary
-  if(report){
-    train_test_table <- .ttt(fold_list, x, column, n)
-    print(summary(train_test_table)[c(1,4,6), ])
-  }
+    # the k
+    n <- length(x_1s)
 
-  final_objs <- list(
-    folds_list = fold_list,
-    k = n,
-    column = column,
-    size = size,
-    presence_bg = presence_bg,
-    records = if(report) train_test_table else NULL
-  )
+    # add background only if both true
+    add_bg <- (presence_bg && add_bg)
 
-  class(final_objs) <- c("cv_buffer")
-  return(final_objs)
+    if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
+    fold_list <- lapply(x_1s, function(i, pbag = add_bg){
+        if(pbag){
+            test_ids <- which(dmatrix[i, ] <= size)
+            inside <- x[test_ids, column, drop = TRUE]
+            test_set <- test_ids[which(inside == 0)]
+            test_set <- c(test_set, i) # change this back
+        } else{
+            test_set <- i
+        }
+        if(progress) utils::setTxtProgressBar(pb, i)
+        list(as.numeric(which(dmatrix[i, ] > size)),
+             as.numeric(test_set))
+    }
+    )
+
+    # calculate train test table summary
+    if(report){
+        train_test_table <- .ttt(fold_list, x, column, n)
+        print(summary(train_test_table)[c(1,4,6), ])
+    }
+
+    final_objs <- list(
+        folds_list = fold_list,
+        k = n,
+        column = column,
+        size = size,
+        presence_bg = presence_bg,
+        records = if(report) train_test_table else NULL
+    )
+
+    class(final_objs) <- c("cv_buffer")
+    return(final_objs)
 }
 
 
 #' @export
 #' @method print cv_buffer
 print.cv_buffer <- function(x, ...){
-  print(class(x))
+    print(class(x))
 }
 
 #' @export
 #' @method plot cv_buffer
 plot.cv_buffer <- function(x, ...){
-  message("Please use cv_plot function to plot each fold.")
+    message("Please use cv_plot function to plot each fold.")
 }
 
 #' @export
 #' @method summary cv_buffer
 summary.cv_buffer <- function(object, ...){
-  if(!is.null(object$records)){
-    print(summary(object$records)[c(1,4,6),])
-  }
+    if(!is.null(object$records)){
+        print(summary(object$records)[c(1,4,6),])
+    }
 }
 
 
 # count the train and test records
 .ttt <- function(fold_list, x, column, n){
-  if(is.null(column)){
-    tt_count <- base::data.frame(train = rep(0, n), test = 0)
-    for(i in seq_len(n)){
-      train_set <- fold_list[[i]][[1]]
-      test_set <- fold_list[[i]][[2]]
-      tt_count$train[i] <- length(train_set)
-      tt_count$test[i] <- length(test_set)
+    if(is.null(column)){
+        tt_count <- base::data.frame(train = rep(0, n), test = 0)
+        for(i in seq_len(n)){
+            train_set <- fold_list[[i]][[1]]
+            test_set <- fold_list[[i]][[2]]
+            tt_count$train[i] <- length(train_set)
+            tt_count$test[i] <- length(test_set)
+        }
+    } else{
+        cl <- sort(unique(x[, column, drop = TRUE]))
+        clen <- length(cl)
+        .check_classes(clen, column) # column should be binary or categorical
+        tt_count <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
+        names(tt_count) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
+        for(i in seq_len(n)){
+            train_set <- fold_list[[i]][[1]]
+            test_set <- fold_list[[i]][[2]]
+            countrain <- table(x[train_set, column, drop = TRUE])
+            countest <- table(x[test_set, column, drop = TRUE])
+            tt_count[i, which(cl %in% names(countrain))] <- countrain
+            tt_count[i, clen + which(cl %in% names(countest))] <- countest
+        }
     }
-  } else{
-    cl <- sort(unique(x[, column, drop = TRUE]))
-    clen <- length(cl)
-    .check_classes(clen, column) # column should be binary or categorical
-    tt_count <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
-    names(tt_count) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
-    for(i in seq_len(n)){
-      train_set <- fold_list[[i]][[1]]
-      test_set <- fold_list[[i]][[2]]
-      countrain <- table(x[train_set, column, drop = TRUE])
-      countest <- table(x[test_set, column, drop = TRUE])
-      tt_count[i, which(cl %in% names(countrain))] <- countrain
-      tt_count[i, clen + which(cl %in% names(countest))] <- countest
-    }
-  }
 
-  return(tt_count)
+    return(tt_count)
 }

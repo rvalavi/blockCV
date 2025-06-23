@@ -24,9 +24,17 @@ pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
 ## ----fig.height=4.5, fig.width=7.1--------------------------------------------
 tm_shape(rasters[[1]]) +
-  tm_raster(legend.show = FALSE, n = 30, palette = gray.colors(10)) +
+  tm_raster(
+    col.scale = tm_scale_continuous(values = gray.colors(10)),
+    col.legend = tm_legend_hide()
+  ) +
   tm_shape(pa_data) +
-  tm_dots(col = "occ", style = "cat", size = 0.1)
+  tm_dots(
+    fill = "occ",
+    fill.scale = tm_scale_categorical(),
+    size = 0.5,
+    fill_alpha = 0.5 
+  )
 
 
 ## ----message=TRUE, warning=TRUE-----------------------------------------------
@@ -45,7 +53,7 @@ scv1 <- cv_spatial(
   progress = FALSE, # turn off progress bar
   biomod2 = TRUE, # also create folds for biomod2
   raster_colors = terrain.colors(10, rev = TRUE) # options from cv_plot for a better colour contrast
-)
+) 
 
 
 ## -----------------------------------------------------------------------------
@@ -82,94 +90,93 @@ cv_plot(
 )
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  # loading the libraries
-#  library(randomForest)
-#  library(precrec)
-#
-#  # extract the raster values for the species points as a dataframe
-#  model_data <- terra::extract(rasters, pa_data, df = TRUE, ID = FALSE)
-#  # adding species column to the dataframe
-#  model_data$occ <- as.factor(pa_data$occ)
-#  head(model_data)
-#
-#  # extract the fold indices from buffering object
-#  # created in the previous section
-#  # the folds_list works for all four blocking strategies
-#  folds <- scv2$folds_list
-#
-#  # create a data.frame to store the prediction of each fold (record)
-#  test_table <- pa_data
-#  test_table$preds <- NA
-#
-#  for(k in seq_len(length(folds))){
-#    # extracting the training and testing indices
-#    # this way works with folds_list list (but not folds_ids)
-#    trainSet <- unlist(folds[[k]][1]) # training set indices; first element
-#    testSet <- unlist(folds[[k]][2]) # testing set indices; second element
-#    rf <- randomForest(occ ~ ., model_data[trainSet, ], ntree = 500) # model fitting on training set
-#    test_table$preds[testSet] <- predict(rf, model_data[testSet, ], type = "prob")[,2] # predict the test set
-#  }
-#
-#  # calculate Area Under the ROC and PR curves and plot the result
-#  precrec_obj <- evalmod(scores = test_table$preds, labels = test_table$occ)
-#  auc(precrec_obj)
-#
+# # loading the libraries
+# library(randomForest)
+# library(precrec)
+# 
+# # extract the raster values for the species points as a dataframe
+# model_data <- terra::extract(rasters, pa_data, df = TRUE, ID = FALSE)
+# # adding species column to the dataframe
+# model_data$occ <- as.factor(pa_data$occ)
+# head(model_data)
+# 
+# # extract the fold indices from buffering object
+# # created in the previous section
+# # the folds_list works for all four blocking strategies
+# folds <- scv2$folds_list
+# 
+# # create a data.frame to store the prediction of each fold (record)
+# test_table <- pa_data
+# test_table$preds <- NA
+# 
+# for(k in seq_len(length(folds))){
+#   # extracting the training and testing indices
+#   # this way works with folds_list list (but not folds_ids)
+#   trainSet <- unlist(folds[[k]][1]) # training set indices; first element
+#   testSet <- unlist(folds[[k]][2]) # testing set indices; second element
+#   rf <- randomForest(occ ~ ., model_data[trainSet, ], ntree = 500) # model fitting on training set
+#   test_table$preds[testSet] <- predict(rf, model_data[testSet, ], type = "prob")[,2] # predict the test set
+# }
+# 
+# # calculate Area Under the ROC and PR curves and plot the result
+# precrec_obj <- evalmod(scores = test_table$preds, labels = test_table$occ)
+# auc(precrec_obj)
+# 
 
 ## ----echo=FALSE---------------------------------------------------------------
 # to not run the model and reduce run time; result are calculated and loaded
-read.csv("../man/figures/roc_rf.csv")
+read.csv("../man/figures/roc_rf.csv") 
 
 
 ## ----eval=FALSE, fig.height=3.7, fig.width=7----------------------------------
-#  library(ggplot2)
-#
-#  autoplot(precrec_obj)
-#
+# library(ggplot2)
+# 
+# autoplot(precrec_obj)
+# 
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  # loading the library
-#  library(biomod2)
-#
-#  # extract the raster values for the species points as a dataframe
-#  raster_values <- terra::extract(rasters, pa_data, df = TRUE, ID = FALSE)
-#
-#  # 1. Formatting Data
-#  biomod_data <- BIOMOD_FormatingData(resp.var = pa_data$occ,
-#                                      expl.var = raster_values,
-#                                      resp.xy = sf::st_coordinates(pa_data),
-#                                      resp.name = "occ",
-#                                      na.rm = TRUE)
-#
-#  # 2. Defining the folds for CV.user.table
-#  # note that biomod_table should be used here not folds
-#  # use generated folds from cv_spatial in previous section
-#  spatial_cv_folds <- scv1$biomod_table
-#  # the new update of the package biomod2 (v4.2-3 <) requires the names to be as below
-#  colnames(spatial_cv_folds) <- paste0("_allData_RUN", 1:ncol(spatial_cv_folds))
-#
-#  # 3. Defining Models Options; using default options here. You can use your own settting here.
-#  biomod_options <- bm_ModelingOptions(data.type = "binary",
-#                                       strategy = "bigboss")
-#
-#  # 4. Model fitting
-#  biomod_model_out <- BIOMOD_Modeling(biomod_data,
-#                                      models = c('GLM','MARS','GBM'),
-#                                      CV.strategy = "user.defined",
-#                                      CV.user.table	= spatial_cv_folds,
-#                                      OPT.user	= biomod_options,
-#                                      var.import = 0,
-#                                      metric.eval = c('ROC'),
-#                                      do.full.models = TRUE)
-#
+# # loading the library
+# library(biomod2)
+# 
+# # extract the raster values for the species points as a dataframe
+# raster_values <- terra::extract(rasters, pa_data, df = TRUE, ID = FALSE)
+# 
+# # 1. Formatting Data
+# biomod_data <- BIOMOD_FormatingData(resp.var = pa_data$occ,
+#                                     expl.var = raster_values,
+#                                     resp.xy = sf::st_coordinates(pa_data),
+#                                     resp.name = "occ",
+#                                     na.rm = TRUE)
+# 
+# # 2. Defining the folds for CV.user.table
+# # note that biomod_table should be used here not folds
+# # use generated folds from cv_spatial in previous section
+# spatial_cv_folds <- scv1$biomod_table
+# # the new update of the package biomod2 (v4.2-3 <) requires the names to be as below
+# colnames(spatial_cv_folds) <- paste0("_allData_RUN", 1:ncol(spatial_cv_folds))
+# 
+# # 3. Defining Models Options; using default options here. You can use your own settting here.
+# biomod_options <- bm_ModelingOptions(data.type = "binary", strategy = "bigboss")
+# 
+# # 4. Model fitting
+# biomod_model_out <- BIOMOD_Modeling(biomod_data,
+#                                     models = c('GLM','MARS','GBM'),
+#                                     CV.strategy = "user.defined",
+#                                     CV.user.table	= spatial_cv_folds,
+#                                     OPT.user = biomod_options,
+#                                     var.import = 0,
+#                                     metric.eval = c('ROC'),
+#                                     do.full.models = TRUE)
+# 
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  # 5. Model evaluation
-#  biomod_model_eval <- get_evaluations(biomod_model_out)
-#  biomod_model_eval[c("run", "algo", "metric.eval", "calibration", "validation")]
-#
+# # 5. Model evaluation
+# biomod_model_eval <- get_evaluations(biomod_model_out)
+# biomod_model_eval[c("run", "algo", "metric.eval", "calibration", "validation")]
+# 
 
 ## ----echo=FALSE---------------------------------------------------------------
 # to not run the model and reduce run time; result are calculated and loaded
-read.csv("../man/figures/evl_biomod.csv")
+read.csv("../man/figures/evl_biomod.csv") 
 
 

@@ -25,59 +25,59 @@ buffering <- function(speciesData,
                       progress = TRUE){
 
 
-  message("This function is deprecated! Please use 'cv_buffer' instead.")
+    message("This function is deprecated! Please use 'cv_buffer' instead.")
 
-  # check x is an sf object
-  speciesData <- .check_x(speciesData, name = "speciesData")
+    # check x is an sf object
+    speciesData <- .check_x(speciesData, name = "speciesData")
 
-  # x's CRS must be defined
-  if(is.na(sf::st_crs(speciesData))){
-    stop("The coordinate reference system of 'speciesData' must be defined.")
-  }
-  # is column in x?
-  if(!is.null(species)){
-    if(!species %in% colnames(speciesData)){
-      warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
-      species <- NULL
+    # x's CRS must be defined
+    if(is.na(sf::st_crs(speciesData))){
+        stop("The coordinate reference system of 'speciesData' must be defined.")
     }
-  }
+    # is column in x?
+    if(!is.null(species)){
+        if(!species %in% colnames(speciesData)){
+            warning(sprintf("There is no column named '%s' in 'speciesData'.\n", species))
+            species <- NULL
+        }
+    }
 
-  if(is.null(species) && (spDataType != "PA")) stop("'species' must be provided for presence-background data.")
-
-
-  out <- cv_buffer(x = speciesData,
-                   column = species,
-                   size = theRange,
-                   presence_bg = ifelse(spDataType == "PA", FALSE, TRUE),
-                   add_bg = addBG,
-                   progress = progress)
+    if(is.null(species) && (spDataType != "PA")) stop("'species' must be provided for presence-background data.")
 
 
-  theList <- list(
-    folds = out$folds_list,
-    k = out$k,
-    species = species,
-    range = theRange,
-    dataType = spDataType,
-    records = out$records
-  )
+    out <- cv_buffer(x = speciesData,
+                     column = species,
+                     size = theRange,
+                     presence_bg = ifelse(spDataType == "PA", FALSE, TRUE),
+                     add_bg = addBG,
+                     progress = progress)
 
 
-  class(theList) <- c("BufferedBlock")
-  return(theList)
+    theList <- list(
+        folds = out$folds_list,
+        k = out$k,
+        species = species,
+        range = theRange,
+        dataType = spDataType,
+        records = out$records
+    )
+
+
+    class(theList) <- c("BufferedBlock")
+    return(theList)
 }
 
 
 #' @export
 #' @method print BufferedBlock
 print.BufferedBlock <- function(x, ...){
-  print(class(x))
+    print(class(x))
 }
 
 #' @export
 #' @method summary BufferedBlock
 summary.BufferedBlock <- function(object, ...){
-  print("Number of recoreds in each category")
-  print(object$records)
+    print("Number of recoreds in each category")
+    print(object$records)
 }
 
