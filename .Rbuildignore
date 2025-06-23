@@ -14,3 +14,5 @@ tests/testthat/_snaps/
 tests/testthat/Rplots.pdf
 ^LICENSE\.md$
 cran.md
+revdep/
+revdep/*

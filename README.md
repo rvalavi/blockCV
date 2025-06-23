@@ -8,7 +8,7 @@ version](https://www.r-pkg.org/badges/version/blockCV)](https://CRAN.R-project.o
 [![total](https://cranlogs.r-pkg.org/badges/grand-total/blockCV)](https://CRAN.R-project.org/package=blockCV)
 [![License](https://img.shields.io/badge/license-GPL%20(%3E=%203)-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
 [![DOI](https://zenodo.org/badge/116337503.svg)](https://zenodo.org/badge/latestdoi/116337503)
-[![Methods in Ecology & Evolution](https://img.shields.io/badge/Methods%20in%20Ecology%20&%20Evolution-10,%20225-232-blue.svg)](https://doi.org/10.1111/2041-210X.13107)
+[![Methods in Ecology & Evolution](https://img.shields.io/badge/Methods%20in%20Ecology%20%26%20Evolution-10,%20225--232-blue.svg)](https://doi.org/10.1111/2041-210X.13107)
 
 ### Spatial and environmental blocking for k-fold and LOO cross-validation
 
@@ -96,7 +96,7 @@ To see the practical examples of the package see:
     folds](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_1.html)
 2.  [Block cross-validation for species distribution
     modelling](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_2.html)
-3.  Using blockCV with the `caret` and `tidymodels` (coming soon!)
+3.  Using blockCV with the `caret` and `tidymodels` ([see here](https://github.com/rvalavi/blockCV/issues/48))
 
 ## Basic usage
 
