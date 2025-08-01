@@ -72,6 +72,9 @@ cv_similarity <- function(
     if(!class(cv) %in% c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm")){
         stop("'cv' must be a blockCV cv_* object.")
     }
+    # if (!any(inherits(cv, c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm")))) {
+    #     stop("'cv' must be a blockCV cv_* object.")
+    # }
 
     # The iteration must be a natural number
     tryCatch(
@@ -119,14 +122,16 @@ cv_similarity <- function(
     }
     fold_names <- paste("Fold", num_plot, sep = "")
     # reshape for plotting
-    mes_reshp <- stats::reshape(df,
-                                direction = "long",
-                                idvar = "id",
-                                varying = fold_names,
-                                times = fold_names,
-                                v.names =  "value",
-                                timevar = "folds"
+    mes_reshp <- stats::reshape(
+        df,
+        direction = "long",
+        idvar = "id",
+        varying = fold_names,
+        times = fold_names,
+        v.names =  "value",
+        timevar = "folds"
     )
+
     # remove NAs
     mes_reshp <- mes_reshp[stats::complete.cases(mes_reshp), ]
     if(.is_loo(cv)) mes_reshp$folds <- as.numeric(substr(mes_reshp$folds, 5, 25))

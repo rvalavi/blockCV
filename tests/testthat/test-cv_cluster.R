@@ -1,10 +1,12 @@
-expect_names <- c("folds_list",
-                  "folds_ids",
-                  "biomod_table",
-                  "k",
-                  "column",
-                  "type",
-                  "records")
+expect_names <- c(
+    "folds_list",
+    "folds_ids",
+    "biomod_table",
+    "k",
+    "column",
+    "type",
+    "records"
+)
 
 
 aus <- system.file("extdata/au/", package = "blockCV") |>
@@ -19,9 +21,9 @@ test_that("test that environmental cluster function with raster_cluster", {
 
   # environmental clustering
   set.seed(42)
-  eb <- cv_cluster(r = aus,
-                   x = pa_data,
+  eb <- cv_cluster(x = pa_data,
                    column = "occ",
+                   r = aus,
                    k = 3,
                    scale = TRUE,
                    raster_cluster = TRUE)
@@ -44,7 +46,7 @@ test_that("test that spacial cluster function with no column", {
 
   # spatial clustering
   set.seed(42)
-  eb <- cv_cluster(x = sf::as_Spatial(pa_data),
+  eb <- cv_cluster(x = pa_data,
                    k = 5,
                    biomod2 = FALSE)
 
@@ -60,8 +62,8 @@ test_that("test that spacial cluster function with no column", {
     !all(eb$records == 0)
   )
 
-  expect_equal(print.cv_cluster(eb), "cv_cluster")
-  expect_output(summary.cv_cluster(eb))
+  expect_equal(print(eb), "cv_cluster")
+  expect_output(summary(eb))
 
 })
 
@@ -70,9 +72,9 @@ test_that("test that environmental cluster with no scale and wrong column", {
 
   set.seed(42)
   expect_warning(
-    eb <- cv_cluster(r = aus,
-                     x = pa_data,
+    eb <- cv_cluster(x = pa_data,
                      column = "response", # wrong column name
+                     r = aus,
                      k = 5,
                      scale = FALSE,
                      raster_cluster = TRUE,
@@ -96,8 +98,8 @@ test_that("test that environmental cluster with no scale and wrong column", {
 test_that("test environmental cluster with no spatial or sf object", {
 
   expect_error(
-    cv_cluster(r = aus,
-               x = aus, # no spatial or sf object
+    cv_cluster(x = aus, # no spatial or sf object
+               r = aus,
                k = 5,
                scale = TRUE,
                raster_cluster = FALSE)

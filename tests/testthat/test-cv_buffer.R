@@ -1,9 +1,11 @@
-expect_names <- c("folds_list",
-                  "k",
-                  "column",
-                  "size",
-                  "presence_bg",
-                  "records")
+expect_names <- c(
+    "folds_list",
+    "k",
+    "column",
+    "size",
+    "presence_bg",
+    "records"
+)
 
 
 pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
@@ -62,7 +64,7 @@ test_that("test that cv_buffer function works properly with presence-background 
 test_that("test that cv_buffer function works properly with no species specified",
           {
             bloo <- cv_buffer(
-              x = sf::as_Spatial(pa_data),
+              x = pa_data,
               size = 250000
             )
 
@@ -78,8 +80,8 @@ test_that("test that cv_buffer function works properly with no species specified
             expect_equal(dim(bloo$records), c(nrow(pa_data), 2))
             expect_true(!all(bloo$records == 0))
 
-            expect_equal(print.cv_buffer(bloo), "cv_buffer")
-            expect_output(summary.cv_buffer(bloo))
+            expect_equal(print(bloo), "cv_buffer")
+            expect_output(summary(bloo))
 
 })
 
@@ -123,3 +125,4 @@ test_that("test cv_buffer function to have sptial points with no CRS", {
   )
 
 })
+

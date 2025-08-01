@@ -73,9 +73,9 @@ test_that("test cv_spatial function with systematic assingment and no raster fil
     !all(scv$records == 0)
   )
 
-  expect_equal(print.cv_spatial(scv), "cv_spatial")
-  expect_message(plot.cv_spatial(scv))
-  expect_output(summary.cv_spatial(scv))
+  expect_equal(print(scv), "cv_spatial")
+  expect_message(plot(scv))
+  expect_output(summary(scv))
 
 })
 
@@ -105,9 +105,9 @@ test_that("test cv_spatial function with non-numeric iteration", {
     !all(scv$records == 0)
   )
 
-  expect_equal(print.cv_spatial(scv), "cv_spatial")
-  expect_message(plot.cv_spatial(scv))
-  expect_output(summary.cv_spatial(scv))
+  expect_equal(print(scv), "cv_spatial")
+  expect_message(plot(scv))
+  expect_output(summary(scv))
 
 })
 
@@ -135,9 +135,9 @@ test_that("test cv_spatial with checkerboard assingment and only row blocks", {
     !all(scv$records == 0)
   )
 
-  expect_equal(print.cv_spatial(scv), "cv_spatial")
-  expect_message(plot.cv_spatial(scv))
-  expect_output(summary.cv_spatial(scv))
+  expect_equal(print(scv), "cv_spatial")
+  expect_message(plot(scv))
+  expect_output(summary(scv))
 
 })
 
@@ -170,9 +170,9 @@ test_that("test cv_spatial with user-defined blocks", {
     !all(scv$records == 0)
   )
 
-  expect_equal(print.cv_spatial(scv), "cv_spatial")
-  expect_message(plot.cv_spatial(scv))
-  expect_output(summary.cv_spatial(scv))
+  expect_equal(print(scv), "cv_spatial")
+  expect_message(plot(scv))
+  expect_output(summary(scv))
 
 })
 

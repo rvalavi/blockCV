@@ -143,7 +143,7 @@ cv_spatial_autocor <- function(
             }
         }
 
-        # to be used for filtering blocks
+        # to be used for filtering blocks only
         samp_point <- terra::spatSample(
             r[[1]],
             size = 5e4,
@@ -178,10 +178,10 @@ cv_spatial_autocor <- function(
 
     # make a dataframe from variograms data
     vario_data <- data.frame(layers = seq_len(nlayer), range = 1, sill = 1)
-    for(v in seq_along(vario_list)){
+    for (v in seq_along(vario_list)){
         vario_data$layers[v] <- if(missing(x)) names(r)[v] else column[v]
-        vario_data$range[v] <- vario_list[[v]]$var_model[2,3]
-        vario_data$sill[v] <- vario_list[[v]]$var_model[2,2]
+        vario_data$range[v] <- vario_list[[v]]$var_model[2, 3]
+        vario_data$sill[v] <- vario_list[[v]]$var_model[2, 2]
     }
 
     # order them for plotting
@@ -191,7 +191,7 @@ cv_spatial_autocor <- function(
 
     size <- the_range <- stats::median(vario_data$range)
 
-    if(sf::st_is_longlat(x_obj)){
+    if (sf::st_is_longlat(x_obj)){
         vario_data$range <- vario_data$range * 1000
         the_range <- the_range * 1000
         size <- the_range / deg_to_metre
@@ -268,6 +268,67 @@ summary.cv_spatial_autocor <- function(object, ...){
 }
 
 
+# auto-fit variogram models
+.fit_variogram <- function(
+        i,
+        xx = NULL,
+        rr = NULL,
+        column = NULL,
+        num_sample = 1e4,
+        progress = FALSE,
+        pb = NULL
+){
+    if(is.null(xx)){
+        points <- sf::st_as_sf(
+            terra::spatSample(
+                x = stats::setNames(rr[[i]], "target"),
+                size = num_sample,
+                method = "random",
+                as.points = TRUE,
+                na.rm = TRUE
+            )
+        )
+    } else{
+        points <- xx[column[i]] # [i] in case there are more column
+        names(points) <- c("target", "geometry")
+    }
+    # NOTE: apparently the gstat package returns different units for range with sp and sf objects!
+    # So, need to keep this a SpatialPointDataFrame for now and have to fake using it!!!
+    if (FALSE) {
+        sp::SpatialPoints
+    }
+    fit_vario <- automap::autofitVariogram(
+        formula = target ~ 1,
+        input_data = .as_sp(points)
+    )
+    if(progress) utils::setTxtProgressBar(pb, i)
+
+    return(fit_vario)
+}
+
+
+# Annoying step to import sp so there'll be no CRAN errors
+# Sp is only require because automap produces different output with latlong sf objects
+# Don't use sf::as_Spatial because this somehow depends on sp and requires sp dependency anyway
+.as_sp <- function(x) {
+    out <- if (sf::st_is_longlat(x)) {
+        coords <- sf::st_coordinates(x)
+        attrs <- sf::st_drop_geometry(x)
+        crs_info <- sf::st_crs(x)$proj4string
+
+        sp::SpatialPointsDataFrame(
+            coords = coords,
+            data = attrs,
+            proj4string = sp::CRS(crs_info)
+        )
+    } else {
+        x
+    }
+
+    return(out)
+}
+
+
 
 # make a bar plot for cv_spatial_autocor
 .make_bar_plot <- function(vario_data, the_range, ptnum){
@@ -306,34 +367,3 @@ summary.cv_spatial_autocor <- function(object, ...){
     return(p)
 }
 
-
-# auto-fit variogram models
-.fit_variogram <- function(
-        i,
-        xx = NULL,
-        rr = NULL,
-        column = NULL,
-        num_sample = 1e4,
-        progress = FALSE,
-        pb = NULL
-){
-    if(is.null(xx)){
-        points <- terra::spatSample(
-            x = rr[[i]],
-            size = num_sample,
-            method = "random",
-            as.points = TRUE,
-            na.rm = TRUE
-        )
-        points <- sf::as_Spatial(sf::st_as_sf(points))
-        names(points) <- "target"
-    } else{
-        points <- xx[column[i]] # [i] in case there are more column
-        points <- sf::as_Spatial(points)
-        names(points) <- "target"
-    }
-    fit_vario <- automap::autofitVariogram(target~1, points)
-    if(progress) utils::setTxtProgressBar(pb, i)
-
-    return(fit_vario)
-}
