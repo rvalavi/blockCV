@@ -1,5 +1,5 @@
 # version 3.1.7
-* Temporarily added `sp` package dependency to avoid CRAN check issues related to using `sf::as_Spatial` function [#55].
+* Temporarily added `sp` package dependency to avoid CRAN check as required by `automap` function [#55].
 
 # version 3.1.6
 * Resolved unclear error messages; issue [#52](https://github.com/rvalavi/blockCV/issues/52) by A. Márcia Barbosa
