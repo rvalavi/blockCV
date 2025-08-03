@@ -2,48 +2,7 @@
 
 #include <limits>
 #include <vector>
-
-template<typename T>
-class Lightweight_matrix {
-private:
-  using MatrixType = std::vector<T>;
-public:
-
-  explicit Lightweight_matrix(int rows, int columns):
-    rows_(rows), columns_(columns), matrix_(rows * columns) {}
-
-  template<typename Matrix>
-  explicit Lightweight_matrix(Matrix matrix):
-    rows_(matrix.nrow()), columns_(matrix.ncol()), matrix_(matrix.nrow() * matrix.ncol()) {
-    for(int i(0); i < rows_; ++i) {
-      for(int j(0); j < columns_; ++j) {
-        operator()(i, j) = static_cast<T>(matrix(i, j));
-      }
-    }
-  }
-
-  T operator()(int i, int j) const {
-    return matrix_[i * columns_ + j];
-  }
-
-  T& operator()(int i, int j) {
-    return matrix_[i * columns_ + j];
-  }
-
-  int ncol() const {
-    return columns_;
-  }
-
-  int nrow() const {
-    return rows_;
-  }
-
-private:
-  int rows_;
-  int columns_;
-  MatrixType matrix_;
-};
-
+#include "Lightweight_matrix.hpp"
 
 // [[Rcpp::export]]
 Rcpp::NumericMatrix nndm_cpp(Rcpp::NumericMatrix X,

@@ -1,3 +1,7 @@
+# version 3.2.0
+* Fix a warning in `cv_similarity` for colour aesthetics.
+* Adding L1 and L2 distances to `cv_similarity`
+
 # version 3.1.7
 * Temporarily added `sp` package dependency to avoid CRAN check as required by `automap` package [#55].
 

@@ -121,8 +121,8 @@ cv_plot <- function(
         if(methods::is(cv, "cv_spatial")){
 
             p1 <- ggplot2::ggplot(data = blocks) +
-                switch(!is.null(r), geom_rast, NULL) +
-                switch(!is.null(r), geom_rast_col, NULL) +
+                switch(!is.null(r), geom_rast) +
+                switch(!is.null(r), geom_rast_col) +
                 ggplot2::geom_sf(colour = "red",
                                  fill = "orangered4",
                                  alpha = 0.04,
@@ -140,9 +140,9 @@ cv_plot <- function(
     } else{
 
         p1 <- ggplot2::ggplot(data = x_long) +
-            switch(!is.null(r), geom_rast, NULL) +
-            switch(!is.null(r), geom_rast_col, NULL) +
-            switch(methods::is(cv, "cv_spatial"), geom_poly, NULL) +
+            switch(!is.null(r), geom_rast) +
+            switch(!is.null(r), geom_rast_col) +
+            switch(methods::is(cv, "cv_spatial"), geom_poly) +
             # ggplot2::geom_sf(ggplot2::aes(col = rlang::.data$value),
             ggplot2::geom_sf(ggplot2::aes(col = get("value")),
                              alpha = points_alpha) +
@@ -161,7 +161,7 @@ cv_plot <- function(
 
 # is it a LOO CV object?
 .is_loo <- function(x){
-    methods::is(x, "cv_buffer") || methods::is(x, "cv_nndm")
+    inherits(x, c("cv_buffer", "cv_nndm"))
 }
 
 # transform x and fold numbers for plotting

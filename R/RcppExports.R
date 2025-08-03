@@ -5,3 +5,7 @@ nndm_cpp <- function(X, Gij, phi, min_train) {
     .Call(`_blockCV_nndm_cpp`, X, Gij, phi, min_train)
 }
 
+similarity_cpp <- function(train_mat, test_mat, rand_mat, L1 = TRUE) {
+    .Call(`_blockCV_similarity_cpp`, train_mat, test_mat, rand_mat, L1)
+}
+

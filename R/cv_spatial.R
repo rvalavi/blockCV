@@ -432,7 +432,7 @@ cv_spatial <- function(
     final_objs <- list(
         folds_list = fold_list,
         folds_ids = fold_vect,
-        biomod_table = switch(biomod2, as.matrix(biomod_table), NULL),
+        biomod_table = switch(biomod2, as.matrix(biomod_table)),
         k = k,
         size = size,
         column = column,
@@ -446,7 +446,7 @@ cv_spatial <- function(
     if(plot){
         p1 <- cv_plot(
             cv = final_objs,
-            r = switch(!is.null(r), r, NULL),
+            r = switch(!is.null(r), r),
             ...
         )
         plot(p1)

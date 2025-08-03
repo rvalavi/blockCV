@@ -1,8 +1,7 @@
 # Author: Roozbeh Valavi
 # contact: valavi.r@gmail.com
 # Date : May 2023
-# Version 0.2
-# Licence GPL v3
+# Version 0.3
 
 # check points fall within the raster layer
 .check_within <- function(x, r) {

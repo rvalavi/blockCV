@@ -108,8 +108,7 @@ cv_block_size <- function(
     if(!is.null(x)){
         geom_x <- ggplot2::geom_sf(
             data = x,
-            switch(!is.null(column), ggplot2::aes(colour = {{ column }}), NULL),
-            # ggplot2::aes(colour = {{ switch(!is.null(column), column, NULL) }}),
+            switch(!is.null(column), ggplot2::aes(colour = {{ column }})),
             inherit.aes = FALSE,
             alpha = 0.5
         )
@@ -158,7 +157,7 @@ cv_block_size <- function(
                                  fill = "orangered4",
                                  alpha = 0.04,
                                  size = 0.2) +
-                switch(!is.null(x), geom_x, NULL) +
+                switch(!is.null(x), geom_x) +
                 ggplot2::ggtitle("Spatial blocks",
                                  subtitle=paste("Using",
                                                 input$num,
