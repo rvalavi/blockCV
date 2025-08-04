@@ -1,11 +1,10 @@
-#pragma once
-
 #ifndef IGHTWEIGHT_MATRIX_H
 #define IGHTWEIGHT_MATRIX_H
 
 #include <vector>
+#include <algorithm>
 
-// a light weight matrix class for faster calculation with row-major opertaions
+// A light weight matrix class for faster calculation with row-major opertaions
 template<typename T>
 class Lightweight_matrix {
 private:
@@ -56,6 +55,7 @@ private:
 };
 
 
+// rbind implementation for Lightweight_matrix
 template<typename T>
 Lightweight_matrix<T> rbind(const Lightweight_matrix<T>& A, const Lightweight_matrix<T>& B)
 {

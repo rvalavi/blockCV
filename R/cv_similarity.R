@@ -15,8 +15,8 @@
 #' The negative values are the sites where at least one variable has a value that is outside
 #' the range of environments over the reference set, so these are novel environments.
 #'
-#' When using the L1 (Manhattan) or L2 (Euclidean) distance options, the function performs
-#' the following steps for each test sample:
+#' When using the L1 (Manhattan) or L2 (Euclidean) distance options (experimental), the 
+#' function performs the following steps for each test sample:
 #'
 #' 1. Calculates the minimum distance between each test sample and all training samples
 #'    in the same fold using the selected metric (L1 or L2).
