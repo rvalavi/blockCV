@@ -58,10 +58,8 @@ cv_plot <- function(
 ){
     # check for availability of ggplot2
     .check_pkgs(c("ggplot2"))
-
-    if(!class(cv) %in% c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm")){
-        stop("'cv' must be a blockCV cv_* object.")
-    }
+    # check it's a cv obj
+    .check_cv(cv)
 
     # check x is an sf object
     if(!missing(x)){
@@ -73,6 +71,8 @@ cv_plot <- function(
         r <- .check_r(r)
         r <- r[[1]]
     }
+    # is it a cv_spatial object?
+    is_spatial <- inherits(cv, "cv_spatial")
 
     # make geom_tile for raster plots
     if(!is.null(r)){
@@ -91,10 +91,11 @@ cv_plot <- function(
         geom_rast <- ggplot2::geom_tile(
             data = map_df,
             ggplot2::aes(x = get("x"), y = get("y"), fill = get("value")))
+
         geom_rast_col <- ggplot2::scale_fill_gradientn(colours = raster_colors)
     }
     # make geom_sf for spatial blocks
-    if(methods::is(cv, "cv_spatial")){
+    if(is_spatial){
         blocks <- cv$blocks
         geom_poly <- ggplot2::geom_sf(
             data = sf::st_geometry(blocks),
@@ -114,55 +115,48 @@ cv_plot <- function(
         }
     } else{
         # stop if x is missing for buffer and cluster
-        if(!methods::is(cv, "cv_spatial")) stop("'x' is required for plotting cv_cluster and cv_buffer.")
+        if(!is_spatial) stop("'x' is required for plotting cv_cluster, cv_buffer and cv_nndm.")
     }
 
-    if(missing(x)){
-        if(methods::is(cv, "cv_spatial")){
+    geom_sftext <- if (label_size > 0) {
+        ggplot2::geom_sf_text(
+            ggplot2::aes(label = get("folds")),
+            size = label_size, fun.geometry = sf::st_centroid
+        )
+    } else NULL
 
+    if(missing(x)){
+        if(is_spatial){
             p1 <- ggplot2::ggplot(data = blocks) +
-                switch(!is.null(r), geom_rast) +
+                switch(!is.null(r), geom_rast) + # only switch works with ggplot
                 switch(!is.null(r), geom_rast_col) +
                 ggplot2::geom_sf(colour = "red",
                                  fill = "orangered4",
                                  alpha = 0.04,
                                  linewidth = 0.2) +
-                ggplot2::geom_sf_text(
-                    ggplot2::aes(label = get("folds")),
-                    size = label_size, fun.geometry = sf::st_centroid) +
+                switch(!is.null(geom_sftext), geom_sftext) +
                 ggplot2::labs(x = "", y = "") + # or set the axes labes to NULL
                 ggplot2::scale_x_continuous(guide = ggplot2::guide_axis(check.overlap = TRUE)) +
                 ggplot2::theme_minimal() +
                 ggplot2::guides(fill = "none")
-
         }
 
     } else{
-
         p1 <- ggplot2::ggplot(data = x_long) +
-            switch(!is.null(r), geom_rast) +
+            switch(!is.null(r), geom_rast) + # only switch works with ggplot
             switch(!is.null(r), geom_rast_col) +
-            switch(methods::is(cv, "cv_spatial"), geom_poly) +
-            # ggplot2::geom_sf(ggplot2::aes(col = rlang::.data$value),
-            ggplot2::geom_sf(ggplot2::aes(col = get("value")),
-                             alpha = points_alpha) +
+            switch(is_spatial, geom_poly) +
+            ggplot2::geom_sf(ggplot2::aes(col = get("value")), alpha = points_alpha) +
             ggplot2::scale_color_manual(values = points_colors, na.value = "#BEBEBE03") +
-            # ggplot2::facet_wrap(~ rlang::.data$folds, nrow = nrow, ncol = ncol) +
             ggplot2::facet_wrap(~get("folds"), nrow = nrow, ncol = ncol) +
             ggplot2::labs(x = "", y = "", col = "") + # set the axes labes to NULL
             ggplot2::theme_bw() +
             ggplot2::guides(fill = "none")
-
     }
 
     return(p1)
 }
 
-
-# is it a LOO CV object?
-.is_loo <- function(x){
-    inherits(x, c("cv_buffer", "cv_nndm"))
-}
 
 # transform x and fold numbers for plotting
 .x_to_long <- function(x, cv, num_plot=1:10){

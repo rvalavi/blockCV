@@ -168,8 +168,8 @@ cv_spatial_autocor <- function(
     vario_list <- lapply(
         seq_len(nlayer),
         .fit_variogram,
-        rr = switch(missing(x), r, NULL),
-        xx = switch(!missing(x), x, NULL),
+        rr = if (missing(x)) r else NULL,
+        xx = if (!missing(x)) x else NULL,
         column = column,
         num_sample = num_sample,
         progress = progress,
@@ -214,8 +214,8 @@ cv_spatial_autocor <- function(
     # plot the spatial blocks
     p2 <- cv_plot(
         cv = plot_data,
-        r = switch(!missing(r), r, NULL),
-        label_size = 0,
+        r = if (!missing(r)) r else NULL,
+        label_size = -1,
         ...
     )
     p2 <- p2 + ggplot2::ggtitle(
@@ -263,8 +263,8 @@ plot.cv_spatial_autocor <- function(x, y, ...){
 #' @method summary cv_spatial_autocor
 summary.cv_spatial_autocor <- function(object, ...){
     cat("Summary statistics of spatial autocorrelation ranges of all input layers:\n")
-    print(summary(object$rangeTable$range))
-    print(object$rangeTable[,1:2])
+    print(summary(object$range_table$range))
+    print(object$range_table[,1:2])
 }
 
 
@@ -292,15 +292,12 @@ summary.cv_spatial_autocor <- function(object, ...){
         points <- xx[column[i]] # [i] in case there are more column
         names(points) <- c("target", "geometry")
     }
-    # NOTE: apparently the gstat package returns different units for range with sp and sf objects!
-    # So, need to keep this a SpatialPointDataFrame for now and have to fake using it!!!
-    if (FALSE) {
-        sp::SpatialPoints
-    }
+
     fit_vario <- automap::autofitVariogram(
         formula = target ~ 1,
         input_data = .as_sp(points)
     )
+
     if(progress) utils::setTxtProgressBar(pb, i)
 
     return(fit_vario)
@@ -309,7 +306,7 @@ summary.cv_spatial_autocor <- function(object, ...){
 
 # Annoying step to import sp so there'll be no CRAN errors
 # Sp is only require because automap produces different output with latlong sf objects
-# Don't use sf::as_Spatial because this somehow depends on sp and requires sp dependency anyway
+# Don't use sf::as_Spatial because this depends on sp and requires sp dependency anyway
 .as_sp <- function(x) {
     out <- if (sf::st_is_longlat(x)) {
         coords <- sf::st_coordinates(x)
@@ -344,10 +341,6 @@ summary.cv_spatial_autocor <- function(object, ...){
                                         decreasing = FALSE),
                      color = get("range"))
     ) +
-        # ggplot2::geom_bar(
-        #   ggplot2::aes(x = stats::reorder(factor(get("layers")), get("range")),
-        #                y = get("range"), fill = get("range")),
-        #   stat = "identity", data = vario_data,) +
         ggplot2::geom_point(size = 4) +
         ggplot2::geom_segment(
             ggplot2::aes(x = get("layers"), xend = get("layers"), y = 0, yend = get("range")),

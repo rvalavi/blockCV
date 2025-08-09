@@ -103,9 +103,7 @@ cv_similarity <- function(
     .check_within(x, r)
 
     # check cv obj
-    if (!inherits(cv, c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm"))) {
-        stop("'cv' must be a blockCV cv_* object.")
-    }
+    .check_cv(cv)
 
     method <- match.arg(tolower(method), choices = c("mess", "l1", "l2"))
     MESS <- method == "mess"

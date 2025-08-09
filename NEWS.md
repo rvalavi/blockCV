@@ -1,6 +1,7 @@
 # version 3.2.0
-* Fix a warning in `cv_similarity` for colour aesthetics.
+* Fixed a warning in `cv_similarity` for colour aesthetics.
 * Adding L1 and L2 distances to `cv_similarity`
+* Fixed the summary method for `cv_spatial_autocor`
 
 # version 3.1.7
 * Temporarily added `sp` package dependency to avoid CRAN check as required by `automap` package [#55].
@@ -44,7 +45,7 @@
 * Massive performance improvement in the C++ code of `cv_nndm` function for large datasets
 
 # version 3.0
-* Dependency to rgdal and rgeos are removed, and overall less dependency
+* Dependency to `rgdal` and `rgeos` are removed, and overall less dependency
 * Function names have been changed, with all functions now starting with `cv_`
 * The old functions (v2.x) still work to allow appropriate time for adapting the new code
 * The CV blocking functions are now: `cv_spatial`, `cv_cluster`, `cv_buffer`, and `cv_nndm`
