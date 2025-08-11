@@ -316,7 +316,21 @@ cv_spatial <- function(
     # iteration if random selection, otherwise only 1 round
     for(i in seq_len(iteration)){
 
-        if(selection=="systematic"){
+        if(selection=="random"){
+            blocks_df <- blocks_df[, c("records", "block_id")] # avoid repetition
+            fold_df <- data.frame(block_id = seq_len(blocks_len), folds = 0)
+
+            # create random folds with equal proportion
+            num <- floor(blocks_len / k)
+            fold_df$folds[seq_len(num * k)] <- sample(rep(seq_len(k), num), num * k)
+
+            if(blocks_len %% k != 0){
+                rest <- blocks_len %% k
+                unfold <- which(fold_df$folds == 0)
+                fold_df$folds[unfold] <- sample(seq_len(k), rest, replace = FALSE)
+            }
+
+        } else if(selection=="systematic"){
             if(hexagon){
                 sub_blocks <- .fold_assign(sf::st_geometry(sub_blocks), n = k)
             } else{
@@ -324,28 +338,13 @@ cv_spatial <- function(
                 sub_blocks$folds <- rep(1:k, length.out = blocks_len)
             }
             fold_df <- sf::st_drop_geometry(sub_blocks)
-        }
 
-        if(selection=="checkerboard"){
+        } else if(selection=="checkerboard"){
             sub_blocks$folds <- sub_blocks$id
             sub_blocks$block_id <- seq_len(blocks_len)
             fold_df <- sf::st_drop_geometry(sub_blocks)
-        }
 
-        if(selection=="random"){
-            blocks_df <- blocks_df[, c("records", "block_id")] # to avoid repetition in iterations
-            fold_df <- data.frame(block_id = seq_len(blocks_len), folds = 0)
-            # create random folds with equal proportion
-            num <- floor(blocks_len / k)
-            fold_df$folds[seq_len(num * k)] <- sample(rep(seq_len(k), num), num * k)
-            if(blocks_len %% k != 0){
-                rest <- blocks_len %% k
-                unfold <- which(fold_df$folds == 0)
-                fold_df$folds[unfold] <- sample(seq_len(k), rest, replace = FALSE)
-            }
-        }
-
-        if(selection=="predefined"){
+        } else if(selection=="predefined"){
             fold_df <- data.frame(block_id = seq_len(blocks_len), folds = sub_blocks[, folds_column, drop = TRUE])
         }
 

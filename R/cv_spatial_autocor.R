@@ -215,7 +215,7 @@ cv_spatial_autocor <- function(
     p2 <- cv_plot(
         cv = plot_data,
         r = if (!missing(r)) r else NULL,
-        label_size = -1,
+        label_size = -1, # no label
         ...
     )
     p2 <- p2 + ggplot2::ggtitle(
