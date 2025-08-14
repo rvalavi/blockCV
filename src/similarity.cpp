@@ -4,6 +4,7 @@
 #include <limits>
 #include "Lightweight_matrix.hpp"
 
+
 // a function to calculate L1 or L2 distances
 inline double distance(Lightweight_matrix<double> &x, Lightweight_matrix<double> &y, int i, int ii, bool L1)
 {
