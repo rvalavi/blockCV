@@ -70,7 +70,7 @@ function performs the following steps for each test sample:
 \item{1. Calculates the minimum distance between each test sample and all training samples
    in the same fold using the selected metric (L1 or L2).}
 \item{2. Calculates a baseline distance: the average of the minimum distances between a set
-   of random background samples (defined by \code{num_sample}) and all training/test
+   of random background samples (defined by \code{num_sample}) from the raster and all training/test
    samples combined.}
 \item{3. Computes a similarity score by subtracting the test sample’s minimum distance from
    the baseline average. A higher score indicates the test sample is more similar to
@@ -78,7 +78,8 @@ function performs the following steps for each test sample:
 }
 
 This provides a simple, distance-based novelty metric, useful for assessing
-extrapolation or dissimilarity in prediction scenarios.
+extrapolation or dissimilarity in prediction scenarios. Note that this approach is
+experimental.
 }
 \examples{
 \donttest{

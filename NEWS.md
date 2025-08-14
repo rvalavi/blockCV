@@ -1,6 +1,6 @@
 # version 3.2.0
-* Fixed a warning in `cv_similarity` for colour aesthetics.
-* Adding L1 and L2 distances to `cv_similarity`
+* Added two new methods, L1 and L2 distances, to the `cv_similarity` function
+* Fixed a warning in `cv_similarity` for colour aesthetics with ggplot
 * Fixed the summary method for `cv_spatial_autocor`
 
 # version 3.1.7

@@ -6,7 +6,7 @@
 }
 
 # count the train and test records
-.ttt <- function(fold_list, x, column, n){
+.table_summary <- function(fold_list, x, column, n){
     if(is.null(column)){
         tt_count <- base::data.frame(train = rep(0, n), test = 0)
         for(i in seq_len(n)){
