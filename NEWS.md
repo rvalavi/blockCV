@@ -1,17 +1,17 @@
 # version 3.2.0
 * Added two new methods, L1 and L2 distances, to the `cv_similarity` function
 * Fixed a warning in `cv_similarity` for colour aesthetics with ggplot
-* Fixed the summary method for `cv_spatial_autocor`
+* Fixed the summary method and plotting for `cv_spatial_autocor`
 
 # version 3.1.7
-* Temporarily added `sp` package dependency to avoid CRAN check as required by `automap` package [#55].
+* Temporarily added `sp` package dependency to avoid CRAN error as required by `automap` package [#55].
 
 # version 3.1.6
 * Resolved unclear error messages; issue [#52](https://github.com/rvalavi/blockCV/issues/52) by A. Márcia Barbosa
 * Resolved ggplot testing failure; issue [#54](https://github.com/rvalavi/blockCV/issues/54) by Teun van den Brand
 
 # version 3.1.5
-* Resolved background pattern artifacts in raster plotting; issue [#50](https://github.com/rvalavi/blockCV/issues/50) by Camila Neder.
+* Resolved background pattern artefacts in raster plotting; issue [#50](https://github.com/rvalavi/blockCV/issues/50) by Camila Neder.
 
 # version 3.1.4
 * Just the `biomod2` example is updated in vignettes; and the link in help file

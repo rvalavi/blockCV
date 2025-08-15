@@ -5,10 +5,11 @@
     inherits(x, c("cv_buffer", "cv_nndm"))
 }
 
+
 # count the train and test records
 .table_summary <- function(fold_list, x, column, n){
     if(is.null(column)){
-        tt_count <- base::data.frame(train = rep(0, n), test = 0)
+        tt_count <- data.frame(train = rep(0, n), test = 0)
         for(i in seq_len(n)){
             train_set <- fold_list[[i]][[1]]
             test_set <- fold_list[[i]][[2]]

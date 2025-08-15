@@ -153,12 +153,12 @@ cv_plot(cv = sb1,
 cv_similarity(cv = ecv, # the environmental clustering
               x = pa_data, 
               r = rasters, 
+              method = "MESS",
               progress = FALSE)
 
 
 ## ----results='hide', fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2----
-sac1 <- cv_spatial_autocor(r = rasters, 
-                           num_sample = 5000)
+sac1 <- cv_spatial_autocor(r = rasters, num_sample = 5000)
 
 
 ## -----------------------------------------------------------------------------

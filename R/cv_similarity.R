@@ -1,13 +1,9 @@
 #' Compute similarity measures to evaluate possible extrapolation in testing folds
 #'
-#' This function supports three similarity measurement methods:
-#' Multivariate Environmental Similarity Surface (MESS), Manhattan distance (L1),
-#' and Euclidean distance (L2). It is primarily designed for evaluating the similarity
-#' between training and test datasets in environmental or spatial modeling applications.
-#'
-#'
-#' The function support three method of similarity measures, the Multivariate Environmental
-#' Similarity Surface (MESS), Manhattan distance (L1), and Euclidean distance (L2).
+#' This function evaluates environmental similarity between training and testing folds,
+#' helping to detect potential extrapolation in the testing data. It supports three
+#' similarity measures: Multivariate Environmental Similarity Surface (MESS), Manhattan
+#' distance (L1), and Euclidean distance (L2).
 #'
 #' The MESS is calculated as described in Elith et al. (2010). MESS represents
 #' how similar a point in a testing fold is to a training fold (as a reference

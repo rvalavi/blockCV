@@ -2,7 +2,7 @@
 #include <vector>
 #include <cmath>
 #include <limits>
-#include "Lightweight_matrix.hpp"
+#include "Lightweight_matrix.h"
 
 
 // a function to calculate L1 or L2 distances
@@ -13,6 +13,8 @@ inline double distance(Lightweight_matrix<double> &x, Lightweight_matrix<double>
 
     if (L1)
     {
+        // could be faster by avoiding () operator and accessing data directly, and
+        // vectorised operations but potentially won't be necessary here..
         for (int j = 0; j < nc; j++)
         {
             dist += std::abs(x(i, j) - y(ii, j)); // Manhattan distance
