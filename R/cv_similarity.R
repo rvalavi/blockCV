@@ -1,22 +1,51 @@
 #' Compute similarity measures to evaluate possible extrapolation in testing folds
 #'
-#' This function computes multivariate environmental similarity surface (MESS) as described
-#' in Elith et al. (2010). MESS represents how similar a point in a testing fold is to a training
-#' fold (as a reference set of points), with respect to a set of predictor variables in \code{r}.
+#' This function evaluates environmental similarity between training and testing folds,
+#' helping to detect potential extrapolation in the testing data. It supports three
+#' similarity measures: Multivariate Environmental Similarity Surface (MESS), Manhattan
+#' distance (L1), and Euclidean distance (L2).
+#'
+#' The MESS is calculated as described in Elith et al. (2010). MESS represents
+#' how similar a point in a testing fold is to a training fold (as a reference
+#' set of points), with respect to a set of predictor variables in \code{r}.
 #' The negative values are the sites where at least one variable has a value that is outside
 #' the range of environments over the reference set, so these are novel environments.
+#'
+#' When using the L1 (Manhattan) or L2 (Euclidean) distance options (experimental), the
+#' function performs the following steps for each test sample:
+#'
+#' \itemize{
+#' \item{1. Calculates the minimum distance between each test sample and all training samples
+#'    in the same fold using the selected metric (L1 or L2).}
+#' \item{2. Calculates a baseline distance: the average of the minimum distances between a set
+#'    of random background samples (defined by \code{num_sample}) from the raster and all training/test
+#'    samples combined.}
+#' \item{3. Computes a similarity score by subtracting the test sample’s minimum distance from
+#'    the baseline average. A higher score indicates the test sample is more similar to
+#'    the training data, while lower or negative scores indicate novelty.}
+#' }
+#'
+#' This provides a simple, distance-based novelty metric, useful for assessing
+#' extrapolation or dissimilarity in prediction scenarios. Note that this approach is
+#' experimental.
 #'
 #' @inheritParams cv_plot
 #' @param x a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
 #' the \code{cv} object.
 #' @param r a terra SpatRaster object of environmental predictor that are going to be used for modelling. This
 #' is used to calculate similarity between the training and testing points.
+#' @param method the similarity method including: MESS, L1 and L2. Read the details section.
+#' @param num_sample number of random samples from raster to calculate similarity distances (only for L1 and L2).
 #' @param num_plot a vector of indices of folds.
 #' @param jitter_width numeric; the width of jitter points.
 #' @param points_size numeric; the size of points.
 #' @param points_alpha numeric; the opacity of points
 #' @param points_colors character; a character vector of colours for points
 #' @inheritParams cv_spatial
+#'
+#' @seealso \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}}
+#'
+#' @references Elith, J., Kearney, M., & Phillips, S. (2010). The art of modelling range-shifting species: The art of modelling range-shifting species. Methods in Ecology and Evolution, 1(4), 330–342.
 #'
 #' @return a ggplot object
 #' @export
@@ -51,6 +80,8 @@ cv_similarity <- function(
         x,
         r,
         num_plot = seq_along(cv$folds_list),
+        method = "MESS",
+        num_sample = 10000L,
         jitter_width = 0.1,
         points_size = 2,
         points_alpha = 0.7,
@@ -69,12 +100,11 @@ cv_similarity <- function(
     .check_within(x, r)
 
     # check cv obj
-    if(!class(cv) %in% c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm")){
-        stop("'cv' must be a blockCV cv_* object.")
-    }
-    # if (!any(inherits(cv, c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm")))) {
-    #     stop("'cv' must be a blockCV cv_* object.")
-    # }
+    .check_cv(cv)
+
+    method <- match.arg(tolower(method), choices = c("mess", "l1", "l2"))
+    MESS <- method == "mess"
+    L1 <- method == "l1"
 
     # The iteration must be a natural number
     tryCatch(
@@ -106,16 +136,49 @@ cv_similarity <- function(
     df <- data.frame(id = seq_len(n))
     # add progress bar
     if(progress) pb <- utils::txtProgressBar(min = 0, max = length(num_plot), style = 3)
+
+    if (!MESS) {
+        # scale a dataset based on params of another scaled dataset
+        f <- function(x, s) {
+            mns <- attr(s,"scaled:center")
+            sds <- attr(s,"scaled:scale")
+            for (i in names(mns)) {
+                x[[i]] <- (x[[i]] - mns[i]) / sds[i]
+            }
+            attr(x, "scaled:center") <- NULL
+            attr(x, "scaled:scale") <- NULL
+            return(x)
+        }
+        rand_points <- terra::spatSample(r, size = num_sample, na.rm = TRUE)
+        rand_points <- rand_points[stats::complete.cases(rand_points), ] # just make sure..
+        # scale and centre the random points
+        rand_points <- as.matrix(scale(rand_points))
+        # scale and centre the samples points based on the same stats
+        points <- as.matrix(f(x = points, s = rand_points))
+        # remove the attributes
+        attr(rand_points, "scaled:center") <- NULL
+        attr(rand_points, "scaled:scale") <- NULL
+    }
+
     # calculate MESS for testing data
     for(i in num_plot){
         df[, paste("Fold", i, sep = "")] <- NA
         train <- folds_list[[i]][[1]]
         test <- folds_list[[i]][[2]]
-        mes <- sapply(1:m, function(j) .messi3(points[test, j], points[train, j]))
-        if(.is_loo(cv)){
-            mmes <- min(mes)
-        } else{
-            mmes <- apply(mes, 1, min, na.rm = TRUE)
+        if (MESS) {
+            mes <- sapply(1:m, function(j) .messi3(points[test, j], points[train, j]))
+            if(.is_loo(cv)){
+                mmes <- min(mes)
+            } else{
+                mmes <- apply(mes, 1, min, na.rm = TRUE)
+            }
+        } else {
+            mmes <- similarity_cpp(
+                train_mat = points[train, ],
+                test_mat = points[test,, drop=FALSE],
+                rand_mat = rand_points,
+                L1 = L1
+            )
         }
         df[1:length(mmes), paste("Fold", i, sep = "")] <- mmes
         if(progress) utils::setTxtProgressBar(pb, i)
@@ -144,21 +207,38 @@ cv_similarity <- function(
     # provide alternatives for class(cv)
     goem_buffer <- ggplot2::geom_point(size = points_size, alpha = points_alpha)
     geom_other <- ggplot2::geom_jitter(width = jitter_width, size = points_size, alpha = points_alpha)
-    geom_vio <- ggplot2::geom_violin(fill = NA)
+    geom_vio <- ggplot2::geom_violin(
+        ggplot2::aes(x = get("folds"), y = get("value"), group = get("folds")),
+        inherit.aes = FALSE,
+        fill = NA
+    )
     # which geom to choose
     geom_exta <- if(.is_loo(cv)) goem_buffer else geom_other
+    mes_reshp$folds <- factor(mes_reshp$folds)
+
+    col_name <- switch(
+        method,
+        mess = "MESS",
+        l1 = "L1 distance",
+        l2 = "L2 distance"
+    )
+    y_name <- switch(
+        method,
+        mess = "MESS Values",
+        l1 = "Distance differnce with random samples",
+        l2 = "Distance differnce with random samples"
+    )
 
     p1 <- ggplot2::ggplot(
         data = mes_reshp,
-        # ggplot2::aes(x = rlang::.data$folds, y = rlang::.data$value, col = rlang::.data$value)) +
-        ggplot2::aes(x = get("folds"), y = get("value"), col = get("value"))) +
+        ggplot2::aes(x = get("folds"), y = get("value"), colour = get("value"))) +
         ggplot2::geom_hline(yintercept = 0, color = "grey50", linetype = 2) +
         geom_exta +
-        switch(!.is_loo(cv), geom_vio, NULL) +
+        switch(!.is_loo(cv), geom_vio) +
         ggplot2::scale_color_gradientn(colours = points_colors,
                                        limits = c(-maxabs, maxabs),
                                        na.value = "#BEBEBE03") +
-        ggplot2::labs(x = "Folds", y = "MESS Values", col = "MESS") +
+        ggplot2::labs(x = "Folds", y = y_name, col = col_name) +
         ggplot2::theme_bw()
 
     return(p1)

@@ -9,6 +9,8 @@ cv_similarity(
   x,
   r,
   num_plot = seq_along(cv$folds_list),
+  method = "MESS",
+  num_sample = 10000L,
   jitter_width = 0.1,
   points_size = 2,
   points_alpha = 0.7,
@@ -28,6 +30,10 @@ is used to calculate similarity between the training and testing points.}
 
 \item{num_plot}{a vector of indices of folds.}
 
+\item{method}{the similarity method including: MESS, L1 and L2. Read the details section.}
+
+\item{num_sample}{number of random samples from raster to calculate similarity distances (only for L1 and L2).}
+
 \item{jitter_width}{numeric; the width of jitter points.}
 
 \item{points_size}{numeric; the size of points.}
@@ -42,11 +48,35 @@ is used to calculate similarity between the training and testing points.}
 a ggplot object
 }
 \description{
-This function computes multivariate environmental similarity surface (MESS) as described
-in Elith et al. (2010). MESS represents how similar a point in a testing fold is to a training
-fold (as a reference set of points), with respect to a set of predictor variables in \code{r}.
+This function evaluates environmental similarity between training and testing folds,
+helping to detect potential extrapolation in the testing data. It supports three
+similarity measures: Multivariate Environmental Similarity Surface (MESS), Manhattan
+distance (L1), and Euclidean distance (L2).
+}
+\details{
+The MESS is calculated as described in Elith et al. (2010). MESS represents
+how similar a point in a testing fold is to a training fold (as a reference
+set of points), with respect to a set of predictor variables in \code{r}.
 The negative values are the sites where at least one variable has a value that is outside
 the range of environments over the reference set, so these are novel environments.
+
+When using the L1 (Manhattan) or L2 (Euclidean) distance options (experimental), the
+function performs the following steps for each test sample:
+
+\itemize{
+\item{1. Calculates the minimum distance between each test sample and all training samples
+   in the same fold using the selected metric (L1 or L2).}
+\item{2. Calculates a baseline distance: the average of the minimum distances between a set
+   of random background samples (defined by \code{num_sample}) from the raster and all training/test
+   samples combined.}
+\item{3. Computes a similarity score by subtracting the test sample’s minimum distance from
+   the baseline average. A higher score indicates the test sample is more similar to
+   the training data, while lower or negative scores indicate novelty.}
+}
+
+This provides a simple, distance-based novelty metric, useful for assessing
+extrapolation or dissimilarity in prediction scenarios. Note that this approach is
+experimental.
 }
 \examples{
 \donttest{
@@ -73,4 +103,10 @@ sb <- cv_spatial(x = pa_data,
 cv_similarity(cv = sb, r = covars, x = pa_data)
 
 }
+}
+\references{
+Elith, J., Kearney, M., & Phillips, S. (2010). The art of modelling range-shifting species: The art of modelling range-shifting species. Methods in Ecology and Evolution, 1(4), 330–342.
+}
+\seealso{
+\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}}
 }

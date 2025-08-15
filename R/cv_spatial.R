@@ -315,7 +315,22 @@ cv_spatial <- function(
     }
     # iteration if random selection, otherwise only 1 round
     for(i in seq_len(iteration)){
-        if(selection=='systematic'){
+
+        if(selection=="random"){
+            blocks_df <- blocks_df[, c("records", "block_id")] # avoid repetition
+            fold_df <- data.frame(block_id = seq_len(blocks_len), folds = 0)
+
+            # create random folds with equal proportion
+            num <- floor(blocks_len / k)
+            fold_df$folds[seq_len(num * k)] <- sample(rep(seq_len(k), num), num * k)
+
+            if(blocks_len %% k != 0){
+                rest <- blocks_len %% k
+                unfold <- which(fold_df$folds == 0)
+                fold_df$folds[unfold] <- sample(seq_len(k), rest, replace = FALSE)
+            }
+
+        } else if(selection=="systematic"){
             if(hexagon){
                 sub_blocks <- .fold_assign(sf::st_geometry(sub_blocks), n = k)
             } else{
@@ -323,34 +338,18 @@ cv_spatial <- function(
                 sub_blocks$folds <- rep(1:k, length.out = blocks_len)
             }
             fold_df <- sf::st_drop_geometry(sub_blocks)
-            blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
-        }
 
-        if(selection=='checkerboard'){
+        } else if(selection=="checkerboard"){
             sub_blocks$folds <- sub_blocks$id
             sub_blocks$block_id <- seq_len(blocks_len)
             fold_df <- sf::st_drop_geometry(sub_blocks)
-            blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
-        }
 
-        if(selection=='random'){
-            blocks_df <- blocks_df[, c("records", "block_id")] # to avoid repetition in iterations
-            fold_df <- data.frame(block_id = seq_len(blocks_len), folds = 0)
-            # create random folds with equal proportion
-            num <- floor(blocks_len / k)
-            fold_df$folds[seq_len(num * k)] <- sample(rep(seq_len(k), num), num * k)
-            if(blocks_len %% k != 0){
-                rest <- blocks_len %% k
-                unfold <- which(fold_df$folds == 0)
-                fold_df$folds[unfold] <- sample(seq_len(k), rest, replace = FALSE)
-            }
-            blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
-        }
-
-        if(selection=='predefined'){
+        } else if(selection=="predefined"){
             fold_df <- data.frame(block_id = seq_len(blocks_len), folds = sub_blocks[, folds_column, drop = TRUE])
-            blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
         }
+
+        # merge block-df once after the selection
+        blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
 
         # reset the table to 0s for each iteration
         train_test_table[] <- 0
@@ -432,7 +431,7 @@ cv_spatial <- function(
     final_objs <- list(
         folds_list = fold_list,
         folds_ids = fold_vect,
-        biomod_table = switch(biomod2, as.matrix(biomod_table), NULL),
+        biomod_table = if (biomod2) as.matrix(biomod_table) else NULL,
         k = k,
         size = size,
         column = column,
@@ -444,16 +443,18 @@ cv_spatial <- function(
 
     # plot with the cv_plot function
     if(plot){
-        p1 <- cv_plot(
-            cv = final_objs,
-            r = switch(!is.null(r), r, NULL),
-            ...
+        plot(
+            cv_plot(
+                cv = final_objs,
+                r = r,
+                ...
+            )
         )
-        plot(p1)
     }
 
     return(final_objs)
 }
+
 
 #' @export
 #' @method print cv_spatial
@@ -483,16 +484,17 @@ summary.cv_spatial <- function(object, ...){
 
 
 # create rectangular and hexagonal spatial blocks using terra and sf packages
-.make_blocks <- function(x_obj,
-                         blocksize = NULL,
-                         blockcols = NULL,
-                         blockrows = NULL,
-                         hexagonal = FALSE,
-                         flat_top = FALSE,
-                         extend_perc = 0.005,
-                         degree = 111325,
-                         xy_offset = c(0, 0),
-                         checkerboard = FALSE){
+.make_blocks <- function(
+        x_obj,
+        blocksize = NULL,
+        blockcols = NULL,
+        blockrows = NULL,
+        hexagonal = FALSE,
+        flat_top = FALSE,
+        extend_perc = 0.005,
+        degree = 111325,
+        xy_offset = c(0, 0),
+        checkerboard = FALSE){
     # xpoints and rasters inputs are checked in the parent function (cv_spatial);
     # so no need to check them here;
 
@@ -683,3 +685,4 @@ summary.cv_spatial <- function(object, ...){
 
     return(blocks)
 }
+

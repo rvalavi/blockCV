@@ -117,7 +117,7 @@ cv_buffer <- function(
     add_bg <- (presence_bg && add_bg)
 
     if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
-    fold_list <- lapply(x_1s, function(i, pbag = add_bg){
+    fold_list <- lapply(x_1s, function(i, pbag = add_bg) {
         if(pbag){
             test_ids <- which(dmatrix[i, ] <= size)
             inside <- x[test_ids, column, drop = TRUE]
@@ -127,14 +127,13 @@ cv_buffer <- function(
             test_set <- i
         }
         if(progress) utils::setTxtProgressBar(pb, i)
-        list(as.numeric(which(dmatrix[i, ] > size)),
-             as.numeric(test_set))
-    }
-    )
+
+        list(as.numeric(which(dmatrix[i, ] > size)), as.numeric(test_set))
+    })
 
     # calculate train test table summary
     if(report){
-        train_test_table <- .ttt(fold_list, x, column, n)
+        train_test_table <- .table_summary(fold_list, x, column, n)
         print(summary(train_test_table)[c(1,4,6), ])
     }
 
@@ -172,32 +171,3 @@ summary.cv_buffer <- function(object, ...){
     }
 }
 
-
-# count the train and test records
-.ttt <- function(fold_list, x, column, n){
-    if(is.null(column)){
-        tt_count <- base::data.frame(train = rep(0, n), test = 0)
-        for(i in seq_len(n)){
-            train_set <- fold_list[[i]][[1]]
-            test_set <- fold_list[[i]][[2]]
-            tt_count$train[i] <- length(train_set)
-            tt_count$test[i] <- length(test_set)
-        }
-    } else{
-        cl <- sort(unique(x[, column, drop = TRUE]))
-        clen <- length(cl)
-        .check_classes(clen, column) # column should be binary or categorical
-        tt_count <- as.data.frame(matrix(0, nrow = n, ncol = clen * 2))
-        names(tt_count) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
-        for(i in seq_len(n)){
-            train_set <- fold_list[[i]][[1]]
-            test_set <- fold_list[[i]][[2]]
-            countrain <- table(x[train_set, column, drop = TRUE])
-            countest <- table(x[test_set, column, drop = TRUE])
-            tt_count[i, which(cl %in% names(countrain))] <- countrain
-            tt_count[i, clen + which(cl %in% names(countest))] <- countest
-        }
-    }
-
-    return(tt_count)
-}

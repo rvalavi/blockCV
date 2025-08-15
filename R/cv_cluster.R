@@ -205,7 +205,7 @@ cv_cluster <- function(
     final_objs <- list(
         folds_list = fold_list,
         folds_ids = fold_ids,
-        biomod_table = switch(biomod2, as.matrix(biomod_table), NULL),
+        biomod_table = switch(biomod2, as.matrix(biomod_table)),
         k = k,
         column = column,
         type = ifelse(is.null(r), "Spatial Cluster", "Environmental Cluster"),

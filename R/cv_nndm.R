@@ -186,7 +186,7 @@ cv_nndm <- function(
     )
     # calculate train test table summary
     if(report){
-        train_test_table <- .ttt(fold_list, x, column, n)
+        train_test_table <- .table_summary(fold_list, x, column, n)
         print(summary(train_test_table)[c(1,4,6), ])
     }
 

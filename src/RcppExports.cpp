@@ -24,9 +24,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// similarity_cpp
+Rcpp::NumericVector similarity_cpp(const Rcpp::NumericMatrix& train_mat, const Rcpp::NumericMatrix& test_mat, const Rcpp::NumericMatrix& rand_mat, bool L1);
+RcppExport SEXP _blockCV_similarity_cpp(SEXP train_matSEXP, SEXP test_matSEXP, SEXP rand_matSEXP, SEXP L1SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type train_mat(train_matSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type test_mat(test_matSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type rand_mat(rand_matSEXP);
+    Rcpp::traits::input_parameter< bool >::type L1(L1SEXP);
+    rcpp_result_gen = Rcpp::wrap(similarity_cpp(train_mat, test_mat, rand_mat, L1));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_blockCV_nndm_cpp", (DL_FUNC) &_blockCV_nndm_cpp, 4},
+    {"_blockCV_similarity_cpp", (DL_FUNC) &_blockCV_similarity_cpp, 4},
     {NULL, NULL, 0}
 };
 

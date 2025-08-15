@@ -1,8 +1,14 @@
 # Author: Roozbeh Valavi
 # contact: valavi.r@gmail.com
 # Date : May 2023
-# Version 0.2
-# Licence GPL v3
+# Version 0.3
+
+# check the object is a blockCV object
+.check_cv <- function(x) {
+    is_cv <- inherits(x, c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm"))
+    if (!is_cv) stop("'cv' must be a blockCV cv_* object.")
+}
+
 
 # check points fall within the raster layer
 .check_within <- function(x, r) {

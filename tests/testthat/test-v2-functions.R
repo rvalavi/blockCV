@@ -20,9 +20,11 @@ expect_names <- c(
 test_that("test spatialAutoRange function works", {
     # skip_on_cran()
 
-    range1 <- spatialAutoRange(rasterLayer = aus,
-                               sampleNumber = 1000,
-                               showPlots = TRUE)
+    range1 <- spatialAutoRange(
+        rasterLayer = aus,
+        sampleNumber = 1000,
+        showPlots = TRUE
+    )
 
     expect_true(exists("range1"))
     expect_s3_class(range1, "SpatialAutoRange")
@@ -52,10 +54,12 @@ test_that("test spatialAutoRange function works", {
 test_that("test spatialAutoRange function with x", {
     # skip_on_cran()
 
-    range3 <- spatialAutoRange(rasterLayer = aus,
-                               speciesData = pa_data,
-                               progress = FALSE,
-                               showPlots = TRUE)
+    range3 <- spatialAutoRange(
+        rasterLayer = aus,
+        speciesData = pa_data,
+        progress = FALSE,
+        showPlots = TRUE
+    )
 
     expect_true(exists("range3"))
     expect_s3_class(range3, "SpatialAutoRange")
@@ -89,16 +93,18 @@ test_that("test spatiaBlock function works", {
     # skip_on_cran()
 
     set.seed(1000)
-    sb1 <- spatialBlock(speciesData = pa_data,
-                        species = "occ",
-                        rasterLayer = aus,
-                        theRange = 450000,
-                        k = 5,
-                        selection = "random",
-                        iteration = 5,
-                        biomod2Format = TRUE,
-                        showBlocks = TRUE,
-                        progress = TRUE)
+    sb1 <- spatialBlock(
+        speciesData = pa_data,
+        species = "occ",
+        rasterLayer = aus,
+        theRange = 450000,
+        k = 5,
+        selection = "random",
+        iteration = 5,
+        biomod2Format = TRUE,
+        showBlocks = TRUE,
+        progress = TRUE
+    )
 
     expect_true(exists("sb1"))
     expect_s3_class(sb1, "SpatialBlock")
@@ -137,11 +143,13 @@ expect_names <- c(
 test_that("test buffering function works", {
     # skip_on_cran()
 
-    bf1 <- buffering(speciesData= pa_data,
-                     species= "occ",
-                     theRange= 450000,
-                     spDataType = "PA",
-                     progress = TRUE)
+    bf1 <- buffering(
+        speciesData= pa_data,
+        species= "occ",
+        theRange= 450000,
+        spDataType = "PA",
+        progress = TRUE
+    )
 
     expect_true(exists("bf1"))
     expect_s3_class(bf1, "BufferedBlock")
@@ -176,12 +184,14 @@ expect_names <- c(
 test_that("test that environmental blocking function works", {
     # skip_on_cran()
 
-    eb <- envBlock(rasterLayer = aus,
-                   speciesData = pa_data,
-                   species = "occ",
-                   k = 5,
-                   standardization = "standard",
-                   rasterBlock = FALSE)
+    eb <- envBlock(
+        rasterLayer = aus,
+        speciesData = pa_data,
+        species = "occ",
+        k = 5,
+        standardization = "standard",
+        rasterBlock = FALSE
+    )
 
     expect_true(exists("eb"))
     expect_s3_class(eb, "EnvironmentalBlock")
