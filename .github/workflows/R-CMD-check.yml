@@ -3,10 +3,12 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+
 name: R-CMD-check
+
 jobs:
   R-CMD-check:
-    runs-on: ubuntu-latest
+    runs-on: macOS-latest
     steps:
       - uses: actions/checkout@v3
       - uses: r-lib/actions/setup-r@v2
