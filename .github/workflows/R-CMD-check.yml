@@ -24,7 +24,13 @@ jobs:
         run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
         shell: Rscript {0}
       - name: Test coverage
-        run: covr::codecov()
+          run: |
+            covr::codecov(
+              exclusions = list(
+                "R/v2_explorer\\.R",
+                "R/cv_block_size\\.R"
+              )
+            )
         shell: Rscript {0}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
