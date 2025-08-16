@@ -26,9 +26,10 @@ jobs:
       - name: Test coverage
           run: |
             covr::codecov(
-              exclusions = list(
-                "R/v2_explorer\\.R",
-                "R/cv_block_size\\.R"
+              function_exclusions = c(
+                "rangeExplorer",
+                "foldExplorer",
+                "cv_block_size"
               )
             )
         shell: Rscript {0}
