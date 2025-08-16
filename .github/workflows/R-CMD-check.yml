@@ -15,23 +15,26 @@ jobs:
       - name: Setting up pandoc for Rmd docs
         uses: r-lib/actions/setup-pandoc@v2
       - uses: r-lib/actions/setup-tinytex@v2
+      
       - name: Install dependencies
         run: |
           install.packages(c("remotes", "rcmdcheck", "covr"))
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
+
       - name: Check
         run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
         shell: Rscript {0}
+
       - name: Test coverage
-          run: |
-            covr::codecov(
-              function_exclusions = c(
-                "rangeExplorer",
-                "foldExplorer",
-                "cv_block_size"
-              )
+        run: |
+          covr::codecov(
+            function_exclusions = c(
+              "rangeExplorer",
+              "foldExplorer",
+              "cv_block_size"
             )
+          )
         shell: Rscript {0}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
