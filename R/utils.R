@@ -1,4 +1,4 @@
-# A collection of function to facilitate block generaion and reporting
+# A collection of function to facilitate block generation and reporting
 
 # is it a LOO CV object?
 .is_loo <- function(x){
