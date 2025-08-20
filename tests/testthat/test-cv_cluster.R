@@ -1,10 +1,12 @@
-expect_names <- c("folds_list",
-                  "folds_ids",
-                  "biomod_table",
-                  "k",
-                  "column",
-                  "type",
-                  "records")
+expect_names <- c(
+    "folds_list",
+    "folds_ids",
+    "biomod_table",
+    "k",
+    "column",
+    "type",
+    "records"
+)
 
 
 aus <- system.file("extdata/au/", package = "blockCV") |>
