@@ -30,13 +30,13 @@
 #' experimental.
 #'
 #' @inheritParams cv_plot
-#' @param x a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
+#' @param x a simple features (sf) object of the spatial sample points used for creating
 #' the \code{cv} object.
 #' @param r a terra SpatRaster object of environmental predictor that are going to be used for modelling. This
 #' is used to calculate similarity between the training and testing points.
 #' @param method the similarity method including: MESS, L1 and L2. Read the details section.
 #' @param num_sample number of random samples from raster to calculate similarity distances (only for L1 and L2).
-#' @param num_plot a vector of indices of folds.
+#' @param num_plot a vector of indices of folds for plotting (default uses all).
 #' @param jitter_width numeric; the width of jitter points.
 #' @param points_size numeric; the size of points.
 #' @param points_alpha numeric; the opacity of points
@@ -72,7 +72,7 @@
 #'                  iteration = 1)
 #'
 #' # compute extrapolation
-#' cv_similarity(cv = sb, r = covars, x = pa_data)
+#' cv_similarity(cv = sb, r = covars, x = pa_data, method = "MESS")
 #'
 #' }
 cv_similarity <- function(
