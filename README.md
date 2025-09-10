@@ -110,7 +110,7 @@ library(terra) # working with spatial raster data
 ```
 
 ``` r
-# load raster data; the pipe operator |> is available for R v4.1 or higher
+# load raster data; the pipe operator |> is available in R v4.1 or higher
 myrasters <- system.file("extdata/au/", package = "blockCV") |>
   list.files(full.names = TRUE) |>
   terra::rast()
@@ -124,15 +124,17 @@ pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 
 ``` r
 # spatial blocking by specified range and random assignment
-sb <- cv_spatial(x = pa_data, # sf or SpatialPoints of sample data (e.g. species data)
-                 column = "occ", # the response column (binary or multi-class)
-                 r = myrasters, # a raster for background (optional)
-                 size = 450000, # size of the blocks in metres
-                 k = 5, # number of folds
-                 hexagon = TRUE, # use hexagonal blocks - defualt
-                 selection = "random", # random blocks-to-fold
-                 iteration = 100, # to find evenly dispersed folds
-                 biomod2 = TRUE) # also create folds for biomod2
+sb <- cv_spatial(
+    x = pa_data, # sf or SpatialPoints of sample data (e.g. species data)
+    column = "occ", # the response column (binary or multi-class)
+    r = myrasters, # a raster for background (optional)
+    size = 450000, # size of the blocks in metres
+    k = 5, # number of folds
+    hexagon = TRUE, # use hexagonal blocks - defualt
+    selection = "random", # random blocks-to-fold
+    iteration = 100, # to find evenly dispersed folds
+    biomod2 = TRUE # also create folds for biomod2
+)
 ```
 
 ![](https://i.ibb.co/WGfrF7B/Rplot1.png)
@@ -142,18 +144,22 @@ Or create spatial clusters for k-fold cross-validation:
 ``` r
 # create spatial clusters
 set.seed(6)
-sc <- cv_cluster(x = pa_data, 
-                 column = "occ", # optionally count data in folds (binary or multi-class)
-                 k = 5)
+sc <- cv_cluster(
+    x = pa_data, 
+    column = "occ", # optionally count data in folds (binary or multi-class)
+    k = 5
+)
 ```
 
 ``` r
 # now plot the created folds
-cv_plot(cv = sc, # a blockCV object
-        x = pa_data, # sample points
-        r = myrasters[[1]], # optionally add a raster background
-        points_alpha = 0.5,
-        nrow = 2)
+cv_plot(
+    cv = sc, # a blockCV object
+    x = pa_data, # sample points
+    r = myrasters[[1]], # optionally add a raster background
+    points_alpha = 0.5,
+    nrow = 2
+)
 ```
 
 ![](https://i.ibb.co/dGrF9xp/Rplot02.png)
@@ -163,21 +169,25 @@ suitable size for spatial blocks:
 
 ``` r
 # exploring the effective range of spatial autocorrelation in raster covariates or sample data
-cv_spatial_autocor(r = myrasters, # a SpatRaster object or path to files
-                   num_sample = 5000, # number of cells to be used
-                   plot = TRUE)
+cv_spatial_autocor(
+    r = myrasters, # a SpatRaster object or path to files
+    num_sample = 5000, # number of cells to be used
+    plot = TRUE
+)
 ```
 
 Alternatively, you can manually choose the size of spatial blocks in an
 interactive session using a Shiny app.
 
 ``` r
-# shiny app to aid selecting a size for spatial blocks
-cv_block_size(r = myrasters[[1]],
-              x = pa_data, # optionally add sample points
-              column = "occ",
-              min_size = 2e5,
-              max_size = 9e5)
+# a shiny interactive app to aid selecting a size for spatial blocks
+cv_block_size(
+    r = myrasters[[1]],
+    x = pa_data, # optionally add sample points
+    column = "occ",
+    min_size = 2e5,
+    max_size = 9e5
+)
 ```
 
 ## Reporting issues
