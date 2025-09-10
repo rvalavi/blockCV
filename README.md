@@ -25,7 +25,7 @@ mapping, and species distribution modelling (SDM). It also provides
 support for different SDM scenarios, including presence-absence and
 presence-background species data, rare and common species, and raster
 data for predictor variables.
-
+ 
 ## Main features
 
 -   There are four blocking methods: **spatial**, **clustering**,
