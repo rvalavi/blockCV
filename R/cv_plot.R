@@ -19,6 +19,11 @@
 #' @param points_alpha numeric; the opacity of points
 #' @param label_size integer; size of fold labels when a \code{cv_spatial} object is used.
 #' @param remove_na logical; whether to remove excluded points in \code{cv_buffer} from the plot
+#' @param combine_folds logical; if \code{TRUE}, all folds are shown in a single map with points
+#' coloured by their fold ID instead of separate train/test facets. Only available for
+#' \code{cv_spatial}, \code{cv_cluster} and \code{cv_knndm} objects.
+#' @param fold_colors character; a vector of colours for the folds when \code{combine_folds = TRUE};
+#' by default a qualitative palette is generated for the number of folds.
 #'
 #' @importFrom grDevices gray.colors
 #' @return a ggplot object
@@ -54,12 +59,20 @@ cv_plot <- function(
         raster_colors = gray.colors(10, alpha = 1),
         points_colors = c("#E69F00", "#56B4E9"),
         points_alpha = 0.7,
-        label_size = 4
+        label_size = 4,
+        combine_folds = FALSE,
+        fold_colors = NULL
 ){
     # check for availability of ggplot2
     .check_pkgs(c("ggplot2"))
     # check it's a cv obj
     .check_cv(cv)
+
+    # combined fold map is only for objects with a unique fold per point, and needs points
+    if(combine_folds){
+        if(.is_loo(cv)) stop("'combine_folds = TRUE' is not supported for cv_buffer or cv_nndm (leave-one-out).")
+        if(missing(x)) stop("'x' is required when 'combine_folds = TRUE'.")
+    }
 
     # check x is an sf object
     if(!missing(x)){
@@ -108,10 +121,18 @@ cv_plot <- function(
     }
 
     if(!missing(x)){
-        x_long <- .x_to_long(x, cv, num_plot = num_plots)
-        # exclude NAs from cv_buffer
-        if(.is_loo(cv) && remove_na){
-            x_long <- x_long[which(stats::complete.cases(x_long$value)), ]
+        if(combine_folds){
+            # single map: colour each point by its fold ID
+            x$folds <- as.factor(cv$folds_ids)
+            if(is.null(fold_colors)){
+                fold_colors <- grDevices::hcl.colors(length(cv$folds_list), "Dark 3")
+            }
+        } else{
+            x_long <- .x_to_long(x, cv, num_plot = num_plots)
+            # exclude NAs from cv_buffer
+            if(.is_loo(cv) && remove_na){
+                x_long <- x_long[which(stats::complete.cases(x_long$value)), ]
+            }
         }
     } else{
         # stop if x is missing for buffer and cluster
@@ -140,6 +161,17 @@ cv_plot <- function(
                 ggplot2::theme_minimal() +
                 ggplot2::guides(fill = "none")
         }
+
+    } else if(combine_folds){
+        p1 <- ggplot2::ggplot(data = x) +
+            switch(!is.null(r), geom_rast) + # only switch works with ggplot
+            switch(!is.null(r), geom_rast_col) +
+            switch(is_spatial, geom_poly) +
+            ggplot2::geom_sf(ggplot2::aes(col = get("folds")), alpha = points_alpha) +
+            ggplot2::scale_color_manual(values = fold_colors) +
+            ggplot2::labs(x = "", y = "", col = "Folds") + # set the axes labes to NULL
+            ggplot2::theme_bw() +
+            ggplot2::guides(fill = "none")
 
     } else{
         p1 <- ggplot2::ggplot(data = x_long) +

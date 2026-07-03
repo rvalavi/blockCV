@@ -5,7 +5,7 @@
 
 # check the object is a blockCV object
 .check_cv <- function(x) {
-    is_cv <- inherits(x, c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm"))
+    is_cv <- inherits(x, c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm", "cv_knndm"))
     if (!is_cv) stop("'cv' must be a blockCV cv_* object.")
 }
 

@@ -13,7 +13,7 @@ cv_cluster(
   raster_cluster = FALSE,
   num_sample = 10000L,
   biomod2 = TRUE,
-  report = TRUE,
+  report = interactive(),
   ...
 )
 }
@@ -38,7 +38,8 @@ otherwise it will be over the extracted raster values of the sample points. See 
 \item{biomod2}{logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 a \emph{CV.user.table} for cross-validation.}
 
-\item{report}{logical; whether to print the report of the records per fold.}
+\item{report}{logical; whether to print the report of the records per fold.
+Defaults to \code{interactive()}.}
 
 \item{...}{additional arguments for \code{stats::kmeans} function, e.g. \code{algorithm = "MacQueen"}.}
 }

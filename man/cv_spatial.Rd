@@ -22,9 +22,9 @@ cv_spatial(
   offset = c(0, 0),
   extend = 0,
   seed = NULL,
-  progress = TRUE,
-  report = TRUE,
-  plot = TRUE,
+  progress = interactive(),
+  report = interactive(),
+  plot = interactive(),
   ...
 )
 }
@@ -82,11 +82,14 @@ within a block. The value should be a numeric between 0 and 5.}
 \item{seed}{integer; a random seed for reproducibility (although an external seed
 should also work).}
 
-\item{progress}{logical; whether to shows a progress bar for random fold selection.}
+\item{progress}{logical; whether to shows a progress bar for random fold selection.
+Defaults to \code{interactive()}.}
 
-\item{report}{logical; whether to print the report of the records per fold.}
+\item{report}{logical; whether to print the report of the records per fold.
+Defaults to \code{interactive()}.}
 
 \item{plot}{logical; whether to plot the final blocks with fold numbers in ggplot.
+Defaults to \code{interactive()}.
 You can re-create this with \code{\link{cv_plot}}.}
 
 \item{...}{additional option for \code{\link{cv_plot}}.}

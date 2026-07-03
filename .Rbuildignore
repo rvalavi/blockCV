@@ -16,3 +16,4 @@ tests/testthat/Rplots.pdf
 cran.md
 revdep/
 revdep/*
+^\.claude$

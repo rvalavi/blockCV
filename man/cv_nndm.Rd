@@ -14,8 +14,8 @@ cv_nndm(
   min_train = 0.05,
   presence_bg = FALSE,
   add_bg = FALSE,
-  plot = TRUE,
-  report = TRUE
+  plot = interactive(),
+  report = interactive()
 )
 }
 \arguments{
@@ -46,10 +46,10 @@ types (presence-absence, continuous, count or multi-class responses), this optio
 recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 the background pints to testing points.}
 
-\item{plot}{logical; whether to plot the G functions.}
+\item{plot}{logical; whether to plot the G functions. Defaults to \code{interactive()}.}
 
-\item{report}{logical; whether to generate print summary of records in each fold; for very big
-datasets, set to \code{FALSE} for slightly faster calculation.}
+\item{report}{logical; whether to print summary of records in each fold.
+Defaults to \code{interactive()}.}
 }
 \value{
 An object of class S3. A list of objects including:
@@ -112,5 +112,5 @@ C. Milà, J. Mateu, E. Pebesma, and H. Meyer, Nearest Neighbour Distance Matchin
 Leave-One-Out Cross-Validation for map validation, Methods in Ecology and Evolution (2022).
 }
 \seealso{
-\code{\link{cv_buffer}} and \code{\link{cv_spatial_autocor}}
+\code{\link{cv_buffer}}, \code{\link{cv_knndm}} and \code{\link{cv_spatial_autocor}}
 }

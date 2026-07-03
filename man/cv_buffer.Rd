@@ -10,8 +10,8 @@ cv_buffer(
   size,
   presence_bg = FALSE,
   add_bg = FALSE,
-  progress = TRUE,
-  report = TRUE
+  progress = interactive(),
+  report = interactive()
 )
 }
 \arguments{
@@ -30,10 +30,10 @@ types (presence-absence, continuous, count or multi-class responses), this optio
 recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 the background pints to testing points.}
 
-\item{progress}{logical; whether to shows a progress bar.}
+\item{progress}{logical; whether to shows a progress bar. Defaults to \code{interactive()}.}
 
-\item{report}{logical; whether to generate print summary of records in each fold; for very big
-datasets, set to \code{FALSE} for faster calculation.}
+\item{report}{logical; whether to print summary of records in each fold.
+Defaults to \code{interactive()}.}
 }
 \value{
 An object of class S3. A list of objects including:

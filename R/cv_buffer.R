@@ -37,9 +37,9 @@
 #' @param add_bg logical; add background points to the test set when \code{presence_bg = TRUE}. We do not
 #' recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 #' the background pints to testing points.
-#' @param progress logical; whether to shows a progress bar.
-#' @param report logical; whether to generate print summary of records in each fold; for very big
-#' datasets, set to \code{FALSE} for faster calculation.
+#' @param progress logical; whether to shows a progress bar. Defaults to \code{interactive()}.
+#' @param report logical; whether to print summary of records in each fold.
+#' Defaults to \code{interactive()}.
 #'
 #' @seealso \code{\link{cv_nndm}}, \code{\link{cv_spatial}}, and \code{\link{cv_spatial_autocor}}
 #'
@@ -78,8 +78,8 @@ cv_buffer <- function(
         size,
         presence_bg = FALSE,
         add_bg = FALSE,
-        progress = TRUE,
-        report = TRUE
+        progress = interactive(),
+        report = interactive()
 ){
 
     # check x is an sf object
@@ -132,8 +132,8 @@ cv_buffer <- function(
     })
 
     # calculate train test table summary
+    train_test_table <- .table_summary(fold_list, x, column, n)
     if(report){
-        train_test_table <- .table_summary(fold_list, x, column, n)
         print(summary(train_test_table)[c(1,4,6), ])
     }
 
@@ -143,7 +143,7 @@ cv_buffer <- function(
         column = column,
         size = size,
         presence_bg = presence_bg,
-        records = if(report) train_test_table else NULL
+        records = train_test_table
     )
 
     class(final_objs) <- c("cv_buffer")

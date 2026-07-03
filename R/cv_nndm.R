@@ -34,11 +34,11 @@
 #' @param min_train numeric; between 0 and 1. A constraint on the minimum proportion of train points in each fold.
 #' @inheritParams cv_buffer
 #' @inheritParams cv_buffer
-#' @param plot logical; whether to plot the G functions.
-#' @param report logical; whether to generate print summary of records in each fold; for very big
-#' datasets, set to \code{FALSE} for slightly faster calculation.
+#' @param plot logical; whether to plot the G functions. Defaults to \code{interactive()}.
+#' @param report logical; whether to print summary of records in each fold.
+#' Defaults to \code{interactive()}.
 #'
-#' @seealso \code{\link{cv_buffer}} and \code{\link{cv_spatial_autocor}}
+#' @seealso \code{\link{cv_buffer}}, \code{\link{cv_knndm}} and \code{\link{cv_spatial_autocor}}
 #'
 #' @references C. Milà, J. Mateu, E. Pebesma, and H. Meyer, Nearest Neighbour Distance Matching
 #' Leave-One-Out Cross-Validation for map validation, Methods in Ecology and Evolution (2022).
@@ -86,8 +86,8 @@ cv_nndm <- function(
         min_train = 0.05,
         presence_bg = FALSE,
         add_bg = FALSE,
-        plot = TRUE,
-        report = TRUE
+        plot = interactive(),
+        report = interactive()
 ){
 
     # check for sampling arg
@@ -185,8 +185,8 @@ cv_nndm <- function(
     }
     )
     # calculate train test table summary
+    train_test_table <- .table_summary(fold_list, x, column, n)
     if(report){
-        train_test_table <- .table_summary(fold_list, x, column, n)
         print(summary(train_test_table)[c(1,4,6), ])
     }
 
@@ -222,7 +222,7 @@ cv_nndm <- function(
         size = size,
         plot = plt,
         presence_bg = presence_bg,
-        records = if(report) train_test_table else NULL
+        records = train_test_table
     )
 
     class(final_objs) <- c("cv_nndm")

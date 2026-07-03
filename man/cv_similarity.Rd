@@ -22,13 +22,13 @@ cv_similarity(
 \item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer}
 or \code{cv_nndm}}
 
-\item{x}{a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
+\item{x}{a simple features (sf) object of the spatial sample points used for creating
 the \code{cv} object.}
 
 \item{r}{a terra SpatRaster object of environmental predictor that are going to be used for modelling. This
 is used to calculate similarity between the training and testing points.}
 
-\item{num_plot}{a vector of indices of folds.}
+\item{num_plot}{a vector of indices of folds for plotting (default uses all).}
 
 \item{method}{the similarity method including: MESS, L1 and L2. Read the details section.}
 
@@ -42,7 +42,8 @@ is used to calculate similarity between the training and testing points.}
 
 \item{points_colors}{character; a character vector of colours for points}
 
-\item{progress}{logical; whether to shows a progress bar for random fold selection.}
+\item{progress}{logical; whether to shows a progress bar for random fold selection.
+Defaults to \code{interactive()}.}
 }
 \value{
 a ggplot object
@@ -100,7 +101,7 @@ sb <- cv_spatial(x = pa_data,
                  iteration = 1)
 
 # compute extrapolation
-cv_similarity(cv = sb, r = covars, x = pa_data)
+cv_similarity(cv = sb, r = covars, x = pa_data, method = "MESS")
 
 }
 }

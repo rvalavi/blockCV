@@ -69,8 +69,11 @@
 #' @param seed integer; a random seed for reproducibility (although an external seed
 #' should also work).
 #' @param progress logical; whether to shows a progress bar for random fold selection.
+#' Defaults to \code{interactive()}.
 #' @param report logical; whether to print the report of the records per fold.
+#' Defaults to \code{interactive()}.
 #' @param plot logical; whether to plot the final blocks with fold numbers in ggplot.
+#' Defaults to \code{interactive()}.
 #' You can re-create this with \code{\link{cv_plot}}.
 #' @param ... additional option for \code{\link{cv_plot}}.
 #'
@@ -145,9 +148,9 @@ cv_spatial <- function(
         offset = c(0, 0),
         extend = 0,
         seed = NULL,
-        progress = TRUE,
-        report = TRUE,
-        plot = TRUE,
+        progress = interactive(),
+        report = interactive(),
+        plot = interactive(),
         ... # other arguments for cv_plot
 ){
 

@@ -87,7 +87,7 @@ cv_cluster <- function(
         raster_cluster = FALSE,
         num_sample = 10000L,
         biomod2 = TRUE,
-        report = TRUE,
+        report = interactive(),
         ...
 ){
 

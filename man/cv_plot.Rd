@@ -16,7 +16,9 @@ cv_plot(
   raster_colors = gray.colors(10, alpha = 1),
   points_colors = c("#E69F00", "#56B4E9"),
   points_alpha = 0.7,
-  label_size = 4
+  label_size = 4,
+  combine_folds = FALSE,
+  fold_colors = NULL
 )
 }
 \arguments{
@@ -47,6 +49,13 @@ You can choose any of the folds to be shown e.g. \code{1:3} or \code{c(2, 7, 16,
 \item{points_alpha}{numeric; the opacity of points}
 
 \item{label_size}{integer; size of fold labels when a \code{cv_spatial} object is used.}
+
+\item{combine_folds}{logical; if \code{TRUE}, all folds are shown in a single map with points
+coloured by their fold ID instead of separate train/test facets. Only available for
+\code{cv_spatial}, \code{cv_cluster} and \code{cv_knndm} objects.}
+
+\item{fold_colors}{character; a vector of colours for the folds when \code{combine_folds = TRUE};
+by default a qualitative palette is generated for the number of folds.}
 }
 \value{
 a ggplot object

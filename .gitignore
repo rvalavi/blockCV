@@ -1,6 +1,7 @@
 .Rproj.user
 .Rhistory
 .RData
+.DS_Store
 Meta
 cran_comments.md
 tests/testthat/Rplots.pdf
