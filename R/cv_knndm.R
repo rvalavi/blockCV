@@ -25,12 +25,18 @@
 #' in the (scaled) covariate space of \code{r} instead of the geographical space, and \code{"blocks"} is
 #' not available.
 #'
+#' When \code{column} is supplied and \code{balance_classes = TRUE}, class balance is used as a
+#' validity gate during the candidate scan: among groupings with every class present in every test
+#' fold, the one with the smallest \code{W} is selected. If no class-complete grouping is available,
+#' the overall smallest-\code{W} grouping is returned and the final records table reports the missing
+#' class(es).
+#'
 #' @inheritParams cv_spatial
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species
 #' data or ground truth sample for image classification).
 #' @param column character (optional). Indicating the name of the column in which response variable
-#' (e.g. species data as a binary response i.e. 0s and 1s) is stored. This is only used to see whether
-#' all the folds contain all the classes in the final report.
+#' (e.g. species data as a binary response i.e. 0s and 1s) is stored. This is used to report whether
+#' all folds contain all classes, and by default to prefer class-complete candidate groupings.
 #' @param r a terra SpatRaster object. This defines the area that the model is going to predict; when
 #' neither \code{predpoints} nor \code{modeldomain} is supplied, prediction points are sampled from it.
 #' It is also required (for the covariates) when \code{space = "feature"}.
@@ -55,6 +61,10 @@
 #' @param linkage character; the agglomeration method passed to \code{\link[stats]{hclust}} when
 #' \code{clustering = "hierarchical"}.
 #' @param scale logical; whether to scale the covariates when \code{space = "feature"}.
+#' @param balance_classes logical (optional). If \code{TRUE}, and \code{column} is supplied, candidate
+#' groupings with every class represented in every test fold are preferred. If no such grouping exists,
+#' the best distance-matching grouping is returned and the usual zero-record warning is reported.
+#' Defaults to \code{TRUE} when \code{column} is supplied and \code{FALSE} otherwise.
 #' @param seed integer; a random seed for reproducibility.
 #' @param plot logical; whether to plot the distance distribution functions. Defaults to \code{interactive()}.
 #' @param report logical; whether to print summary of records in each fold. Defaults to \code{interactive()}.
@@ -126,6 +136,7 @@ cv_knndm <- function(
         scale = TRUE,
         biomod2 = TRUE,
         deg_to_metre = 111325,
+        balance_classes = NULL,
         seed = NULL,
         plot = interactive(),
         report = interactive()
@@ -140,6 +151,15 @@ cv_knndm <- function(
     x <- .check_x(x)
     # is column in x?
     column <- .check_column(column, x)
+    if(is.null(balance_classes)){
+        balance_classes <- !is.null(column)
+    }
+    if(!is.logical(balance_classes) || length(balance_classes) != 1L || is.na(balance_classes)){
+        stop("'balance_classes' must be TRUE or FALSE.")
+    }
+    if(balance_classes && is.null(column)){
+        stop("'balance_classes = TRUE' requires 'column'.")
+    }
     # x's CRS must be defined
     if(is.na(sf::st_crs(x))){
         stop("The coordinate reference system of 'x' must be defined.")
@@ -213,29 +233,41 @@ cv_knndm <- function(
         cand <- .knndm_candidates(clustering, k, n, nk_len, tdist, clust_coords,
                                   linkage, x, hexagon, deg_to_metre)
 
-        best_W <- Inf
-        fold_vect <- NULL
-        Gjstar <- NULL
-        q <- NA_integer_
+        best <- NULL
+        best_complete <- NULL
         for(clust in cand){
             folds <- .merge_clusters(clust, clust_coords, k, maxp)
             if(is.null(folds)) next # violates maxp or cannot form k folds
             gjs <- .nn_diff_fold(tdist, folds)
             w <- .wasserstein(gjs, Gij)
-            if(w < best_W){
-                best_W <- w
-                fold_vect <- folds
-                Gjstar <- gjs
-                q <- length(unique(clust))
+            candidate <- list(
+                W = w,
+                fold_vect = folds,
+                Gjstar = gjs,
+                q = length(unique(clust))
+            )
+            if(is.null(best) || w < best$W){
+                best <- candidate
+            }
+            if(balance_classes &&
+               .knndm_class_complete(folds, x, column, k) &&
+               (is.null(best_complete) || w < best_complete$W)){
+                best_complete <- candidate
             }
         }
         # no valid kNNDM configuration was found after clustering was required
-        if(is.null(fold_vect)){
+        if(is.null(best)){
             stop("No grouping satisfied 'maxp'. Increase 'maxp', reduce 'k', increase 'nk_len', or use a different clustering method.")
         } else{
             method <- clustering
         }
-        W <- best_W
+        if(balance_classes && !is.null(best_complete)){
+            best <- best_complete
+        }
+        fold_vect <- best$fold_vect
+        Gjstar <- best$Gjstar
+        q <- best$q
+        W <- best$W
     }
 
     # build folds, biomod table and records (k-fold output) -------------------
@@ -409,13 +441,26 @@ cv_knndm <- function(
 }
 
 
+# check whether every class is represented in every test fold
+.knndm_class_complete <- function(fold_vect, x, column, k){
+    fold_list <- lapply(seq_len(k), function(i){
+        list(which(fold_vect != i), which(fold_vect == i))
+    })
+    train_test_table <- .table_summary(fold_list, x, column, k)
+    test_cols <- startsWith(names(train_test_table), "test_")
+    all(as.matrix(train_test_table[, test_cols, drop = FALSE]) > 0)
+}
+
+
 # merge intermediate groups into k folds along the first principal component
-# (Linnenbrink et al., 2024). Returns NULL if a fold would exceed maxp.
+# following CAST's kNNDM assignment. Returns NULL if a fold would exceed maxp.
 .merge_clusters <- function(clust, coords, k, maxp){
     ids <- unique(clust)
     if(length(ids) < k) return(NULL)
     n <- length(clust)
     cap <- maxp * n
+    target <- n / k
+
     # order groups along the first principal component of the coordinates
     pc1 <- stats::prcomp(coords, center = TRUE, scale. = FALSE, rank. = 1)$x[, 1]
     score <- vapply(ids, function(g) mean(pc1[clust == g]), numeric(1))
@@ -423,27 +468,29 @@ cv_knndm <- function(
     ord <- order(score)
     ids <- ids[ord]
     size <- size[ord]
-    # distribute contiguous groups across folds, keeping each fold below the cap
+
     fold_of <- integer(length(ids))
-    load <- numeric(k)
-    nextf <- 1L
+    next_fold <- 1L
     for(i in seq_along(ids)){
-        placed <- FALSE
-        for(step in seq_len(k) - 1L){
-            f <- ((nextf - 1L + step) %% k) + 1L
-            if(load[f] + size[i] <= cap){
-                fold_of[i] <- f
-                load[f] <- load[f] + size[i]
-                nextf <- f + 1L
-                placed <- TRUE
-                break
-            }
+        if(size[i] >= target){
+            if(next_fold > k) return(NULL)
+            fold_of[i] <- next_fold
+            next_fold <- next_fold + 1L
         }
-        if(!placed) return(NULL) # cannot satisfy maxp
+    }
+
+    remaining_folds <- setdiff(seq_len(k), fold_of[fold_of > 0L])
+    missing <- fold_of == 0L
+    if(any(missing)){
+        if(!length(remaining_folds)) return(NULL)
+        fold_of[missing] <- rep(remaining_folds, length.out = sum(missing))
     }
     out <- integer(n)
     for(i in seq_along(ids)) out[clust == ids[i]] <- fold_of[i]
+
+    load <- tabulate(out, nbins = k)
     if(length(unique(out)) < k) return(NULL) # must form k non-empty folds
+    if(any(load > cap)) return(NULL) # cannot satisfy maxp
     return(out)
 }
 
