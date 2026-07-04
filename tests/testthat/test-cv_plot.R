@@ -43,6 +43,19 @@ test_that("cv_plot combine_folds shows a single fold map for k-fold objects", {
                     fold_colors = grDevices::rainbow(5))
     expect_true(ggplot2::is_ggplot(plt2))
 
+    # user-supplied fold colours must cover all folds
+    expect_error(
+        cv_plot(cv = scv, x = pa_data, combine_folds = TRUE,
+                fold_colors = grDevices::rainbow(4)),
+        "'fold_colors' must provide at least 5 colours"
+    )
+
+    # x must match the observations used to create the folds
+    expect_error(
+        cv_plot(cv = scv, x = pa_data[1:150, ], combine_folds = TRUE),
+        "Number of rows in 'x' does not match the folds in 'cv'!"
+    )
+
     # leave-one-out objects are not supported
     bloo <- cv_buffer(
         x = pa_data[1:150, ],

@@ -125,9 +125,19 @@ cv_plot <- function(
     if(!missing(x)){
         if(combine_folds){
             # single map: colour each point by its fold ID
+            if(length(cv$folds_ids) != nrow(x)){
+                stop("Number of rows in 'x' does not match the folds in 'cv'!")
+            }
             x$folds <- as.factor(cv$folds_ids)
             if(is.null(fold_colors)){
                 fold_colors <- grDevices::hcl.colors(length(cv$folds_list), "Dark 3")
+            } else if(!is.character(fold_colors)){
+                stop("'fold_colors' must be a character vector.")
+            } else if(length(fold_colors) < length(levels(x$folds))){
+                stop(sprintf(
+                    "'fold_colors' must provide at least %s colours for the folds in 'cv'.",
+                    length(levels(x$folds))
+                ))
             }
         } else{
             x_long <- .x_to_long(x, cv, num_plot = num_plots)
