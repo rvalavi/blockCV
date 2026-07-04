@@ -32,7 +32,7 @@ This distance should be in \strong{\emph{metres}} no matter what the coordinate 
 \item{progress}{Logical. If TRUE a progress bar will be shown.}
 }
 \description{
-This function is deprecated and will be removed in future updates! Please use \code{\link{cv_buffer}} instead!
+This function is deprecated and will be removed in version 4! Please use \code{\link{cv_buffer}} instead!
 }
 \seealso{
 \code{\link{cv_buffer}}

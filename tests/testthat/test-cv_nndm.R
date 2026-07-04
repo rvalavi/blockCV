@@ -125,15 +125,41 @@ test_that("test cv_nndm function with no spatial column data", {
 
 })
 
-test_that("test cv_nndm function to have sptial points with no CRS", {
-    sf::st_crs(pa_data) <- NA
+test_that("cv_nndm falls back to Euclidean distance when x has no CRS", {
+    nocrs <- pa_data
+    sf::st_crs(nocrs) <- NA
+    dom <- sf::st_as_sfc(sf::st_bbox(nocrs))
+
+    expect_warning(
+        bloo <- cv_nndm(
+            x = nocrs,
+            column = "occ",
+            model_domain = dom,
+            size = 250000,
+            num_sample = 500,
+            plot = FALSE,
+            report = FALSE
+        ),
+        "CRS undefined"
+    )
+
+    expect_s3_class(bloo, "cv_nndm")
+    expect_equal(length(bloo$folds_list), nrow(nocrs))
+
+})
+
+test_that("cv_nndm errors when x and r have mismatched CRS", {
+    nocrs <- pa_data
+    sf::st_crs(nocrs) <- NA
 
     expect_error(
-        cv_nndm(
-            x = pa_data,
-            column = "occ",
-            r = aus,
-            size = 250000
+        suppressWarnings(
+            cv_nndm(
+                x = nocrs,
+                column = "occ",
+                r = aus,
+                size = 250000
+            )
         )
     )
 

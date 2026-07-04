@@ -61,6 +61,60 @@ test_that("test that spacial cluster function with no column", {
 
 })
 
+test_that("continuous column is reported with quantile bins", {
+
+    cont_data <- pa_data
+    set.seed(201)
+    cont_data$biomass <- stats::rnorm(nrow(cont_data))
+
+    set.seed(202)
+    eb <- cv_cluster(
+        x = cont_data,
+        column = "biomass",
+        k = 5,
+        biomod2 = FALSE,
+        n_bins = 4
+    )
+
+    expect_equal(dim(eb$records), c(5, 8))
+    expect_equal(
+        names(eb$records),
+        c(paste0("train_Q", 1:4), paste0("test_Q", 1:4))
+    )
+    bins <- attr(eb$records, "column_bins")
+    expect_equal(nrow(bins), 4)
+    expect_equal(attr(bins, "requested_bins"), 4L)
+
+})
+
+test_that("continuous quantile bins tolerate tied breaks", {
+
+    cont_data <- pa_data
+    n <- nrow(cont_data)
+    n0 <- floor(n * 0.4)
+    n1 <- floor(n * 0.4)
+    cont_data$biomass <- c(
+        rep(0, n0),
+        rep(1, n1),
+        seq(2, 3, length.out = n - n0 - n1)
+    )
+
+    set.seed(203)
+    eb <- cv_cluster(
+        x = cont_data,
+        column = "biomass",
+        k = 5,
+        biomod2 = FALSE,
+        n_bins = 4
+    )
+
+    bins <- attr(eb$records, "column_bins")
+    expect_equal(attr(bins, "requested_bins"), 4L)
+    expect_lt(nrow(bins), 4)
+    expect_equal(ncol(eb$records), nrow(bins) * 2)
+
+})
+
 
 test_that("test that environmental cluster with no scale and wrong column", {
     set.seed(42)

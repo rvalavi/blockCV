@@ -19,8 +19,8 @@ cv_similarity(
 )
 }
 \arguments{
-\item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer}
-or \code{cv_nndm}}
+\item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer},
+\code{cv_nndm}, or \code{cv_knndm}}
 
 \item{x}{a simple features (sf) object of the spatial sample points used for creating
 the \code{cv} object.}

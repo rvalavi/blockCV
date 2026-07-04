@@ -8,8 +8,8 @@ cv_knndm(
   x,
   column = NULL,
   r = NULL,
-  predpoints = NULL,
-  modeldomain = NULL,
+  pred_points = NULL,
+  model_domain = NULL,
   k = 5L,
   maxp = 0.5,
   clustering = "blocks",
@@ -24,6 +24,7 @@ cv_knndm(
   biomod2 = TRUE,
   deg_to_metre = 111325,
   seed = NULL,
+  n_bins = 4L,
   plot = interactive(),
   report = interactive()
 )
@@ -37,13 +38,13 @@ data or ground truth sample for image classification).}
 all folds contain all classes and to prefer class-complete candidate groupings.}
 
 \item{r}{a terra SpatRaster object. This defines the area that the model is going to predict; when
-neither \code{predpoints} nor \code{modeldomain} is supplied, prediction points are sampled from it.
+neither \code{pred_points} nor \code{model_domain} is supplied, prediction points are sampled from it.
 It is also required (for the covariates) when \code{space = "feature"}.}
 
-\item{predpoints}{a simple features (sf) object of prediction points (optional). If provided, these are
-used directly as the prediction locations instead of sampling from \code{r} or \code{modeldomain}.}
+\item{pred_points}{a simple features (sf) object of prediction points (optional). If provided, these are
+used directly as the prediction locations instead of sampling from \code{r} or \code{model_domain}.}
 
-\item{modeldomain}{an sf polygon of the prediction area (optional). If provided (and \code{predpoints}
+\item{model_domain}{an sf polygon of the prediction area (optional). If provided (and \code{pred_points}
 is not), prediction points are sampled from it.}
 
 \item{k}{integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.}
@@ -67,8 +68,8 @@ If \code{FALSE}, square blocks are used.}
 effect for the \code{"hierarchical"} and \code{"kmeans"} methods, in feature space, or when a random
 cross-validation is returned; in those cases \code{blocks} is \code{NULL}.}
 
-\item{num_sample}{integer; the number of prediction points to sample from \code{r} or \code{modeldomain}
-when \code{predpoints} is not supplied.}
+\item{num_sample}{integer; the number of prediction points to sample from \code{r} or \code{model_domain}
+when \code{pred_points} is not supplied.}
 
 \item{sampling}{either \code{"regular"} (default) or \code{"random"} for sampling prediction points.}
 
@@ -85,6 +86,11 @@ a \emph{CV.user.table} for cross-validation.}
 \item{deg_to_metre}{integer. The conversion rate of metres to degree. See the details section for more information.}
 
 \item{seed}{integer; a random seed for reproducibility.}
+
+\item{n_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+The default is \code{4}. Set \code{n_bins = NULL} to disable binning and treat every unique value as a
+separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
+The raw response values are not modified; bins are only used for fold balancing and record summaries.}
 
 \item{plot}{logical; whether to plot the distance distribution functions. Defaults to \code{interactive()}.}
 

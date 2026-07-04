@@ -25,6 +25,7 @@
 #' @inheritParams cv_spatial
 #' @param column character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
 #'  response i.e. 0s and 1s) is stored. This is only used to see whether all the folds contain all the classes in the final report.
+#'  Continuous numeric responses are binned into quantiles using \code{n_bins} before records are counted.
 #' @param r a terra SpatRaster object of covariates to identify environmental groups. If provided, clustering will be done
 #' in environmental space rather than spatial coordinates of sample points.
 #' @param scale logical; whether to scale the input rasters (recommended) for clustering.
@@ -88,6 +89,7 @@ cv_cluster <- function(
         num_sample = 10000L,
         biomod2 = TRUE,
         report = interactive(),
+        n_bins = 4L,
         ...
 ){
 
@@ -157,15 +159,8 @@ cv_cluster <- function(
     }
 
     # create train-test table
-    if(is.null(column)){
-        train_test_table <- data.frame(train = rep(0, k), test = 0)
-    } else{
-        cl <- sort(unique(x[, column, drop = TRUE]))
-        clen <- length(cl)
-        .check_classes(clen, column) # column should be binary or categorical
-        train_test_table <- as.data.frame(matrix(0, nrow = k, ncol = clen * 2))
-        names(train_test_table) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
-    }
+    response <- .column_response(x, column, n_bins = n_bins)
+    train_test_table <- .records_table(k, response)
 
     fold_list <- list()
     fold_ids <- rep(NA, nrow(x))
@@ -176,15 +171,7 @@ cv_cluster <- function(
         train_set <- which(x$fold != i)
         fold_ids[test_set] <- i
         fold_list[[i]] <- assign(paste0("fold", i), list(train_set, test_set))
-        if(is.null(column)){
-            train_test_table$train[i] <- length(train_set)
-            train_test_table$test[i] <- length(test_set)
-        } else{
-            countrain <- table(x[train_set ,column, drop = TRUE])
-            countest <- table(x[test_set ,column, drop = TRUE])
-            train_test_table[i, which(cl %in% names(countrain))] <- countrain
-            train_test_table[i, clen + which(cl %in% names(countest))] <- countest
-        }
+        train_test_table <- .records_table_row(train_test_table, i, train_set, test_set, response)
         if(biomod2){ # creating a biomod2 CV.user.table for validation
             colm <- paste0("RUN", i)
             biomod_table[,colm] <- FALSE
@@ -195,10 +182,12 @@ cv_cluster <- function(
     # give a warning is any folds is empty
     zerofolds <- which(apply(train_test_table, 1, function(x) any(x < 1)))
     if(length(zerofolds) > 0){
+        zero_text <- "class(es)"
+        if(!is.null(response$bins)) zero_text <- "class/bin(es)"
         if(length(zerofolds) > 1){
-            warning("Folds ", paste(zerofolds, collapse = ", "), " have class(es) with zero records")
+            warning("Folds ", paste(zerofolds, collapse = ", "), " have ", zero_text, " with zero records")
         } else{
-            warning("Fold ", zerofolds, " has class(es) with zero records")
+            warning("Fold ", zerofolds, " has ", zero_text, " with zero records")
         }
     }
 
@@ -212,7 +201,10 @@ cv_cluster <- function(
         records = train_test_table
     )
 
-    if(report) print(train_test_table)
+    if(report){
+        .print_column_bins(response)
+        print(train_test_table)
+    }
     # specify the output class
     class(final_objs) <- c("cv_cluster")
 
@@ -224,6 +216,18 @@ cv_cluster <- function(
 #' @method print cv_cluster
 print.cv_cluster <- function(x, ...){
     print(class(x))
+}
+
+#' @export
+#' @method plot cv_cluster
+plot.cv_cluster <- function(x, y, data = NULL, ...){
+    .plot_cv_fold_map(
+        cv = x,
+        y = if(!missing(y)) y else NULL,
+        data = data,
+        has_y = !missing(y),
+        ...
+    )
 }
 
 #' @export

@@ -67,3 +67,42 @@ test_that("cv_plot combine_folds shows a single fold map for k-fold objects", {
     expect_error(cv_plot(cv = bloo, x = pa_data[1:150, ], combine_folds = TRUE))
 
 })
+
+
+test_that("point-based plots explain and use the original sample data", {
+    bloo <- cv_buffer(
+        x = pa_data[1:50, ],
+        column = "occ",
+        size = 250000,
+        presence_bg = FALSE,
+        progress = FALSE
+    )
+
+    expect_error(
+        cv_plot(cv = bloo),
+        "The original sample data are required"
+    )
+    expect_error(
+        plot(bloo),
+        "The original sample data are required"
+    )
+
+    plt <- plot(bloo, pa_data[1:50, ], num_plots = 1:2)
+    expect_true(ggplot2::is_ggplot(plt))
+
+    plt_data <- plot(bloo, data = pa_data[1:50, ], num_plots = 1)
+    expect_true(ggplot2::is_ggplot(plt_data))
+
+    cl <- cv_cluster(
+        x = pa_data[1:50, ],
+        column = "occ",
+        k = 3,
+        report = FALSE
+    )
+    expect_error(
+        plot(cl),
+        "The original sample data are required"
+    )
+    plt_cluster <- plot(cl, pa_data[1:50, ], combine_folds = TRUE)
+    expect_true(ggplot2::is_ggplot(plt_cluster))
+})

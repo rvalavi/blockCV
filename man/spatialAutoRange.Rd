@@ -48,7 +48,7 @@ calculated based on deviding the calculated \emph{range} by this value to conver
 \item{progress}{Logical. Shows progress bar. It works only when \code{doParallel = FALSE}.}
 }
 \description{
-This function is deprecated and will be removed in future updates! Please use \code{\link{cv_spatial_autocor}} instead!
+This function is deprecated and will be removed in version 4! Please use \code{\link{cv_spatial_autocor}} instead!
 }
 \seealso{
 \code{\link{cv_spatial_autocor}}

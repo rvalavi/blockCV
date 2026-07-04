@@ -22,11 +22,13 @@ cv_plot(
 )
 }
 \arguments{
-\item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer}
-or \code{cv_nndm}}
+\item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer},
+\code{cv_nndm}, or \code{cv_knndm}}
 
 \item{x}{a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
-the \code{cv} object. This could be empty when \code{cv} is a \code{cv_spatial} object.}
+the \code{cv} object. This is required for point-based objects such as \code{cv_cluster},
+\code{cv_buffer}, \code{cv_nndm}, and \code{cv_knndm}; it can be omitted for
+\code{cv_spatial} objects.}
 
 \item{r}{a terra SpatRaster object (optional). If provided, it will be used as background of the plots.
 It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.}

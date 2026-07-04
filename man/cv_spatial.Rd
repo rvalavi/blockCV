@@ -25,6 +25,7 @@ cv_spatial(
   progress = interactive(),
   report = interactive(),
   plot = interactive(),
+  n_bins = 4L,
   ...
 )
 }
@@ -35,8 +36,8 @@ cv_spatial(
 response i.e. 0s and 1s) is stored to find balanced records in cross-validation folds. If \code{column = NULL}
 the response variable classes will be treated the same and only training and testing records will be counted.
 This is used for binary (e.g. presence-absence/background) or multi-class responses (e.g. land cover classes for
-remote sensing image classification), and \emph{you can ignore it when the response variable is
-continuous or count data}.}
+remote sensing image classification). Continuous numeric responses are binned into quantiles using \code{n_bins}
+before balancing.}
 
 \item{r}{a terra SpatRaster object (optional). If provided, its extent will be used to specify the blocks.
 It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.}
@@ -91,6 +92,11 @@ Defaults to \code{interactive()}.}
 \item{plot}{logical; whether to plot the final blocks with fold numbers in ggplot.
 Defaults to \code{interactive()}.
 You can re-create this with \code{\link{cv_plot}}.}
+
+\item{n_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+The default is \code{4}. Set \code{n_bins = NULL} to disable binning and treat every unique value as a
+separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
+The raw response values are not modified; bins are only used for fold balancing and record summaries.}
 
 \item{...}{additional option for \code{\link{cv_plot}}.}
 }

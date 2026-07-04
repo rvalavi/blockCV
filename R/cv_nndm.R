@@ -23,9 +23,16 @@
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species
 #' data or ground truth sample for image classification).
 #' @inheritParams cv_buffer
-#' @param r a terra SpatRaster object of a predictor variable. This defines the area that model is going to predict.
+#' @param r a terra SpatRaster object of a predictor variable (optional). This defines the area that
+#' the model is going to predict; prediction points are sampled from it when neither \code{pred_points}
+#' nor \code{model_domain} is supplied. One of \code{r}, \code{pred_points}, or \code{model_domain} is required.
+#' @param pred_points a simple features (sf) object of prediction points (optional). If provided, these are
+#' used directly as the prediction locations instead of sampling from \code{r} or \code{model_domain}.
+#' @param model_domain an sf polygon of the prediction area (optional). If provided (and \code{pred_points}
+#' is not), prediction points are sampled from it.
 #' @param size numeric value of the range of spatial autocorrelation (the \code{phi} parameter).
-#' This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}.
+#' This distance should be in \strong{metres} (or in the coordinate units of \code{x} when its CRS is
+#' undefined). The range could be explored by \code{\link{cv_spatial_autocor}}.
 #' @param num_sample integer; the number of sample points from predictor (\code{r}) to be used for calculating
 #' the G function of prediction points.
 #' @param sampling either \code{"random"} or \code{"regular"} for sampling prediction points.
@@ -79,13 +86,16 @@
 cv_nndm <- function(
         x,
         column = NULL,
-        r,
+        r = NULL,
         size,
+        pred_points = NULL,
+        model_domain = NULL,
         num_sample = 1e4,
         sampling = "random",
         min_train = 0.05,
         presence_bg = FALSE,
         add_bg = FALSE,
+        n_bins = 4L,
         plot = interactive(),
         report = interactive()
 ){
@@ -97,31 +107,21 @@ cv_nndm <- function(
     x <- .check_x(x)
     # is column in x?
     column <- .check_column(column, x)
-    # x's CRS must be defined
+    # CRS: fall back to planar (Euclidean) distances when undefined
     if(is.na(sf::st_crs(x))){
-        stop("The coordinate reference system of 'x' must be defined.")
+        warning("CRS undefined; assuming planar coordinates, distances in coordinate units")
     }
 
-    # check r
-    r <- .check_r(r)
-    r <- r[[1]]
-
-    # get the sample points form raster
-    tryCatch(
-        {
-            rx <- terra::spatSample(
-                x = r,
-                size = num_sample,
-                method = sampling,
-                values = FALSE,
-                na.rm = TRUE,
-                as.points = TRUE
-            )
-        },
-        error = function(cond) {
-            message("Sampling raster failed!")
+    # if a raster is provided, it must share x's CRS
+    if(!is.null(r)){
+        r <- .check_r(r)
+        if(!.same_crs(x, terra::crs(r))){
+            stop("The coordinate reference systems of 'x' and 'r' must match.")
         }
-    )
+    }
+
+    # resolve the prediction points from pred_points, model_domain, or a sampled raster
+    rx <- .knndm_predpoints(x, r, pred_points, model_domain, num_sample, sampling)
     # convert to sf object
     rx <- sf::st_as_sf(rx)
 
@@ -185,7 +185,7 @@ cv_nndm <- function(
     }
     )
     # calculate train test table summary
-    train_test_table <- .table_summary(fold_list, x, column, n)
+    train_test_table <- .table_summary(fold_list, x, column, n, n_bins = n_bins)
     if(report){
         print(summary(train_test_table)[c(1,4,6), ])
     }
@@ -238,9 +238,19 @@ print.cv_nndm <- function(x, ...){
 
 #' @export
 #' @method plot cv_nndm
-plot.cv_nndm <- function(x, y, ...){
+plot.cv_nndm <- function(x, y, data = NULL, ...){
+    if(!missing(y) || !is.null(data)){
+        return(.plot_cv_fold_map(
+            cv = x,
+            y = if(!missing(y)) y else NULL,
+            data = data,
+            has_y = !missing(y),
+            ...
+        ))
+    }
+
     plot(x$plot)
-    message("Please use cv_plot function to plot each fold.")
+    invisible(x$plot)
 }
 
 

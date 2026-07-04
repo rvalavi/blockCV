@@ -47,7 +47,7 @@ in any of the folds happens to be less than this number.}
 \item{verbose}{Logical. To print the report of the recods per fold.}
 }
 \description{
-This function is deprecated and will be removed in future updates! Please use \code{\link{cv_cluster}} instead!
+This function is deprecated and will be removed in version 4! Please use \code{\link{cv_cluster}} instead!
 }
 \seealso{
 \code{\link{cv_cluster}}

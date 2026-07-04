@@ -1,6 +1,6 @@
 #' Explore the generated folds
 #'
-#' This function is deprecated! Please use \code{\link{cv_plot}} function for plotting the folds.
+#' This function is deprecated and will be removed in version 4! Please use \code{\link{cv_plot}} function for plotting the folds.
 #'
 #' @param blocks deprecated!
 #' @param rasterLayer deprecated!
@@ -37,7 +37,7 @@ rangeExplorer <- function(rasterLayer,
                           minRange=NULL,
                           maxRange=NULL){
 
-    message("This function is deprecated! Please use 'cv_block_size' instead.")
+    warning("This function is deprecated and will be removed in version 4! Please use 'cv_block_size' instead.")
     # check x is an sf object
     if(!is.null(speciesData)){
         speciesData <- .check_x(speciesData, name = "speciesData")

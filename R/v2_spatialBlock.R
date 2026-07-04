@@ -1,6 +1,6 @@
 #' Use spatial blocks to separate train and test folds
 #'
-#' This function is deprecated and will be removed in future updates! Please use \code{\link{cv_spatial}} instead!
+#' This function is deprecated and will be removed in version 4! Please use \code{\link{cv_spatial}} instead!
 #'
 #' @inheritParams buffering
 #' @param species Character (optional). Indicating the name of the column in which species data (response variable e.g. 0s and 1s) is stored.
@@ -68,7 +68,7 @@ spatialBlock <- function(speciesData,
                          progress = TRUE,
                          verbose = TRUE){
 
-    message("This function is deprecated! Please use 'cv_spatial' instead.")
+    warning("This function is deprecated and will be removed in version 4! Please use 'cv_spatial' instead.")
 
 
     speciesData <- .check_x(speciesData, name = "speciesData")

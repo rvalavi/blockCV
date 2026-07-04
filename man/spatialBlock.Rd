@@ -93,7 +93,7 @@ within a block. The value should be a numeric between 0 and 5.}
 \item{verbose}{Logical. To print the report of the recods per fold.}
 }
 \description{
-This function is deprecated and will be removed in future updates! Please use \code{\link{cv_spatial}} instead!
+This function is deprecated and will be removed in version 4! Please use \code{\link{cv_spatial}} instead!
 }
 \seealso{
 \code{\link{cv_spatial}}

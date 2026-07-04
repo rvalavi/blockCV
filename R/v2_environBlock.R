@@ -1,6 +1,6 @@
 #' Use environmental clustering to separate train and test folds
 #'
-#' This function is deprecated and will be removed in future updates! Please use \code{\link{cv_cluster}} instead!
+#' This function is deprecated and will be removed in version 4! Please use \code{\link{cv_cluster}} instead!
 #'
 #' @param rasterLayer A raster object of covariates to identify environmental groups.
 #' @inheritParams buffering
@@ -29,7 +29,7 @@ envBlock <- function(rasterLayer,
                      numLimit = 0,
                      verbose = TRUE){
 
-    message("This function is deprecated! Please use 'cv_cluster' instead.")
+    warning("This function is deprecated and will be removed in version 4! Please use 'cv_cluster' instead.")
 
     if(missing(rasterLayer)) stop("'rasterLayer' must br provided!")
     if(missing(speciesData)) stop("'speciesData' must br provided!")

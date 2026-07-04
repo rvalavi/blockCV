@@ -3,10 +3,12 @@
 #' This function visualises the folds create by blockCV. It also accepts a raster
 #' layer to be used as background in the output plot.
 #'
-#' @param cv a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer}
-#' or \code{cv_nndm}
+#' @param cv a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer},
+#' \code{cv_nndm}, or \code{cv_knndm}
 #' @param x a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
-#' the \code{cv} object. This could be empty when \code{cv} is a \code{cv_spatial} object.
+#' the \code{cv} object. This is required for point-based objects such as \code{cv_cluster},
+#' \code{cv_buffer}, \code{cv_nndm}, and \code{cv_knndm}; it can be omitted for
+#' \code{cv_spatial} objects.
 #' @param r a terra SpatRaster object (optional). If provided, it will be used as background of the plots.
 #' It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.
 #' @param nrow integer; number of rows for facet plot
@@ -71,7 +73,7 @@ cv_plot <- function(
     # combined fold map is only for objects with a unique fold per point, and needs points
     if(combine_folds){
         if(.is_loo(cv)) stop("'combine_folds = TRUE' is not supported for cv_buffer or cv_nndm (leave-one-out).")
-        if(missing(x)) stop("'x' is required when 'combine_folds = TRUE'.")
+        if(missing(x)) stop(.cv_plot_missing_x_message(cv), call. = FALSE)
     }
 
     # check x is an sf object
@@ -147,8 +149,8 @@ cv_plot <- function(
             }
         }
     } else{
-        # stop if x is missing for buffer and cluster
-        if(!is_spatial) stop("'x' is required for plotting cv_cluster, cv_buffer and cv_nndm.")
+        # point-based CV objects store fold indices, so the original sample data are needed
+        if(!is_spatial) stop(.cv_plot_missing_x_message(cv), call. = FALSE)
     }
 
     geom_sftext <- if (label_size > 0) {
@@ -199,6 +201,42 @@ cv_plot <- function(
     }
 
     return(p1)
+}
+
+
+.cv_plot_missing_x_message <- function(cv, caller = "cv_plot"){
+    cls <- class(cv)[1]
+    how <- if(identical(caller, "plot")){
+        paste(
+            "Supply it as the second argument to plot(), or use the 'data' argument;",
+            "e.g. plot(cv, samples) or plot(cv, data = samples).",
+            "You can also call cv_plot(cv = cv, x = samples)."
+        )
+    } else{
+        "Supply it with the 'x' argument; e.g. cv_plot(cv = cv, x = samples)."
+    }
+
+    paste(
+        "The original sample data are required to plot a", cls, "object.",
+        "Use the same sf or Spatial object that was passed to the CV function.",
+        how
+    )
+}
+
+
+.plot_cv_fold_map <- function(cv, y = NULL, data = NULL, has_y = FALSE, ...){
+    if(has_y && !is.null(data)){
+        stop("Use only one of 'y' or 'data' when providing sample data.", call. = FALSE)
+    }
+
+    sample_data <- if(has_y) y else data
+    if(is.null(sample_data)){
+        stop(.cv_plot_missing_x_message(cv, caller = "plot"), call. = FALSE)
+    }
+
+    p1 <- cv_plot(cv = cv, x = sample_data, ...)
+    plot(p1)
+    invisible(p1)
 }
 
 

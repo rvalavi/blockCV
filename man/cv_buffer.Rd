@@ -10,6 +10,7 @@ cv_buffer(
   size,
   presence_bg = FALSE,
   add_bg = FALSE,
+  n_bins = 4L,
   progress = interactive(),
   report = interactive()
 )
@@ -29,6 +30,11 @@ types (presence-absence, continuous, count or multi-class responses), this optio
 \item{add_bg}{logical; add background points to the test set when \code{presence_bg = TRUE}. We do not
 recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 the background pints to testing points.}
+
+\item{n_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+The default is \code{4}. Set \code{n_bins = NULL} to disable binning and treat every unique value as a
+separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
+The raw response values are not modified; bins are only used for fold balancing and record summaries.}
 
 \item{progress}{logical; whether to shows a progress bar. Defaults to \code{interactive()}.}
 

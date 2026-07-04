@@ -182,7 +182,7 @@ test_that("test that cv_knndm accepts explicit prediction points", {
     pp <- sf::st_as_sf(terra::spatSample(aus[[1]], size = 1000, method = "regular",
                                          na.rm = TRUE, as.points = TRUE))
     knn <- cv_knndm(
-        x = pa_data, predpoints = pp, k = 5, clustering = "hierarchical",
+        x = pa_data, pred_points = pp, k = 5, clustering = "hierarchical",
         nk_len = 30, plot = FALSE, report = FALSE
     )
     expect_s3_class(knn, "cv_knndm")

@@ -50,6 +50,91 @@ test_that("test cv_spatial function with random assingment and raster file", {
 
 })
 
+test_that("continuous column is balanced with quantile bins", {
+
+    cont_data <- pa_data
+    set.seed(101)
+    cont_data$biomass <- stats::rnorm(nrow(cont_data))
+
+    set.seed(102)
+    scv <- cv_spatial(
+        x = cont_data,
+        column = "biomass",
+        rows_cols = c(20, 20),
+        hexagon = FALSE,
+        k = 4,
+        selection = "random",
+        iteration = 20,
+        biomod2 = FALSE,
+        progress = FALSE,
+        plot = FALSE
+    )
+
+    expect_equal(dim(scv$records), c(4, 8))
+    expect_equal(
+        names(scv$records),
+        c(paste0("train_Q", 1:4), paste0("test_Q", 1:4))
+    )
+    bins <- attr(scv$records, "column_bins")
+    expect_equal(nrow(bins), 4)
+    expect_equal(attr(bins, "requested_bins"), 4L)
+    expect_true(all(bins$lower <= bins$upper))
+
+})
+
+test_that("numeric multi-class column is not quantile-binned", {
+
+    class_data <- pa_data
+    class_data$class5 <- rep(1:5, length.out = nrow(class_data))
+
+    scv <- cv_spatial(
+        x = class_data,
+        column = "class5",
+        rows_cols = c(20, 20),
+        hexagon = FALSE,
+        k = 5,
+        selection = "random",
+        iteration = 5,
+        biomod2 = FALSE,
+        progress = FALSE,
+        plot = FALSE
+    )
+
+    expect_equal(dim(scv$records), c(5, 10))
+    expect_null(attr(scv$records, "column_bins"))
+
+})
+
+test_that("n_bins = NULL disables quantile binning for a continuous column", {
+
+    # deterministic, non-integer, > 15 unique values (would be binned by default)
+    cont_data <- pa_data
+    cont_data$biomass <- rep(seq(0.5, 20.5, by = 1), length.out = nrow(cont_data))
+    n_unique <- length(unique(cont_data$biomass))
+
+    set.seed(104)
+    scv <- suppressWarnings(
+        cv_spatial(
+            x = cont_data,
+            column = "biomass",
+            rows_cols = c(20, 20),
+            hexagon = FALSE,
+            k = 4,
+            selection = "random",
+            iteration = 5,
+            biomod2 = FALSE,
+            n_bins = NULL,
+            progress = FALSE,
+            plot = FALSE
+        )
+    )
+
+    # every unique value becomes its own class, so no quantile bins are stored
+    expect_null(attr(scv$records, "column_bins"))
+    expect_equal(ncol(scv$records), n_unique * 2)
+
+})
+
 
 test_that("test cv_spatial function with systematic assingment and no raster file", {
 

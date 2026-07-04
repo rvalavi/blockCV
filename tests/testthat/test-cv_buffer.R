@@ -126,3 +126,27 @@ test_that("test cv_buffer function to have sptial points with no CRS", {
 
 })
 
+test_that("cv_buffer bins a continuous column into quantiles in the report", {
+    cont_data <- pa_data
+    set.seed(301)
+    cont_data$biomass <- stats::rnorm(nrow(cont_data))
+
+    bloo <- cv_buffer(
+        x = cont_data,
+        column = "biomass",
+        size = 250000,
+        presence_bg = FALSE,
+        n_bins = 4,
+        progress = FALSE
+    )
+
+    expect_equal(
+        names(bloo$records),
+        c(paste0("train_Q", 1:4), paste0("test_Q", 1:4))
+    )
+    bins <- attr(bloo$records, "column_bins")
+    expect_equal(nrow(bins), 4)
+    expect_equal(attr(bins, "requested_bins"), 4L)
+
+})
+

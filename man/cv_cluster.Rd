@@ -14,6 +14,7 @@ cv_cluster(
   num_sample = 10000L,
   biomod2 = TRUE,
   report = interactive(),
+  n_bins = 4L,
   ...
 )
 }
@@ -21,7 +22,8 @@ cv_cluster(
 \item{x}{a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species data or ground truth sample for image classification).}
 
 \item{column}{character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
-response i.e. 0s and 1s) is stored. This is only used to see whether all the folds contain all the classes in the final report.}
+response i.e. 0s and 1s) is stored. This is only used to see whether all the folds contain all the classes in the final report.
+Continuous numeric responses are binned into quantiles using \code{n_bins} before records are counted.}
 
 \item{r}{a terra SpatRaster object of covariates to identify environmental groups. If provided, clustering will be done
 in environmental space rather than spatial coordinates of sample points.}
@@ -40,6 +42,11 @@ a \emph{CV.user.table} for cross-validation.}
 
 \item{report}{logical; whether to print the report of the records per fold.
 Defaults to \code{interactive()}.}
+
+\item{n_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+The default is \code{4}. Set \code{n_bins = NULL} to disable binning and treat every unique value as a
+separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
+The raw response values are not modified; bins are only used for fold balancing and record summaries.}
 
 \item{...}{additional arguments for \code{stats::kmeans} function, e.g. \code{algorithm = "MacQueen"}.}
 }

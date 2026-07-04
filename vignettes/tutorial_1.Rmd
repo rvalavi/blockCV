@@ -286,6 +286,12 @@ knn_blocks <- cv_knndm(x = pa_data,
 ```
 
 
+```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=7}
+cv_plot(knn_blocks, pa_data, combine_folds = TRUE)
+
+```
+
+
 ## Visualising the folds
 
 You can visualise the generate folds for all block cross-validation strategies. You can optionally add a raster layer as background map using `r` option. When `r` is supplied the plots might be slightly slower.

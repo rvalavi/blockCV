@@ -78,6 +78,7 @@ cv_buffer <- function(
         size,
         presence_bg = FALSE,
         add_bg = FALSE,
+        n_bins = 4L,
         progress = interactive(),
         report = interactive()
 ){
@@ -132,7 +133,7 @@ cv_buffer <- function(
     })
 
     # calculate train test table summary
-    train_test_table <- .table_summary(fold_list, x, column, n)
+    train_test_table <- .table_summary(fold_list, x, column, n, n_bins = n_bins)
     if(report){
         print(summary(train_test_table)[c(1,4,6), ])
     }
@@ -159,8 +160,14 @@ print.cv_buffer <- function(x, ...){
 
 #' @export
 #' @method plot cv_buffer
-plot.cv_buffer <- function(x, ...){
-    message("Please use cv_plot function to plot each fold.")
+plot.cv_buffer <- function(x, y, data = NULL, ...){
+    .plot_cv_fold_map(
+        cv = x,
+        y = if(!missing(y)) y else NULL,
+        data = data,
+        has_y = !missing(y),
+        ...
+    )
 }
 
 #' @export

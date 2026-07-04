@@ -14,5 +14,5 @@ foldExplorer(blocks, rasterLayer, speciesData)
 \item{speciesData}{deprecated!}
 }
 \description{
-This function is deprecated! Please use \code{\link{cv_plot}} function for plotting the folds.
+This function is deprecated and will be removed in version 4! Please use \code{\link{cv_plot}} function for plotting the folds.
 }

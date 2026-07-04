@@ -37,11 +37,11 @@
 #' (e.g. species data as a binary response i.e. 0s and 1s) is stored. This is used to report whether
 #' all folds contain all classes and to prefer class-complete candidate groupings.
 #' @param r a terra SpatRaster object. This defines the area that the model is going to predict; when
-#' neither \code{predpoints} nor \code{modeldomain} is supplied, prediction points are sampled from it.
+#' neither \code{pred_points} nor \code{model_domain} is supplied, prediction points are sampled from it.
 #' It is also required (for the covariates) when \code{space = "feature"}.
-#' @param predpoints a simple features (sf) object of prediction points (optional). If provided, these are
-#' used directly as the prediction locations instead of sampling from \code{r} or \code{modeldomain}.
-#' @param modeldomain an sf polygon of the prediction area (optional). If provided (and \code{predpoints}
+#' @param pred_points a simple features (sf) object of prediction points (optional). If provided, these are
+#' used directly as the prediction locations instead of sampling from \code{r} or \code{model_domain}.
+#' @param model_domain an sf polygon of the prediction area (optional). If provided (and \code{pred_points}
 #' is not), prediction points are sampled from it.
 #' @param k integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.
 #' @param maxp numeric; strictly between \code{1/k} and 1. The maximum proportion of the points allowed
@@ -58,8 +58,8 @@
 #' (element \code{blocks}) so they can be drawn as a background layer by \code{\link{cv_plot}}. It has no
 #' effect for the \code{"hierarchical"} and \code{"kmeans"} methods, in feature space, or when a random
 #' cross-validation is returned; in those cases \code{blocks} is \code{NULL}.
-#' @param num_sample integer; the number of prediction points to sample from \code{r} or \code{modeldomain}
-#' when \code{predpoints} is not supplied.
+#' @param num_sample integer; the number of prediction points to sample from \code{r} or \code{model_domain}
+#' when \code{pred_points} is not supplied.
 #' @param sampling either \code{"regular"} (default) or \code{"random"} for sampling prediction points.
 #' @param nk_len integer; the number of candidate groupings (numbers of clusters / block sizes) to explore.
 #' @param linkage character; the agglomeration method passed to \code{\link[stats]{hclust}} when
@@ -123,8 +123,8 @@ cv_knndm <- function(
         x,
         column = NULL,
         r = NULL,
-        predpoints = NULL,
-        modeldomain = NULL,
+        pred_points = NULL,
+        model_domain = NULL,
         k = 5L,
         maxp = 0.5,
         clustering = "blocks",
@@ -139,6 +139,7 @@ cv_knndm <- function(
         biomod2 = TRUE,
         deg_to_metre = 111325,
         seed = NULL,
+        n_bins = 4L,
         plot = interactive(),
         report = interactive()
 ){
@@ -185,7 +186,7 @@ cv_knndm <- function(
     }
 
     # resolve the prediction points -------------------------------------------
-    predpts <- .knndm_predpoints(x, r, predpoints, modeldomain, num_sample, sampling)
+    predpts <- .knndm_predpoints(x, r, pred_points, model_domain, num_sample, sampling)
 
     # distances and clustering coordinates ------------------------------------
     if(space == "geographical"){
@@ -245,7 +246,7 @@ cv_knndm <- function(
                 best <- candidate
             }
             if(class_balance &&
-               .knndm_class_complete(folds, x, column, k) &&
+               .knndm_class_complete(folds, x, column, k, n_bins) &&
                (is.null(best_complete) || w < best_complete$W)){
                 best_complete <- candidate
             }
@@ -287,7 +288,7 @@ cv_knndm <- function(
     }
 
     # calculate train test table summary
-    train_test_table <- .table_summary(fold_list, x, column, k)
+    train_test_table <- .table_summary(fold_list, x, column, k, n_bins = n_bins)
     # give a warning if any fold is empty
     zerofolds <- which(apply(train_test_table, 1, function(x) any(x < 1)))
     if(length(zerofolds) > 0){
@@ -342,19 +343,19 @@ cv_knndm <- function(
 }
 
 
-# resolve prediction points from predpoints, modeldomain or a sampled raster
-.knndm_predpoints <- function(x, r, predpoints, modeldomain, num_sample, sampling){
-    if(!is.null(predpoints)){
-        predpoints <- .check_x(predpoints, name = "predpoints")
-        if(!.same_crs(x, predpoints)) stop("The coordinate reference systems of 'x' and 'predpoints' must match.")
-        return(sf::st_geometry(predpoints))
+# resolve prediction points from pred_points, model_domain or a sampled raster
+.knndm_predpoints <- function(x, r, pred_points, model_domain, num_sample, sampling){
+    if(!is.null(pred_points)){
+        pred_points <- .check_x(pred_points, name = "pred_points")
+        if(!.same_crs(x, pred_points)) stop("The coordinate reference systems of 'x' and 'pred_points' must match.")
+        return(sf::st_geometry(pred_points))
     }
-    if(!is.null(modeldomain)){
-        modeldomain <- .check_x(modeldomain, name = "modeldomain")
-        if(!.same_crs(x, modeldomain)) stop("The coordinate reference systems of 'x' and 'modeldomain' must match.")
-        return(sf::st_sample(sf::st_geometry(modeldomain), size = num_sample, type = sampling))
+    if(!is.null(model_domain)){
+        model_domain <- .check_x(model_domain, name = "model_domain")
+        if(!.same_crs(x, model_domain)) stop("The coordinate reference systems of 'x' and 'model_domain' must match.")
+        return(sf::st_sample(sf::st_geometry(model_domain), size = num_sample, type = sampling))
     }
-    if(is.null(r)) stop("Provide one of 'r', 'predpoints', or 'modeldomain' to define the prediction area.")
+    if(is.null(r)) stop("Provide one of 'r', 'pred_points', or 'model_domain' to define the prediction area.")
     rx <- tryCatch(
         terra::spatSample(r[[1]], size = num_sample, method = sampling,
                           values = FALSE, na.rm = TRUE, as.points = TRUE),
@@ -462,12 +463,12 @@ cv_knndm <- function(
 }
 
 
-# check whether every class is represented in every test fold
-.knndm_class_complete <- function(fold_vect, x, column, k){
+# check whether every class (or quantile bin) is represented in every test fold
+.knndm_class_complete <- function(fold_vect, x, column, k, n_bins = NULL){
     fold_list <- lapply(seq_len(k), function(i){
         list(which(fold_vect != i), which(fold_vect == i))
     })
-    train_test_table <- .table_summary(fold_list, x, column, k)
+    train_test_table <- .table_summary(fold_list, x, column, k, n_bins = n_bins)
     test_cols <- startsWith(names(train_test_table), "test_")
     all(as.matrix(train_test_table[, test_cols, drop = FALSE]) > 0)
 }
@@ -548,6 +549,8 @@ cv_knndm <- function(
 .same_crs <- function(a, b){
     ca <- sf::st_crs(a)
     cb <- sf::st_crs(b)
+    # both undefined: treat as a shared planar (coordinate-space) CRS
+    if(is.na(ca) && is.na(cb)) return(TRUE)
     if(is.na(ca) || is.na(cb)) return(FALSE)
     isTRUE(ca == cb)
 }
@@ -562,9 +565,19 @@ print.cv_knndm <- function(x, ...){
 
 #' @export
 #' @method plot cv_knndm
-plot.cv_knndm <- function(x, y, ...){
+plot.cv_knndm <- function(x, y, data = NULL, ...){
+    if(!missing(y) || !is.null(data)){
+        return(.plot_cv_fold_map(
+            cv = x,
+            y = if(!missing(y)) y else NULL,
+            data = data,
+            has_y = !missing(y),
+            ...
+        ))
+    }
+
     plot(x$plot)
-    message("Please use cv_plot function to plot each fold.")
+    invisible(x$plot)
 }
 
 

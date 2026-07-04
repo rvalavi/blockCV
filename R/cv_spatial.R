@@ -37,8 +37,12 @@
 #' response i.e. 0s and 1s) is stored to find balanced records in cross-validation folds. If \code{column = NULL}
 #' the response variable classes will be treated the same and only training and testing records will be counted.
 #' This is used for binary (e.g. presence-absence/background) or multi-class responses (e.g. land cover classes for
-#' remote sensing image classification), and \emph{you can ignore it when the response variable is
-#' continuous or count data}.
+#' remote sensing image classification). Continuous numeric responses are binned into quantiles using \code{n_bins}
+#' before balancing.
+#' @param n_bins integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+#' The default is \code{4}. Set \code{n_bins = NULL} to disable binning and treat every unique value as a
+#' separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
+#' The raw response values are not modified; bins are only used for fold balancing and record summaries.
 #' @param r a terra SpatRaster object (optional). If provided, its extent will be used to specify the blocks.
 #' It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.
 #' @param k integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.
@@ -151,6 +155,7 @@ cv_spatial <- function(
         progress = interactive(),
         report = interactive(),
         plot = interactive(),
+        n_bins = 4L,
         ... # other arguments for cv_plot
 ){
 
@@ -297,15 +302,8 @@ cv_spatial <- function(
 
     # iteration for creating folds --------------------------------------------
     # create records table
-    if(is.null(column)){
-        train_test_table <- data.frame(train = rep(0, k), test = 0)
-    } else{
-        cl <- sort(unique(x[, column, drop = TRUE]))
-        clen <- length(cl)
-        .check_classes(clen, column) # column should be binary or categorical
-        train_test_table <- as.data.frame(matrix(0, nrow = k, ncol = clen * 2))
-        names(train_test_table) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
-    }
+    response <- .column_response(x, column, n_bins = n_bins)
+    train_test_table <- .records_table(k, response)
     # create a table for biomod
     biomod_table <- data.frame(RUN1 = rep(TRUE, nrow(blocks_df)))
 
@@ -364,15 +362,7 @@ cv_spatial <- function(
             test_set <- blocks_df$records[which(blocks_df$folds == p)]
             fold_vect[test_set] <- p
             fold_list[[p]] <- assign(paste0("fold", p), list(train_set, test_set))
-            if(is.null(column)){
-                train_test_table$train[p] <- length(train_set)
-                train_test_table$test[p] <- length(test_set)
-            } else{
-                countrain <- table(x[train_set, column, drop = TRUE])
-                countest <- table(x[test_set, column, drop = TRUE])
-                train_test_table[p, which(cl %in% names(countrain))] <- countrain
-                train_test_table[p, clen + which(cl %in% names(countest))] <- countest
-            }
+            train_test_table <- .records_table_row(train_test_table, p, train_set, test_set, response)
             if(biomod2){ # creating a biomod2 CV.user.table for validation
                 colm <- paste0("RUN", p)
                 biomod_table[, colm] <- FALSE
@@ -414,15 +404,18 @@ cv_spatial <- function(
     }
     if(report){
         cat("\n")
+        .print_column_bins(response)
         print(train_test_table)
     }
     # throw a warning if there are folds with zero cases
     if(any(train_test_table < 1)){
         zerofolds <- which(apply(train_test_table, 1, function(x) any(x < 1)))
+        zero_text <- "class(es)"
+        if(!is.null(response$bins)) zero_text <- "class/bin(es)"
         if(length(zerofolds) > 1){
-            warning("Folds ", paste(zerofolds, collapse = ", "), " have class(es) with zero records")
+            warning("Folds ", paste(zerofolds, collapse = ", "), " have ", zero_text, " with zero records")
         } else{
-            warning("Fold ", zerofolds, " has class(es) with zero records")
+            warning("Fold ", zerofolds, " has ", zero_text, " with zero records")
         }
     }
     # remove the NA blocks; not for user-blocks

@@ -1,6 +1,6 @@
 #' Measure spatial autocorrelation in the predictor raster files
 #'
-#' This function is deprecated and will be removed in future updates! Please use \code{\link{cv_spatial_autocor}} instead!
+#' This function is deprecated and will be removed in version 4! Please use \code{\link{cv_spatial_autocor}} instead!
 #'
 #'
 #' @param rasterLayer A raster object of covariates to find spatial autocorrelation range.
@@ -37,7 +37,7 @@ spatialAutoRange <- function(rasterLayer,
                              progress = TRUE){
 
 
-    message("This function is deprecated! Please use 'cv_spatial_autocor' instead.")
+    warning("This function is deprecated and will be removed in version 4! Please use 'cv_spatial_autocor' instead.")
 
     if(missing(rasterLayer)) stop("'rasterLayer' must be provided!")
 

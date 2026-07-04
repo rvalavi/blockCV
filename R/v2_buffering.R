@@ -1,6 +1,6 @@
 #' Use distance (buffer) around records to separate train and test folds
 #'
-#' This function is deprecated and will be removed in future updates! Please use \code{\link{cv_buffer}} instead!
+#' This function is deprecated and will be removed in version 4! Please use \code{\link{cv_buffer}} instead!
 #'
 #' @param speciesData A simple features (sf) or SpatialPoints object containing species data (response variable).
 #' @param species Character. Indicating the name of the field in which species data (binary response i.e. 0 and 1) is stored. If \code{speceis = NULL}
@@ -25,7 +25,7 @@ buffering <- function(speciesData,
                       progress = TRUE){
 
 
-    message("This function is deprecated! Please use 'cv_buffer' instead.")
+    warning("This function is deprecated and will be removed in version 4! Please use 'cv_buffer' instead.")
 
     # check x is an sf object
     speciesData <- .check_x(speciesData, name = "speciesData")
