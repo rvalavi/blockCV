@@ -251,6 +251,9 @@ nncv <- cv_nndm(x = pa_data,
 
 ```
 
+
+## k-fold Nearest Neighbour Distance Matching (kNNDM)
+
 The `cv_knndm` function implements the k-fold version of NNDM (Linnenbrink et al., 2024). Unlike `cv_nndm`, it returns a smaller set of `k` folds, making it cheaper to fit models while still matching the nearest neighbour distance distribution between testing and training data to the prediction-to-training distribution.
 
 The original kNNDM grouping options are `clustering = "hierarchical"` and `clustering = "kmeans"`. The example below uses hierarchical clustering; use `clustering = "kmeans"` for the k-means alternative. For a quick vignette run, the examples use `num_sample = 5000` and `nk_len = 50`; for applied analyses, consider using the defaults or larger values, especially for large prediction areas or complex sampling patterns.
@@ -276,7 +279,8 @@ knn_blocks <- cv_knndm(x = pa_data,
                        column = "occ",
                        r = rasters,
                        k = 5,
-                       clustering = "blocks",
+                       clustering = "blocks", 
+                       keep_blocks = TRUE,
                        num_sample = 5000,
                        nk_len = 50,
                        seed = 6,

@@ -65,6 +65,9 @@ a ggplot object
 \description{
 This function visualises the folds create by blockCV. It also accepts a raster
 layer to be used as background in the output plot.
+The output of \code{cv_plot()} is a \code{ggplot} object, so it can be
+customised with standard \code{ggplot2} layers. For example, you can add a
+title, change the theme, or modify colours and scales.
 }
 \examples{
 \donttest{
