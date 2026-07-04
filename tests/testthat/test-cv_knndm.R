@@ -11,6 +11,7 @@ expect_names <- c(
     "Gij",
     "Gj",
     "Gjstar",
+    "blocks",
     "plot",
     "records"
 )
@@ -22,6 +23,7 @@ aus <- system.file("extdata/au/", package = "blockCV") |>
 
 pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
     sf::st_as_sf(coords = c("x", "y"), crs = 7845)
+pa_data_all <- pa_data
 pa_data <- pa_data[1:100, ]
 
 
@@ -60,6 +62,54 @@ test_that("test that cv_knndm works with the default block clustering", {
 })
 
 
+test_that("cv_knndm keeps and tags spatial blocks when clustering = 'blocks'", {
+    set.seed(1)
+    knn <- cv_knndm(
+        x = pa_data,
+        column = "occ",
+        r = aus,
+        k = 5,
+        num_sample = 3000,
+        plot = FALSE,
+        report = FALSE
+    )
+
+    # blocks are kept only when the blocks variant actually produced the folds
+    if(identical(knn$type, "kNNDM (blocks)")){
+        expect_s3_class(knn$blocks, "sf")
+        expect_true("folds" %in% names(knn$blocks))
+        expect_true(nrow(knn$blocks) >= 5L)
+        # every block is tagged with a valid fold id
+        expect_true(all(knn$blocks$folds %in% 1:5))
+        # a block never straddles two folds: its points share a single fold
+        bid <- sf::st_intersects(sf::st_geometry(pa_data), sf::st_geometry(knn$blocks))
+        bid <- vapply(bid, function(z) if(length(z)) z[1] else NA_integer_, integer(1))
+        ok <- vapply(which(!is.na(bid)), function(i){
+            knn$folds_ids[i] == knn$blocks$folds[bid[i]]
+        }, logical(1))
+        expect_true(all(ok))
+    } else {
+        expect_null(knn$blocks)
+    }
+
+    # keep_blocks = FALSE drops the blocks
+    set.seed(1)
+    knn0 <- cv_knndm(
+        x = pa_data, column = "occ", r = aus, k = 5, keep_blocks = FALSE,
+        num_sample = 3000, plot = FALSE, report = FALSE
+    )
+    expect_null(knn0$blocks)
+
+    # non-blocks clustering never keeps blocks
+    set.seed(1)
+    kh <- cv_knndm(
+        x = pa_data, r = aus, k = 4, clustering = "hierarchical",
+        num_sample = 3000, nk_len = 40, plot = FALSE, report = FALSE
+    )
+    expect_null(kh$blocks)
+})
+
+
 test_that("test that cv_knndm works with hierarchical and kmeans clustering", {
     set.seed(1)
     kh <- cv_knndm(
@@ -81,6 +131,29 @@ test_that("test that cv_knndm works with hierarchical and kmeans clustering", {
 
     expect_equal(print(kh), "cv_knndm")
     expect_output(summary(kh))
+})
+
+
+test_that("test that cv_knndm avoids avoidable class-empty folds", {
+    set.seed(1)
+    expect_warning(
+        knn <- cv_knndm(
+            x = pa_data_all,
+            column = "occ",
+            r = aus,
+            k = 5,
+            clustering = "hierarchical",
+            num_sample = 1000,
+            sampling = "random",
+            nk_len = 60,
+            plot = FALSE,
+            report = FALSE
+        ),
+        NA
+    )
+
+    test_records <- knn$records[, startsWith(names(knn$records), "test_"), drop = FALSE]
+    expect_true(all(test_records > 0))
 })
 
 

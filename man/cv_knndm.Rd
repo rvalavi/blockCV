@@ -15,6 +15,7 @@ cv_knndm(
   clustering = "blocks",
   space = "geographical",
   hexagon = TRUE,
+  keep_blocks = TRUE,
   num_sample = 10000,
   sampling = "regular",
   nk_len = 100L,
@@ -22,7 +23,6 @@ cv_knndm(
   scale = TRUE,
   biomod2 = TRUE,
   deg_to_metre = 111325,
-  balance_classes = NULL,
   seed = NULL,
   plot = interactive(),
   report = interactive()
@@ -34,7 +34,7 @@ data or ground truth sample for image classification).}
 
 \item{column}{character (optional). Indicating the name of the column in which response variable
 (e.g. species data as a binary response i.e. 0s and 1s) is stored. This is used to report whether
-all folds contain all classes, and by default to prefer class-complete candidate groupings.}
+all folds contain all classes and to prefer class-complete candidate groupings.}
 
 \item{r}{a terra SpatRaster object. This defines the area that the model is going to predict; when
 neither \code{predpoints} nor \code{modeldomain} is supplied, prediction points are sampled from it.
@@ -61,6 +61,12 @@ One of \code{"blocks"} (default; a \code{blockCV} spatial-blocks variant), \code
 \item{hexagon}{logical. Creates hexagonal (default) spatial blocks when \code{clustering = "blocks"}.
 If \code{FALSE}, square blocks are used.}
 
+\item{keep_blocks}{logical; if \code{TRUE} (default) and the folds were produced by
+\code{clustering = "blocks"}, the spatial blocks of the selected grouping are returned in the output
+(element \code{blocks}) so they can be drawn as a background layer by \code{\link{cv_plot}}. It has no
+effect for the \code{"hierarchical"} and \code{"kmeans"} methods, in feature space, or when a random
+cross-validation is returned; in those cases \code{blocks} is \code{NULL}.}
+
 \item{num_sample}{integer; the number of prediction points to sample from \code{r} or \code{modeldomain}
 when \code{predpoints} is not supplied.}
 
@@ -77,11 +83,6 @@ when \code{predpoints} is not supplied.}
 a \emph{CV.user.table} for cross-validation.}
 
 \item{deg_to_metre}{integer. The conversion rate of metres to degree. See the details section for more information.}
-
-\item{balance_classes}{logical (optional). If \code{TRUE}, and \code{column} is supplied, candidate
-groupings with every class represented in every test fold are preferred. If no such grouping exists,
-the best distance-matching grouping is returned and the usual zero-record warning is reported.
-Defaults to \code{TRUE} when \code{column} is supplied and \code{FALSE} otherwise.}
 
 \item{seed}{integer; a random seed for reproducibility.}
 
@@ -104,6 +105,7 @@ An object of class S3. A list of objects including:
     \item{Gij - the prediction-to-sample nearest neighbour distances}
     \item{Gj - the sample-to-sample (leave-one-out) nearest neighbour distances}
     \item{Gjstar - the test-to-train nearest neighbour distances of the selected folds}
+    \item{blocks - the spatial blocks of the selected grouping, each tagged with its fold; only when \code{clustering = "blocks"} and \code{keep_blocks = TRUE}, otherwise \code{NULL}}
     \item{records - a table with the number of points in each category of training and testing}
     }
 }
@@ -134,11 +136,10 @@ is not part of the original kNNDM algorithm. When \code{space = "feature"} the d
 in the (scaled) covariate space of \code{r} instead of the geographical space, and \code{"blocks"} is
 not available.
 
-When \code{column} is supplied and \code{balance_classes = TRUE}, class balance is used as a
-validity gate during the candidate scan: among groupings with every class present in every test
-fold, the one with the smallest \code{W} is selected. If no class-complete grouping is available,
-the overall smallest-\code{W} grouping is returned and the final records table reports the missing
-class(es).
+When \code{column} is supplied, class balance is used as a validity gate during the candidate
+scan: among groupings with every class present in every test fold, the one with the smallest
+\code{W} is selected. If no class-complete grouping is available, the overall smallest-\code{W}
+grouping is returned and the final records table reports the missing class(es).
 }
 \examples{
 \donttest{

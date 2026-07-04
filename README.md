@@ -7,7 +7,6 @@ status](https://github.com/rvalavi/blockCV/workflows/R-CMD-check/badge.svg)](htt
 version](https://www.r-pkg.org/badges/version/blockCV)](https://CRAN.R-project.org/package=blockCV)
 [![total](https://cranlogs.r-pkg.org/badges/grand-total/blockCV)](https://CRAN.R-project.org/package=blockCV)
 [![License](https://img.shields.io/badge/license-GPL%20(%3E=%203)-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
-[![DOI](https://zenodo.org/badge/116337503.svg)](https://zenodo.org/badge/latestdoi/116337503)
 [![Methods in Ecology & Evolution](https://img.shields.io/badge/Methods%20in%20Ecology%20%26%20Evolution-10,%20225--232-blue.svg)](https://doi.org/10.1111/2041-210X.13107)
 
 ### Spatial and environmental blocking for k-fold and LOO cross-validation
@@ -28,51 +27,30 @@ data for predictor variables.
  
 ## Main features
 
--   There are four blocking methods: **spatial**, **clustering**,
-    **buffers**, and **NNDM** (Nearest Neighbour Distance Matching)
-    blocks
--   Several ways to construct spatial blocks
--   The assignment of the spatial blocks to cross-validation folds can
-    be done in three different ways: **random**, **systematic** and
-    **checkerboard pattern**
--   The spatial blocks can be assigned to cross-validation folds to have
-    *evenly distributed records* for *binary* (e.g. species
-    presence-absence/background) or *multi-class* responses (e.g. land
-    cover classes for remote sensing image classification)
--   The buffering and NNDM functions can account for *presence-absence*
-    and *presence-background* data types
--   Using geostatistical techniques to inform the choice of a suitable
-    distance band by which to separate the data sets
-
-## New updates of the version 3.0
-
-The latest major version of `blockCV` (v3.0) features significant updates and changes. All function names have been revised to more general names, beginning with `cv_*`. Although the previous functions (version 2.x) will continue to work, they will be removed in future updates after being available for an extended period. It is highly recommended to update your code with the new functions provided below.
-
-Some new updates:
-
--   Function names have been changed, with all functions now starting
-    with `cv_`
--   The CV blocking functions are now: `cv_spatial`, `cv_cluster`,
-    `cv_buffer`, and `cv_nndm`
--   Spatial blocks now support **hexagonal** (now, default),
-    rectangular, and user-defined blocks
--   A fast C++ implementation of **Nearest Neighbour Distance Matching
-    (NNDM)** algorithm (Milà et al. 2022) is now added
--   The NNDM algorithm can handle species presence-background data and
-    other types of data
--   The `cv_cluster` function generates blocks based on kmeans
-    clustering. It now works on both environmental rasters and the
-    **spatial coordinates of sample points**
--   The `cv_spatial_autocor` function now calculates the spatial
-    autocorrelation range for both the **response (i.e. binary or
-    continuous data)** and a set of continuous raster covariates
--   The new `cv_plot` function allows for visualization of folds from
-    all blocking strategies using ggplot facets
--   The `terra` package is now used for all raster processing and
-    supports both `stars` and `raster` objects, as well as files on
-    disk.
--   The new `cv_similarity` provides measures on possible extrapolation
-    to testing folds
+-   Five cross-validation strategies: spatial blocks (`cv_spatial`),
+    clustering (`cv_cluster`), buffering (`cv_buffer`), leave-one-out
+    nearest neighbour distance matching (`cv_nndm`), and k-fold nearest
+    neighbour distance matching (`cv_knndm`)
+-   Spatial blocks can be hexagonal (default), rectangular, or supplied
+    as user-defined polygons
+-   Spatial blocks can be assigned to folds using random, systematic, or
+    checkerboard selection, with optional balancing for binary or
+    multi-class responses
+-   Clustering can be based on environmental raster covariates or the
+    spatial coordinates of sample points
+-   Buffering and NNDM support presence-absence,
+    presence-background, and other response data types
+-   kNNDM supports geographical and feature-space matching, prediction
+    points supplied with `r`, `predpoints`, or `modeldomain`, and block,
+    hierarchical, or k-means grouping
+-   Spatial autocorrelation ranges can be estimated for binary or
+    continuous responses and for continuous raster covariates to guide
+    distance-band and block-size choices
+-   `cv_plot` visualises folds from all blocking strategies using
+    ggplot facets, with combined-fold plotting for k-fold methods
+-   Raster processing uses `terra`, with support for `stars`, `raster`,
+    and files on disk
+-   `cv_similarity` measures potential extrapolation to testing folds
 
 ## Installation
 
@@ -130,7 +108,7 @@ sb <- cv_spatial(
     r = myrasters, # a raster for background (optional)
     size = 450000, # size of the blocks in metres
     k = 5, # number of folds
-    hexagon = TRUE, # use hexagonal blocks - defualt
+    hexagon = TRUE, # use hexagonal blocks - default
     selection = "random", # random blocks-to-fold
     iteration = 100, # to find evenly dispersed folds
     biomod2 = TRUE # also create folds for biomod2
@@ -163,6 +141,19 @@ cv_plot(
 ```
 
 ![](https://i.ibb.co/dGrF9xp/Rplot02.png)
+
+Create k-fold NNDM folds:
+
+``` r
+# k-fold nearest neighbour distance matching
+knn <- cv_knndm(
+    x = pa_data,
+    column = "occ", # optionally balance classes across folds
+    r = myrasters[[1]], # prediction area, or use predpoints/modeldomain
+    k = 5,
+    num_sample = 5000
+)
+```
 
 Investigate spatial autocorrelation in the landscape to choose a
 suitable size for spatial blocks:

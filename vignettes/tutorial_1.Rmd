@@ -152,7 +152,9 @@ sb2 <- cv_spatial(x = pa_data,
                   selection = "random",
                   progress = FALSE, # turn off progress bar for vignette
                   iteration = 50, 
-                  biomod2 = TRUE)
+                  biomod2 = TRUE, 
+                  report = TRUE,
+                  plot = TRUE)
 
 ```
 
@@ -165,7 +167,9 @@ sb3 <- cv_spatial(x = pa_data,
                   column = "occ",
                   rows_cols = c(12, 10),
                   hexagon = FALSE,
-                  selection = "systematic")
+                  selection = "systematic", 
+                  report = TRUE,
+                  plot = TRUE)
 
 ```
 
@@ -177,7 +181,9 @@ sb4 <- cv_spatial(x = pa_data,
                   column = "occ",
                   size = 350000,
                   hexagon = FALSE,
-                  selection = "checkerboard")
+                  selection = "checkerboard", 
+                  report = TRUE,
+                  plot = TRUE)
 
 ```
 
@@ -255,9 +261,43 @@ nncv <- cv_nndm(x = pa_data,
                 r = rasters,
                 size = 350000,
                 num_sample = 5000, 
-                sampling = "regular",
+                sampling = "random",
                 min_train = 0.1,
                 plot = TRUE)
+
+```
+
+The `cv_knndm` function implements the k-fold version of NNDM (Linnenbrink et al., 2024). Unlike `cv_nndm`, it returns a smaller set of `k` folds, making it cheaper to fit models while still matching the nearest neighbour distance distribution between testing and training data to the prediction-to-training distribution.
+
+The original kNNDM grouping options are `clustering = "hierarchical"` and `clustering = "kmeans"`. The example below uses hierarchical clustering; use `clustering = "kmeans"` for the k-means alternative. For a quick vignette run, the examples use `num_sample = 5000` and `nk_len = 50`; for applied analyses, consider using the defaults or larger values, especially for large prediction areas or complex sampling patterns.
+
+```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=8}
+knn_hier <- cv_knndm(x = pa_data,
+                     column = "occ",
+                     r = rasters,
+                     k = 5,
+                     clustering = "hierarchical",
+                     num_sample = 5000,
+                     nk_len = 50,
+                     seed = 6,
+                     report = TRUE,
+                     plot = TRUE)
+
+```
+
+The default `clustering = "blocks"` option is specific to `blockCV`. It first groups sample points with spatial blocks (hexagonal by default, or square with `hexagon = FALSE`) and then allocates those groups to kNNDM folds.
+
+```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=8}
+knn_blocks <- cv_knndm(x = pa_data,
+                       column = "occ",
+                       r = rasters,
+                       k = 5,
+                       clustering = "blocks",
+                       num_sample = 5000,
+                       nk_len = 50,
+                       seed = 6,
+                       report = TRUE,
+                       plot = TRUE)
 
 ```
 
@@ -266,13 +306,27 @@ nncv <- cv_nndm(x = pa_data,
 
 You can visualise the generate folds for all block cross-validation strategies. You can optionally add a raster layer as background map using `r` option. When `r` is supplied the plots might be slightly slower.
 
+The output of `cv_plot()` is a `ggplot` object, so it can be customised with standard `ggplot2` layers. For example, you can add a title, change the theme, or modify colours and scales.
+
 Let's plot spatial clustering folds created in previous section (using `cv_cluster`):
 
 ```{r warning=FALSE, message=FALSE, fig.height=6, fig.width=8}
-cv_plot(cv = scv, 
-        x = pa_data)
+cv_plot(cv = scv, x = pa_data)
 
 ```
+
+Optionally, all folds can be plotted in a single panel, with colours indicating different folds. This option is only available for k-fold cross-validation methods: `cv_spatial`, `cv_cluster`, and `cv_knndm.`
+
+```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=6}
+cv_plot(cv = scv, x = pa_data, combine_folds = TRUE) +
+    ggplot2::labs(
+        title = "Spatial clustering folds",
+        x = "Longitude",
+        y = "Latitude"
+    )
+
+```
+
 
 When `cv_buffer` is used for plotting, only first 10 folds are shown. You can choose any set of CV folds for plotting. If `remove_na = FALSE` (default is `TRUE`), the `NA` in the legend shows the excluded points.
 
@@ -338,8 +392,7 @@ summary(sac1)
 Alternatively, only use the response data using `x` and `column`. This could be a binary or continuous variable provided in as a column in the sample points `sf` object. This could be the response or the residuals of a fitted model.
 
 ```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
-sac2 <- cv_spatial_autocor(x = pa_data, 
-                           column =  "occ")
+sac2 <- cv_spatial_autocor(x = pa_data, column =  "occ")
 
 ```
 
@@ -365,8 +418,7 @@ cv_block_size(r = rasters)
 
 Or use only spatial sample data:
 ```{r, eval=FALSE}
-cv_block_size(x = pa_data,
-              column = "occ") # optionally add the response
+cv_block_size(x = pa_data, column = "occ") # optionally add the response
 
 ```
 
@@ -389,7 +441,8 @@ Note that the interactive plots cannot be shown here, as they require opening an
 
 - O’Sullivan, D., & Unwin, D. J. (2010) Geographic Information Analysis (2nd ed.). John Wiley & Sons.
 
+- Linnenbrink, J., Milà, C., Ludwig, M., & Meyer, H. (2024) kNNDM CV: k-fold nearest neighbour distance matching cross-validation for map accuracy estimation. Geoscientific Model Development, 17(15), 5897–5912. [doi: 10.5194/gmd-17-5897-2024](https://doi.org/10.5194/gmd-17-5897-2024)
+
 -  Milà, C., Mateu, J. , Pebesma, E. and Meyer H. (2022) Nearest Neighbour Distance Matching Leave-One-Out Cross-Validation for map validation. Methods in Ecology and Evolution.
 
 - Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. (2019) **blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models**. *Methods Ecol Evol.* 10:225–232. [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
-

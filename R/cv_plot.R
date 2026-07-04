@@ -86,6 +86,8 @@ cv_plot <- function(
     }
     # is it a cv_spatial object?
     is_spatial <- inherits(cv, "cv_spatial")
+    # does the object carry spatial blocks to draw? (cv_spatial always; cv_knndm when kept)
+    has_blocks <- !is.null(cv$blocks)
 
     # make geom_tile for raster plots
     if(!is.null(r)){
@@ -108,7 +110,7 @@ cv_plot <- function(
         geom_rast_col <- ggplot2::scale_fill_gradientn(colours = raster_colors)
     }
     # make geom_sf for spatial blocks
-    if(is_spatial){
+    if(has_blocks){
         blocks <- cv$blocks
         geom_poly <- ggplot2::geom_sf(
             data = sf::st_geometry(blocks),
@@ -166,7 +168,7 @@ cv_plot <- function(
         p1 <- ggplot2::ggplot(data = x) +
             switch(!is.null(r), geom_rast) + # only switch works with ggplot
             switch(!is.null(r), geom_rast_col) +
-            switch(is_spatial, geom_poly) +
+            switch(has_blocks, geom_poly) +
             ggplot2::geom_sf(ggplot2::aes(col = get("folds")), alpha = points_alpha) +
             ggplot2::scale_color_manual(values = fold_colors) +
             ggplot2::labs(x = "", y = "", col = "Folds") + # set the axes labes to NULL
@@ -177,7 +179,7 @@ cv_plot <- function(
         p1 <- ggplot2::ggplot(data = x_long) +
             switch(!is.null(r), geom_rast) + # only switch works with ggplot
             switch(!is.null(r), geom_rast_col) +
-            switch(is_spatial, geom_poly) +
+            switch(has_blocks, geom_poly) +
             ggplot2::geom_sf(ggplot2::aes(col = get("value")), alpha = points_alpha) +
             ggplot2::scale_color_manual(values = points_colors, na.value = "#BEBEBE03") +
             ggplot2::facet_wrap(~get("folds"), nrow = nrow, ncol = ncol) +

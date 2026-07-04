@@ -25,18 +25,17 @@
 #' in the (scaled) covariate space of \code{r} instead of the geographical space, and \code{"blocks"} is
 #' not available.
 #'
-#' When \code{column} is supplied and \code{balance_classes = TRUE}, class balance is used as a
-#' validity gate during the candidate scan: among groupings with every class present in every test
-#' fold, the one with the smallest \code{W} is selected. If no class-complete grouping is available,
-#' the overall smallest-\code{W} grouping is returned and the final records table reports the missing
-#' class(es).
+#' When \code{column} is supplied, class balance is used as a validity gate during the candidate
+#' scan: among groupings with every class present in every test fold, the one with the smallest
+#' \code{W} is selected. If no class-complete grouping is available, the overall smallest-\code{W}
+#' grouping is returned and the final records table reports the missing class(es).
 #'
 #' @inheritParams cv_spatial
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species
 #' data or ground truth sample for image classification).
 #' @param column character (optional). Indicating the name of the column in which response variable
 #' (e.g. species data as a binary response i.e. 0s and 1s) is stored. This is used to report whether
-#' all folds contain all classes, and by default to prefer class-complete candidate groupings.
+#' all folds contain all classes and to prefer class-complete candidate groupings.
 #' @param r a terra SpatRaster object. This defines the area that the model is going to predict; when
 #' neither \code{predpoints} nor \code{modeldomain} is supplied, prediction points are sampled from it.
 #' It is also required (for the covariates) when \code{space = "feature"}.
@@ -54,6 +53,11 @@
 #' \code{"feature"} matches distances in the (scaled) covariate space of \code{r}.
 #' @param hexagon logical. Creates hexagonal (default) spatial blocks when \code{clustering = "blocks"}.
 #' If \code{FALSE}, square blocks are used.
+#' @param keep_blocks logical; if \code{TRUE} (default) and the folds were produced by
+#' \code{clustering = "blocks"}, the spatial blocks of the selected grouping are returned in the output
+#' (element \code{blocks}) so they can be drawn as a background layer by \code{\link{cv_plot}}. It has no
+#' effect for the \code{"hierarchical"} and \code{"kmeans"} methods, in feature space, or when a random
+#' cross-validation is returned; in those cases \code{blocks} is \code{NULL}.
 #' @param num_sample integer; the number of prediction points to sample from \code{r} or \code{modeldomain}
 #' when \code{predpoints} is not supplied.
 #' @param sampling either \code{"regular"} (default) or \code{"random"} for sampling prediction points.
@@ -61,10 +65,6 @@
 #' @param linkage character; the agglomeration method passed to \code{\link[stats]{hclust}} when
 #' \code{clustering = "hierarchical"}.
 #' @param scale logical; whether to scale the covariates when \code{space = "feature"}.
-#' @param balance_classes logical (optional). If \code{TRUE}, and \code{column} is supplied, candidate
-#' groupings with every class represented in every test fold are preferred. If no such grouping exists,
-#' the best distance-matching grouping is returned and the usual zero-record warning is reported.
-#' Defaults to \code{TRUE} when \code{column} is supplied and \code{FALSE} otherwise.
 #' @param seed integer; a random seed for reproducibility.
 #' @param plot logical; whether to plot the distance distribution functions. Defaults to \code{interactive()}.
 #' @param report logical; whether to print summary of records in each fold. Defaults to \code{interactive()}.
@@ -94,6 +94,7 @@
 #'     \item{Gij - the prediction-to-sample nearest neighbour distances}
 #'     \item{Gj - the sample-to-sample (leave-one-out) nearest neighbour distances}
 #'     \item{Gjstar - the test-to-train nearest neighbour distances of the selected folds}
+#'     \item{blocks - the spatial blocks of the selected grouping, each tagged with its fold; only when \code{clustering = "blocks"} and \code{keep_blocks = TRUE}, otherwise \code{NULL}}
 #'     \item{records - a table with the number of points in each category of training and testing}
 #'     }
 #' @export
@@ -129,6 +130,7 @@ cv_knndm <- function(
         clustering = "blocks",
         space = "geographical",
         hexagon = TRUE,
+        keep_blocks = TRUE,
         num_sample = 1e4,
         sampling = "regular",
         nk_len = 100L,
@@ -136,7 +138,6 @@ cv_knndm <- function(
         scale = TRUE,
         biomod2 = TRUE,
         deg_to_metre = 111325,
-        balance_classes = NULL,
         seed = NULL,
         plot = interactive(),
         report = interactive()
@@ -151,15 +152,7 @@ cv_knndm <- function(
     x <- .check_x(x)
     # is column in x?
     column <- .check_column(column, x)
-    if(is.null(balance_classes)){
-        balance_classes <- !is.null(column)
-    }
-    if(!is.logical(balance_classes) || length(balance_classes) != 1L || is.na(balance_classes)){
-        stop("'balance_classes' must be TRUE or FALSE.")
-    }
-    if(balance_classes && is.null(column)){
-        stop("'balance_classes = TRUE' requires 'column'.")
-    }
+    class_balance <- !is.null(column)
     # x's CRS must be defined
     if(is.na(sf::st_crs(x))){
         stop("The coordinate reference system of 'x' must be defined.")
@@ -219,6 +212,7 @@ cv_knndm <- function(
     Gj <- vapply(seq_len(n), function(i) min(tdist[i, -i]), numeric(1))
 
     # random-CV gate (Linnenbrink et al., 2024) -------------------------------
+    block_size <- NULL # size of the winning tiling when clustering = "blocks"
     ks <- suppressWarnings(stats::ks.test(Gj, Gij, alternative = "greater"))
     if(ks$p.value >= 0.05){
         message("Gij <= Gj; a random cross-validation assignment is returned (clustering not required).")
@@ -244,12 +238,13 @@ cv_knndm <- function(
                 W = w,
                 fold_vect = folds,
                 Gjstar = gjs,
-                q = length(unique(clust))
+                q = length(unique(clust)),
+                size = attr(clust, "size") # NULL unless a blocks candidate
             )
             if(is.null(best) || w < best$W){
                 best <- candidate
             }
-            if(balance_classes &&
+            if(class_balance &&
                .knndm_class_complete(folds, x, column, k) &&
                (is.null(best_complete) || w < best_complete$W)){
                 best_complete <- candidate
@@ -261,13 +256,20 @@ cv_knndm <- function(
         } else{
             method <- clustering
         }
-        if(balance_classes && !is.null(best_complete)){
+        if(class_balance && !is.null(best_complete)){
             best <- best_complete
         }
         fold_vect <- best$fold_vect
         Gjstar <- best$Gjstar
         q <- best$q
         W <- best$W
+        block_size <- best$size
+    }
+
+    # keep the spatial blocks of the selected grouping (blocks variant only) ---
+    blocks <- NULL
+    if(keep_blocks && method == "blocks" && !is.null(block_size)){
+        blocks <- .knndm_blocks(x, block_size, hexagon, deg_to_metre, fold_vect)
     }
 
     # build folds, biomod table and records (k-fold output) -------------------
@@ -330,6 +332,7 @@ cv_knndm <- function(
         Gij = Gij,
         Gj = Gj,
         Gjstar = Gjstar,
+        blocks = blocks,
         plot = plt,
         records = train_test_table
     )
@@ -414,6 +417,7 @@ cv_knndm <- function(
         for(s in diag_m / nb){
             bid <- .points_to_blocks(x, s, hexagon, deg_to_metre)
             if(length(unique(bid)) < k) next
+            attr(bid, "size") <- s # remember the tiling size of this candidate
             cand[[length(cand) + 1]] <- bid
         }
     }
@@ -421,8 +425,8 @@ cv_knndm <- function(
 }
 
 
-# assign points to spatial blocks of a given size (reuses .make_blocks)
-.points_to_blocks <- function(x, size, hexagon, degree){
+# build spatial blocks of a given size and map each point to a block id
+.blocks_and_ids <- function(x, size, hexagon, degree){
     blocks <- .make_blocks(
         x_obj = x,
         blocksize = size,
@@ -437,7 +441,24 @@ cv_knndm <- function(
         na_idx <- which(is.na(bid))
         bid[na_idx] <- sf::st_nearest_feature(sf::st_geometry(x)[na_idx], sf::st_geometry(blocks))
     }
-    return(as.integer(bid))
+    return(list(blocks = blocks, bid = as.integer(bid)))
+}
+
+
+# assign points to spatial blocks of a given size (reuses .make_blocks)
+.points_to_blocks <- function(x, size, hexagon, degree){
+    .blocks_and_ids(x, size, hexagon, degree)$bid
+}
+
+
+# rebuild the blocks of the selected grouping and tag each occupied block with its fold
+.knndm_blocks <- function(x, size, hexagon, degree, fold_vect){
+    bi <- .blocks_and_ids(x, size, hexagon, degree)
+    keep <- sort(unique(bi$bid))
+    blocks <- bi$blocks[keep, ]
+    # every point of a block shares one fold, so the first point's fold tags the block
+    blocks$folds <- vapply(keep, function(b) fold_vect[which(bi$bid == b)[1]], integer(1))
+    return(blocks)
 }
 
 
