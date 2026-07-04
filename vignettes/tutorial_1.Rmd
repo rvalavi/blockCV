@@ -255,7 +255,7 @@ For species **presence-absence** data and any other types of data (such as **con
 
 The `cv_nndm` is a fast implementation of the Nearest Neighbour Distance Matching (NNDM) algorithm (Milà et al., 2022) in C++. Similar to `cv_buffer`, this is a variation of leave-one-out (LOO) cross-validation. It tries to match the nearest neighbour distance distribution function between the test and training data to the nearest neighbour distance distribution function between the target prediction and training points (Milà et al., 2022).
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=4, fig.width=7}
 nncv <- cv_nndm(x = pa_data,
                 column = "occ",
                 r = rasters,
@@ -271,7 +271,7 @@ The `cv_knndm` function implements the k-fold version of NNDM (Linnenbrink et al
 
 The original kNNDM grouping options are `clustering = "hierarchical"` and `clustering = "kmeans"`. The example below uses hierarchical clustering; use `clustering = "kmeans"` for the k-means alternative. For a quick vignette run, the examples use `num_sample = 5000` and `nk_len = 50`; for applied analyses, consider using the defaults or larger values, especially for large prediction areas or complex sampling patterns.
 
-```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=8}
+```{r warning=FALSE, message=FALSE, fig.height=4, fig.width=7}
 knn_hier <- cv_knndm(x = pa_data,
                      column = "occ",
                      r = rasters,
@@ -287,7 +287,7 @@ knn_hier <- cv_knndm(x = pa_data,
 
 The default `clustering = "blocks"` option is specific to `blockCV`. It first groups sample points with spatial blocks (hexagonal by default, or square with `hexagon = FALSE`) and then allocates those groups to kNNDM folds.
 
-```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=8}
+```{r warning=FALSE, message=FALSE, fig.height=4, fig.width=7}
 knn_blocks <- cv_knndm(x = pa_data,
                        column = "occ",
                        r = rasters,
