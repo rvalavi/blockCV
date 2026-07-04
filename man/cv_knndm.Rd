@@ -22,6 +22,7 @@ cv_knndm(
   scale = TRUE,
   biomod2 = TRUE,
   deg_to_metre = 111325,
+  balance_classes = NULL,
   seed = NULL,
   plot = interactive(),
   report = interactive()
@@ -32,8 +33,8 @@ cv_knndm(
 data or ground truth sample for image classification).}
 
 \item{column}{character (optional). Indicating the name of the column in which response variable
-(e.g. species data as a binary response i.e. 0s and 1s) is stored. This is only used to see whether
-all the folds contain all the classes in the final report.}
+(e.g. species data as a binary response i.e. 0s and 1s) is stored. This is used to report whether
+all folds contain all classes, and by default to prefer class-complete candidate groupings.}
 
 \item{r}{a terra SpatRaster object. This defines the area that the model is going to predict; when
 neither \code{predpoints} nor \code{modeldomain} is supplied, prediction points are sampled from it.
@@ -76,6 +77,11 @@ when \code{predpoints} is not supplied.}
 a \emph{CV.user.table} for cross-validation.}
 
 \item{deg_to_metre}{integer. The conversion rate of metres to degree. See the details section for more information.}
+
+\item{balance_classes}{logical (optional). If \code{TRUE}, and \code{column} is supplied, candidate
+groupings with every class represented in every test fold are preferred. If no such grouping exists,
+the best distance-matching grouping is returned and the usual zero-record warning is reported.
+Defaults to \code{TRUE} when \code{column} is supplied and \code{FALSE} otherwise.}
 
 \item{seed}{integer; a random seed for reproducibility.}
 
@@ -127,6 +133,12 @@ the spirit of \code{\link{cv_spatial}}. The \code{"blocks"} option is a \code{bl
 is not part of the original kNNDM algorithm. When \code{space = "feature"} the distances are computed
 in the (scaled) covariate space of \code{r} instead of the geographical space, and \code{"blocks"} is
 not available.
+
+When \code{column} is supplied and \code{balance_classes = TRUE}, class balance is used as a
+validity gate during the candidate scan: among groupings with every class present in every test
+fold, the one with the smallest \code{W} is selected. If no class-complete grouping is available,
+the overall smallest-\code{W} grouping is returned and the final records table reports the missing
+class(es).
 }
 \examples{
 \donttest{
