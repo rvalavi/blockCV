@@ -74,7 +74,8 @@ To see the practical examples of the package see:
     folds](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_1.html)
 2.  [Block cross-validation for species distribution
     modelling](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_2.html)
-3.  Using blockCV with the `caret` and `tidymodels` ([see here](https://github.com/rvalavi/blockCV/issues/48))
+3.  [Using blockCV with
+    `caret`](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_3.html)
 
 ## Basic usage
 

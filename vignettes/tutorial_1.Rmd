@@ -1,6 +1,6 @@
 ---
 title: "1. blockCV introduction: how to create block cross-validation folds"
-author: "Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita"
+author: "Roozbeh Valavi"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
