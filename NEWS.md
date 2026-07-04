@@ -6,6 +6,7 @@
 - Default reports, plots, and progress bars now run only in interactive sessions for `cv_spatial`, `cv_buffer`, `cv_cluster`, and `cv_nndm` where those output controls are available; issue [#57](https://github.com/rvalavi/blockCV/issues/57).
 - Added `combine_folds` argument to `cv_plot` to show all folds in a single map with points coloured by their fold ID (with `fold_colors` to set the palette), as an alternative to the faceted train/test plots. Available for `cv_spatial`, `cv_cluster`, and `cv_knndm`.
 - Improved plotting for point-based CV objects: `plot()` methods now accept the original sample data and call `cv_plot()` internally, while missing sample data produce a clearer error message; issues [#59](https://github.com/rvalavi/blockCV/issues/59) and [#60](https://github.com/rvalavi/blockCV/issues/60).
+- Added a third tutorial showing how to use `blockCV` folds with `caret::trainControl()` via `index` and `indexOut`, with a note that `CAST::CreateSpacetimeFolds()` uses the same `caret` interface; issue [#48](https://github.com/rvalavi/blockCV/issues/48).
 
 # version 3.2.0
 
