@@ -271,8 +271,10 @@ cv_spatial <- function(
         blocks <- if(methods::is(user_blocks, "sfc")) sf::st_sf(user_blocks) else user_blocks
     }
 
-    ## subset the blocks by x
-    sub_blocks <- blocks[x, ]
+    ## subset the blocks by x and keep the intersection result for records
+    blocks_intersect <- sf::st_intersects(sf::st_geometry(blocks), sf::st_geometry(x))
+    blocks_has_records <- lengths(blocks_intersect) != 0
+    sub_blocks <- blocks[blocks_has_records, ]
     blocks_len <- nrow(sub_blocks)
 
     # k must be a natural number
@@ -293,11 +295,15 @@ cv_spatial <- function(
 
     # x and block intersection ------------------------------------------------
 
-    ## do the intersection once and outside of the loop
-    blocks_df <- as.data.frame(
-        sf::st_intersects(sf::st_geometry(x), sf::st_geometry(sub_blocks))
+    ## use the block-to-point intersection computed above
+    sub_blocks_intersect <- blocks_intersect[blocks_has_records]
+    records_per_block <- lengths(sub_blocks_intersect)
+    blocks_df <- data.frame(
+        records = unlist(sub_blocks_intersect, use.names = FALSE),
+        block_id = rep.int(seq_len(blocks_len), records_per_block)
     )
-    names(blocks_df) <- c("records", "block_id")
+    blocks_df <- blocks_df[order(blocks_df$records, blocks_df$block_id), ]
+    row.names(blocks_df) <- NULL
     # randomly remove the repeated records occurred on the edges of blocks
     if(nrow(blocks_df) > nrow(x)){
         if(!is.null(seed)){
