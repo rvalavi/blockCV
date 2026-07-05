@@ -12,8 +12,13 @@ cv_cluster(
   scale = TRUE,
   raster_cluster = FALSE,
   num_sample = 10000L,
+  balance = FALSE,
+  k_multiplier = 3L,
+  iteration = 100L,
+  seed = NULL,
   biomod2 = TRUE,
   report = interactive(),
+  progress = interactive(),
   n_bins = 4L,
   ...
 )
@@ -22,7 +27,8 @@ cv_cluster(
 \item{x}{a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species data or ground truth sample for image classification).}
 
 \item{column}{character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
-response i.e. 0s and 1s) is stored. This is only used to see whether all the folds contain all the classes in the final report.
+response i.e. 0s and 1s) is stored. It is used to report whether all the folds contain all the classes and, when
+\code{balance = TRUE}, to balance those classes across the folds.
 Continuous numeric responses are binned into quantiles using \code{n_bins} before records are counted.}
 
 \item{r}{a terra SpatRaster object of covariates to identify environmental groups. If provided, clustering will be done
@@ -37,10 +43,26 @@ otherwise it will be over the extracted raster values of the sample points. See 
 
 \item{num_sample}{integer; the number of samples from raster layers to build the clusters (when \code{raster_cluster = FALSE}).}
 
+\item{balance}{logical. If \code{TRUE}, the sample points are first grouped into \code{k * k_multiplier} clusters (see \code{k_multiplier})
+and these small clusters are then assigned to \code{k} folds over \code{iteration} random attempts to balance the training/testing
+records (or the classes/bins of \code{column} when it is provided). If \code{FALSE} (default), the points are clustered directly
+into \code{k} folds, which keeps the folds compact but does not control their size or class balance.}
+
+\item{k_multiplier}{integer. The multiplier controlling how many clusters are created before they are merged into folds
+(i.e. \code{k * k_multiplier}). Only used when \code{balance = TRUE}. Larger values give more balanced folds at the cost of less
+compact folds; smaller values keep the folds compact but less balanced. The default is \code{3}.}
+
+\item{iteration}{integer value. The number of random attempts to assign the clusters to folds when \code{balance = TRUE}.}
+
+\item{seed}{integer; a random seed for reproducibility of the balancing search.}
+
 \item{biomod2}{logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 a \emph{CV.user.table} for cross-validation.}
 
 \item{report}{logical; whether to print the report of the records per fold.
+Defaults to \code{interactive()}.}
+
+\item{progress}{logical; whether to shows a progress bar for random fold selection.
 Defaults to \code{interactive()}.}
 
 \item{n_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
@@ -85,6 +107,13 @@ species points and the number of the folds will be the same as \code{k}.
 
 Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster
 value should be deleted prior to the analysis or another raster layer must be provided.
+
+By default (\code{balance = FALSE}) the points are clustered directly into \code{k} groups, so the folds are compact but their
+sizes -- and the number of records of each class -- can be very uneven. When \code{balance = TRUE}, the points are instead
+grouped into a larger number of clusters (\code{k * k_multiplier}) that are then assigned to \code{k} folds over \code{iteration}
+random attempts, keeping the split that best balances the training/testing records (or the classes/bins of \code{column} when
+it is provided). This mirrors the balancing used by \code{\link{cv_spatial}} with \code{selection = "random"}, and \code{k_multiplier}
+controls the trade-off between fold balance (higher values) and fold compactness (lower values).
 }
 \examples{
 \donttest{
@@ -113,6 +142,14 @@ ec <- cv_cluster(r = covars, # if provided will be used for environmental cluste
                  column = "occ", # optional; name of the column with response
                  k = 5,
                  scale = TRUE)
+
+# spatial clustering with balanced folds
+set.seed(6)
+bc <- cv_cluster(x = pa_data,
+                 column = "occ",
+                 k = 5,
+                 balance = TRUE, # balance the records across the folds
+                 k_multiplier = 3) # cluster into k * k_multiplier groups, then merge into k folds
 
 }
 }

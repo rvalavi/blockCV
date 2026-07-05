@@ -68,7 +68,8 @@ spatialBlock <- function(speciesData,
                          progress = TRUE,
                          verbose = TRUE){
 
-    warning("This function is deprecated and will be removed in version 4! Please use 'cv_spatial' instead.")
+    .Deprecated("cv_spatial", package = "blockCV",
+                msg = "'spatialBlock' is deprecated and will be removed in blockCV 4.0. Please use 'cv_spatial()' instead.")
 
 
     speciesData <- .check_x(speciesData, name = "speciesData")

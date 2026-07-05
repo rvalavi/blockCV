@@ -25,7 +25,8 @@ buffering <- function(speciesData,
                       progress = TRUE){
 
 
-    warning("This function is deprecated and will be removed in version 4! Please use 'cv_buffer' instead.")
+    .Deprecated("cv_buffer", package = "blockCV",
+                msg = "'buffering' is deprecated and will be removed in blockCV 4.0. Please use 'cv_buffer()' instead.")
 
     # check x is an sf object
     speciesData <- .check_x(speciesData, name = "speciesData")

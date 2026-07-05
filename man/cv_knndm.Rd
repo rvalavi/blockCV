@@ -7,6 +7,7 @@
 cv_knndm(
   x,
   column = NULL,
+  balance = TRUE,
   r = NULL,
   pred_points = NULL,
   model_domain = NULL,
@@ -35,7 +36,11 @@ data or ground truth sample for image classification).}
 
 \item{column}{character (optional). Indicating the name of the column in which response variable
 (e.g. species data as a binary response i.e. 0s and 1s) is stored. This is used to report whether
-all folds contain all classes and to prefer class-complete candidate groupings.}
+all folds contain all classes and, when \code{balance = TRUE}, to prefer class-complete candidate groupings.}
+
+\item{balance}{logical. When \code{TRUE} (default) and \code{column} is supplied, class completeness is used as a
+validity gate to prefer groupings in which every class is present in every test fold (see details). When \code{FALSE},
+the grouping with the smallest \code{W} is returned regardless of class completeness and \code{column} only feeds the report.}
 
 \item{r}{a terra SpatRaster object. This defines the area that the model is going to predict; when
 neither \code{pred_points} nor \code{model_domain} is supplied, prediction points are sampled from it.
@@ -142,10 +147,13 @@ is not part of the original kNNDM algorithm. When \code{space = "feature"} the d
 in the (scaled) covariate space of \code{r} instead of the geographical space, and \code{"blocks"} is
 not available.
 
-When \code{column} is supplied, class balance is used as a validity gate during the candidate
-scan: among groupings with every class present in every test fold, the one with the smallest
+When \code{column} is supplied and \code{balance = TRUE}, class balance is used as a validity gate during the
+candidate scan: among groupings with every class present in every test fold, the one with the smallest
 \code{W} is selected. If no class-complete grouping is available, the overall smallest-\code{W}
-grouping is returned and the final records table reports the missing class(es).
+grouping is returned and the final records table reports the missing class(es). Note that this gate is
+weaker than the balancing in \code{\link{cv_spatial}}: it only ensures every class is represented in every
+test fold (no empty class), it does not equalise the class counts across folds. With \code{balance = FALSE}
+the grouping with the overall smallest \code{W} is always returned and \code{column} is used only for the report.
 }
 \examples{
 \donttest{

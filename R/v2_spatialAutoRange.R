@@ -37,7 +37,8 @@ spatialAutoRange <- function(rasterLayer,
                              progress = TRUE){
 
 
-    warning("This function is deprecated and will be removed in version 4! Please use 'cv_spatial_autocor' instead.")
+    .Deprecated("cv_spatial_autocor", package = "blockCV",
+                msg = "'spatialAutoRange' is deprecated and will be removed in blockCV 4.0. Please use 'cv_spatial_autocor()' instead.")
 
     if(missing(rasterLayer)) stop("'rasterLayer' must be provided!")
 

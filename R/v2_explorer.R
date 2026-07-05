@@ -37,7 +37,8 @@ rangeExplorer <- function(rasterLayer,
                           minRange=NULL,
                           maxRange=NULL){
 
-    warning("This function is deprecated and will be removed in version 4! Please use 'cv_block_size' instead.")
+    .Deprecated("cv_block_size", package = "blockCV",
+                msg = "'rangeExplorer' is deprecated and will be removed in blockCV 4.0. Please use 'cv_block_size()' instead.")
     # check x is an sf object
     if(!is.null(speciesData)){
         speciesData <- .check_x(speciesData, name = "speciesData")

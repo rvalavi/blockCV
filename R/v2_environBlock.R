@@ -29,7 +29,8 @@ envBlock <- function(rasterLayer,
                      numLimit = 0,
                      verbose = TRUE){
 
-    warning("This function is deprecated and will be removed in version 4! Please use 'cv_cluster' instead.")
+    .Deprecated("cv_cluster", package = "blockCV",
+                msg = "'envBlock' is deprecated and will be removed in blockCV 4.0. Please use 'cv_cluster()' instead.")
 
     if(missing(rasterLayer)) stop("'rasterLayer' must br provided!")
     if(missing(speciesData)) stop("'speciesData' must br provided!")

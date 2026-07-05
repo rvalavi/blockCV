@@ -15,6 +15,7 @@ cv_spatial(
   rows_cols = c(10, 10),
   selection = "random",
   iteration = 100L,
+  balance = TRUE,
   user_blocks = NULL,
   folds_column = NULL,
   deg_to_metre = 111325,
@@ -33,8 +34,9 @@ cv_spatial(
 \item{x}{a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species data or ground truth sample for image classification).}
 
 \item{column}{character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
-response i.e. 0s and 1s) is stored to find balanced records in cross-validation folds. If \code{column = NULL}
-the response variable classes will be treated the same and only training and testing records will be counted.
+response i.e. 0s and 1s) is stored. It is used to report the number of records of each class/bin in every fold and,
+when \code{balance = TRUE}, to balance those classes across the folds. If \code{column = NULL}
+the response variable classes will be treated the same and only training and testing records will be counted (and balanced).
 This is used for binary (e.g. presence-absence/background) or multi-class responses (e.g. land cover classes for
 remote sensing image classification). Continuous numeric responses are binned into quantiles using \code{n_bins}
 before balancing.}
@@ -61,6 +63,11 @@ The checkerboard does not work with hexagonal and user-defined spatial blocks. I
 blocks and \code{folds_column} must be supplied.}
 
 \item{iteration}{integer value. The number of attempts to create folds with balanced records. Only works when \code{selection = "random"}.}
+
+\item{balance}{logical. When \code{TRUE} (default) and \code{selection = "random"}, the folds are chosen from \code{iteration}
+random block assignments to balance the training/testing records (or the classes/bins of \code{column} when it is provided).
+If \code{FALSE}, a single random assignment is returned without balancing (equivalent to \code{iteration = 1}). This argument
+has no effect on the other selection methods.}
 
 \item{user_blocks}{an sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
 the species (response) points. If \code{selection = 'predefined'}, this argument and \strong{folds_column} must be supplied.}

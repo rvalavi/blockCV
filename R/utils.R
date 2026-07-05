@@ -131,3 +131,84 @@
     return(tt_count)
 }
 
+
+# assign spatial pieces (blocks or clusters) to k folds using a random search
+# that keeps the most balanced split (highest minimum and lowest standard
+# deviation of the records table). Shared by cv_spatial (random selection) and
+# cv_cluster (balance = TRUE). blocks_df must have a 'records' column (the index
+# of each point) and a 'block_id' column (the piece each point belongs to).
+.balance_folds <- function(blocks_df, blocks_len, k, iteration, response,
+                           seed = NULL, biomod2 = TRUE, progress = FALSE){
+
+    # keep only the columns needed for the assignment
+    blocks_df <- blocks_df[, c("records", "block_id")]
+    train_test_table <- .records_table(k, response)
+    biomod_table <- data.frame(RUN1 = rep(TRUE, nrow(blocks_df)))
+
+    # for selecting the best iteration
+    min_num <- 0
+    max_sd <- Inf
+
+    if(progress){
+        pb <- utils::txtProgressBar(min = 0, max = iteration, style = 3)
+    }
+
+    if(!is.null(seed)){
+        set.seed(seed)
+    }
+
+    for(i in seq_len(iteration)){
+        # create random folds with equal proportion of pieces
+        fold_df <- data.frame(block_id = seq_len(blocks_len), folds = 0)
+        num <- floor(blocks_len / k)
+        fold_df$folds[seq_len(num * k)] <- sample(rep(seq_len(k), num), num * k)
+        if(blocks_len %% k != 0){
+            rest <- blocks_len %% k
+            unfold <- which(fold_df$folds == 0)
+            fold_df$folds[unfold] <- sample(seq_len(k), rest, replace = FALSE)
+        }
+
+        # map the piece folds back to the points
+        blocks_df_i <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
+
+        # count the number of points in each fold
+        train_test_table[] <- 0
+        fold_list <- list()
+        fold_vect <- rep(NA, nrow(blocks_df_i))
+        for(p in seq_len(k)){
+            train_set <- blocks_df_i$records[which(blocks_df_i$folds != p)]
+            test_set <- blocks_df_i$records[which(blocks_df_i$folds == p)]
+            fold_vect[test_set] <- p
+            fold_list[[p]] <- assign(paste0("fold", p), list(train_set, test_set))
+            train_test_table <- .records_table_row(train_test_table, p, train_set, test_set, response)
+            if(biomod2){ # creating a biomod2 CV.user.table for validation
+                colm <- paste0("RUN", p)
+                biomod_table[, colm] <- FALSE
+                biomod_table[train_set, colm] <- TRUE
+            }
+        }
+
+        # save the best folds in the iteration
+        if(min(train_test_table) >= min_num && stats::sd(unlist(train_test_table)) < max_sd){
+            train_test_table2 <- train_test_table
+            min_num <- min(train_test_table2)
+            max_sd <- stats::sd(unlist(train_test_table))
+            blocks_df2 <- blocks_df_i
+            fold_list2 <- fold_list
+            fold_vect2 <- fold_vect
+            biomod_table2 <- biomod_table
+        }
+        if(progress){
+            utils::setTxtProgressBar(pb, i)
+        }
+    }
+
+    list(
+        folds_list = fold_list2,
+        folds_ids = fold_vect2,
+        biomod_table = biomod_table2,
+        records = train_test_table2,
+        blocks_df = blocks_df2
+    )
+}
+

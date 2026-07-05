@@ -184,7 +184,7 @@ tm_shape(sb4$blocks) +
 ```
 
 
-### Spatial and environemntal clustering
+### Spatial and environmental clustering
 
 The function `cv_cluster` uses *clustering* methods to specify sets of similar environmental conditions based on the input covariates. Species data corresponding to any of these groups or clusters are assigned to a fold. Alternatively, the clusters can be based on spatial coordinates of sample points (the `x` argument).
 
@@ -195,8 +195,32 @@ Using spatial coordinate values for clustering:
 set.seed(6)
 scv <- cv_cluster(x = pa_data,
                   column = "occ", # optional: counting number of train/test records
-                  k = 5)
+                  k = 5,
+                  report = TRUE)
 ```
+
+```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=6}
+cv_plot(scv, pa_data, combine_folds = TRUE)
+
+```
+
+The default spatial clustering keeps each fold spatially compact, but the number of records or classes in each fold can be uneven. To prioritise more even folds, set `balance = TRUE`. In this case, `cv_cluster()` first creates `k * k_multiplier` smaller clusters and then assigns those clusters to `k` folds.
+
+```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=6}
+# balanced spatial clustering
+set.seed(6)
+bscv <- cv_cluster(x = pa_data,
+                   column = "occ",
+                   k = 5,
+                   balance = TRUE,
+                   k_multiplier = 3,
+                   report = TRUE)
+
+cv_plot(bscv, pa_data, combine_folds = TRUE)
+
+```
+
+Increasing `k_multiplier` usually improves the balance of records or classes across folds because there are more small clusters to assign, but it reduces the spatial separation and compactness of the final folds.
 
 
 The clustering can be done in environmental space by supplying `r`. Notice, this could be an extreme case of cross-validation as the testing folds could possibly fall in novel environmental conditions than what the training points are (check `cv_similarity` for testing this). Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster value should be deleted prior to the analysis or a different raster be used.
