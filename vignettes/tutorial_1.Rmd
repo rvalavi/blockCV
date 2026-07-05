@@ -199,14 +199,9 @@ scv <- cv_cluster(x = pa_data,
                   report = TRUE)
 ```
 
-```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=6}
-cv_plot(scv, pa_data, combine_folds = TRUE)
-
-```
-
 The default spatial clustering keeps each fold spatially compact, but the number of records or classes in each fold can be uneven. To prioritise more even folds, set `balance = TRUE`. In this case, `cv_cluster()` first creates `k * k_multiplier` smaller clusters and then assigns those clusters to `k` folds.
 
-```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=6}
+```{r}
 # balanced spatial clustering
 set.seed(6)
 bscv <- cv_cluster(x = pa_data,
@@ -215,8 +210,16 @@ bscv <- cv_cluster(x = pa_data,
                    balance = TRUE,
                    k_multiplier = 3,
                    report = TRUE)
+```
 
-cv_plot(bscv, pa_data, combine_folds = TRUE)
+```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=10}
+scv_plot <- cv_plot(scv, pa_data, combine_folds = TRUE) +
+    ggplot2::labs(title = "Default clustering")
+
+bscv_plot <- cv_plot(bscv, pa_data, combine_folds = TRUE) +
+    ggplot2::labs(title = "Balanced clustering")
+
+cowplot::plot_grid(scv_plot, bscv_plot, nrow = 1)
 
 ```
 
@@ -366,7 +369,9 @@ cv_plot(cv = sb1,
 ```
 
 
-## Check similarity
+## Fold quality diagnostics
+
+### Environmental similarity diagnostics
 
 The `cv_similarity` function evaluates environmental similarity between training and testing folds, helping to detect potential extrapolation in the testing data. It supports three similarity measures: Multivariate Environmental Similarity Surface (MESS), Manhattan distance (L1), and Euclidean distance (L2). Negative values indicate potential environmental novelty.
 
@@ -377,6 +382,63 @@ cv_similarity(cv = ecv, # the environmental clustering
               r = rasters, 
               method = "MESS",
               progress = FALSE)
+
+```
+
+### Nearest-neighbour distance diagnostics
+
+The `cv_distance` function checks how closely a generated CV design matches the nearest-neighbour distance distribution that will be encountered when predicting across the target area. It can be run on any `blockCV` object after the folds have been created. The CV curve is compared against the prediction-to-sample distance curve, a leave-one-out reference, and, for k-fold objects, a random k-fold baseline. Lower Wasserstein-1 distances in the subtitle indicate a closer match to the prediction domain.
+
+Set `plot = FALSE` to save the returned `ggplot` objects and compare multiple CV strategies in one figure:
+
+```{r warning=FALSE, message=FALSE, fig.height=8, fig.width=10}
+library(ggplot2)
+
+distance_theme <- ggplot2::theme(
+  legend.position = "bottom",
+  plot.subtitle = ggplot2::element_text(size = 7)
+)
+
+dist_sb <- cv_distance(cv = sb1,
+                       x = pa_data,
+                       r = rasters,
+                       num_sample = 3000,
+                       n_random = 5,
+                       seed = 6,
+                       plot = FALSE) +
+  ggplot2::labs(title = "Spatial blocks") +
+  distance_theme
+
+dist_scv <- cv_distance(cv = bscv,
+                        x = pa_data,
+                        r = rasters,
+                        num_sample = 3000,
+                        n_random = 5,
+                        seed = 6,
+                        plot = FALSE) +
+  ggplot2::labs(title = "Spatial clustering (balanced)") +
+  distance_theme
+
+dist_bloo <- cv_distance(cv = bloo,
+                         x = pa_data,
+                         r = rasters,
+                         num_sample = 3000,
+                         seed = 6,
+                         plot = FALSE) +
+  ggplot2::labs(title = "Buffering LOO") +
+  distance_theme
+
+dist_knn <- cv_distance(cv = knn_blocks,
+                        x = pa_data,
+                        r = rasters,
+                        num_sample = 3000,
+                        n_random = 5,
+                        seed = 6,
+                        plot = FALSE) +
+  ggplot2::labs(title = "kNNDM blocks") +
+  distance_theme
+
+cowplot::plot_grid(dist_sb, dist_scv, dist_bloo, dist_knn, ncol = 2)
 
 ```
 
