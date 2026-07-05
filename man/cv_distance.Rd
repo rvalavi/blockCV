@@ -16,7 +16,6 @@ cv_distance(
   num_sample = 10000,
   sampling = "regular",
   scale = TRUE,
-  deg_to_metre = 111325,
   seed = NULL,
   plot = TRUE
 )
@@ -44,14 +43,16 @@ is not), prediction points are sampled from it.}
 \item{add_random}{logical; when \code{TRUE} (default), overlay the CV curve of a random \code{k}-fold
 split with the same number of folds as \code{cv} (ignored for leave-one-out objects, see details).}
 
+\item{n_random}{integer; the number of random \code{k}-fold splits used to estimate the random baseline
+when \code{add_random = TRUE}. The plotted random curve is the mean across these splits, with a 10-90%
+band.}
+
 \item{num_sample}{integer; the number of prediction points to sample from \code{r} or \code{model_domain}
 when \code{pred_points} is not supplied.}
 
 \item{sampling}{either \code{"regular"} (default) or \code{"random"} for sampling prediction points.}
 
 \item{scale}{logical; whether to scale the covariates when \code{space = "feature"}.}
-
-\item{deg_to_metre}{integer. The conversion rate of metres to degree. See the details section for more information.}
 
 \item{seed}{integer; a random seed for reproducibility.}
 

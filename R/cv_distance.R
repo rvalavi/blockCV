@@ -45,6 +45,9 @@
 #' or \code{model_domain} is required.
 #' @param add_random logical; when \code{TRUE} (default), overlay the CV curve of a random \code{k}-fold
 #' split with the same number of folds as \code{cv} (ignored for leave-one-out objects, see details).
+#' @param n_random integer; the number of random \code{k}-fold splits used to estimate the random baseline
+#' when \code{add_random = TRUE}. The plotted random curve is the mean across these splits, with a 10-90%
+#' band.
 #' @param plot logical; whether to draw the plot. The plot is always returned invisibly.
 #'
 #' @seealso \code{\link{cv_similarity}}, \code{\link{cv_knndm}}, \code{\link{cv_nndm}},
@@ -91,7 +94,6 @@ cv_distance <- function(
         num_sample = 1e4,
         sampling = "regular",
         scale = TRUE,
-        deg_to_metre = 111325,
         seed = NULL,
         plot = TRUE
 ){
@@ -219,3 +221,4 @@ cv_distance <- function(
     if(plot) plot(plt)
     invisible(plt)
 }
+

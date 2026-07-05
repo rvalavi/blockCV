@@ -124,7 +124,7 @@ sb1 <- cv_spatial(x = pa_data,
 
 The output object is an R S3 object and you can get its elements by a `$`. Explore `sb1$folds_ids`, `sb1$folds_list`, and `sb1$biomod_table` for the three types of generated folds from the `cv_spatial` object `sb1`. Use the one suitable for you modelling practice to evaluate your models. See the explanation of all other outputs/elements of the function in the help file of the function.
 
-The same setting from previous code can be used to create square blocks by using `hexagon = FALSE`. You can optionally add a raster layer (using `r` argument) for to be used for creating blocks and be used in the background of the plot (raster can also be added later only for visualising blocks using `cv_plot`).
+The default spatial blocks are hexagons, and you can make this explicit with `hexagon = TRUE`. You can optionally add a raster layer (using `r` argument) to be used for creating blocks and in the background of the plot (a raster can also be added later only for visualising blocks using `cv_plot`).
 
 ```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 sb2 <- cv_spatial(x = pa_data,
@@ -132,7 +132,7 @@ sb2 <- cv_spatial(x = pa_data,
                   r = rasters, # optionally add a raster layer
                   k = 5, 
                   size = 350000, 
-                  hexagon = FALSE, # use square blocks
+                  hexagon = TRUE, # use hexagonal blocks
                   selection = "random",
                   progress = FALSE, # turn off progress bar for vignette
                   iteration = 50, 
@@ -142,7 +142,7 @@ sb2 <- cv_spatial(x = pa_data,
 
 ```
 
-The assignment of folds to each block can also be done in a systematic manner using `selection = "systematic"`, or a checkerboard pattern using `selection = "checkerboard"`. The blocks can also be created by number of rows and columns when no `size` is supplied by e.g. `rows_cols = c(12, 10)`.
+The assignment of folds to each block can also be done in a systematic manner using `selection = "systematic"`, or a checkerboard pattern using `selection = "checkerboard"`. Square blocks are created with `hexagon = FALSE`, as shown below; checkerboard selection requires square blocks. The blocks can also be created by number of rows and columns when no `size` is supplied by e.g. `rows_cols = c(12, 10)`.
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=7}
 # systematic fold assignment 
@@ -391,7 +391,7 @@ The `cv_distance` function checks how closely a generated CV design matches the 
 
 Set `plot = FALSE` to save the returned `ggplot` objects and compare multiple CV strategies in one figure:
 
-```{r warning=FALSE, message=FALSE, fig.height=8, fig.width=10}
+```{r warning=FALSE, message=FALSE, fig.height=8, fig.width=9}
 library(ggplot2)
 
 distance_theme <- ggplot2::theme(
