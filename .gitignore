@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .DS_Store
+Rplots.pdf
 Meta
 cran_comments.md
 tests/testthat/Rplots.pdf

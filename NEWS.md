@@ -25,7 +25,7 @@
 - Fixed the summary method and plotting for `cv_spatial_autocor`
 
 # version 3.1.7
- ci
+
 - Temporarily added `sp` package dependency to avoid CRAN error as required by `automap` package [#55].
 
 # version 3.1.6

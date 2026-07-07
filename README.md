@@ -33,15 +33,17 @@ data for predictor variables.
     neighbour distance matching (`cv_knndm`)
 -   Spatial blocks can be hexagonal (default), rectangular, or supplied
     as user-defined polygons
--   Spatial blocks can be assigned to folds using random, systematic, or
-    checkerboard selection, with optional balancing for binary or
-    multi-class responses
+-   Spatial blocks can be assigned to folds using random, systematic,
+    checkerboard, or predefined selection, with optional balancing for
+    records, response classes, quantile bins (`num_bins`), or presences
+    in presence-background data
 -   Clustering can be based on environmental raster covariates or the
-    spatial coordinates of sample points
+    spatial coordinates of sample points, with optional over-clustering
+    and fold balancing
 -   Buffering and NNDM support presence-absence,
-    presence-background, and other response data types
+    presence-background, continuous, count, and multi-class responses
 -   kNNDM supports geographical and feature-space matching, prediction
-    points supplied with `r`, `predpoints`, or `modeldomain`, and block,
+    points supplied with `r`, `pred_points`, or `model_domain`, and block,
     hierarchical, or k-means grouping
 -   Spatial autocorrelation ranges can be estimated for binary or
     continuous responses and for continuous raster covariates to guide
@@ -50,7 +52,25 @@ data for predictor variables.
     ggplot facets, with combined-fold plotting for k-fold methods
 -   Raster processing uses `terra`, with support for `stars`, `raster`,
     and files on disk
--   `cv_similarity` measures potential extrapolation to testing folds
+-   `cv_distance` and `cv_similarity` evaluate whether folds match the
+    prediction domain and where testing folds require extrapolation
+
+## What's new in v4.0
+
+-   Added `cv_knndm`, a k-fold nearest neighbour distance matching
+    method with block, hierarchical, and k-means grouping options
+-   Added `cv_distance` to assess how well any `blockCV` fold design
+    matches the nearest-neighbour distance pattern of the prediction
+    domain
+-   Made fold balancing explicit with `balance`, including
+    presence-background handling and continuous/count response support
+    through `num_bins`
+-   Improved `cv_similarity` with per-fold extrapolation summaries,
+    novelty-rate reporting, and a spatial map view
+-   Removed the legacy v2.x function names; use the `cv_*` functions in
+    new code
+
+See [NEWS.md](NEWS.md) for the full changelog.
 
 ## Installation
 
@@ -105,13 +125,13 @@ pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 # spatial blocking by specified range and random assignment
 sb <- cv_spatial(
     x = pa_data, # sf or SpatialPoints of sample data (e.g. species data)
-    column = "occ", # the response column (binary or multi-class)
+    column = "occ", # optional response column for fold records/balancing
     r = myrasters, # a raster for background (optional)
     size = 450000, # size of the blocks in metres
     k = 5, # number of folds
     hexagon = TRUE, # use hexagonal blocks - default
     selection = "random", # random blocks-to-fold
-    iteration = 100, # to find evenly dispersed folds
+    iteration = 100, # search for balanced folds
     biomod2 = TRUE # also create folds for biomod2
 )
 ```
@@ -125,7 +145,7 @@ Or create spatial clusters for k-fold cross-validation:
 set.seed(6)
 sc <- cv_cluster(
     x = pa_data, 
-    column = "occ", # optionally count data in folds (binary or multi-class)
+    column = "occ", # optionally count classes/bins in folds
     k = 5
 )
 ```
@@ -149,9 +169,19 @@ Create k-fold NNDM folds:
 # k-fold nearest neighbour distance matching
 knn <- cv_knndm(
     x = pa_data,
-    column = "occ", # optionally balance classes across folds
-    r = myrasters[[1]], # prediction area, or use predpoints/modeldomain
+    column = "occ", # optionally prefer class-complete folds
+    r = myrasters[[1]], # prediction area, or use pred_points/model_domain
     k = 5,
+    num_sample = 5000
+)
+```
+
+``` r
+# compare an existing fold design with prediction-domain distances
+cv_distance(
+    cv = sb,
+    x = pa_data,
+    r = myrasters[[1]],
     num_sample = 5000
 )
 ```

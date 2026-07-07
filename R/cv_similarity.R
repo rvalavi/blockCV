@@ -360,10 +360,14 @@ cv_similarity <- function(
             pct = extr$pct_novel
         )
         pct_lab <- pct_lab[!is.na(pct_lab$folds) & !is.na(pct_lab$pct), ]
+        # show a decimal only below 1% so small-but-nonzero folds never read as "0%"
+        pct_lab$label <- ifelse(pct_lab$pct == 0, "0%",
+                         ifelse(pct_lab$pct < 1, sprintf("%.1f%%", pct_lab$pct),
+                                                 sprintf("%.0f%%", pct_lab$pct)))
         if(nrow(pct_lab)){
             geom_pct <- ggplot2::geom_text(
                 data = pct_lab,
-                ggplot2::aes(x = get("folds"), y = Inf, label = sprintf("%.0f%%", get("pct"))),
+                ggplot2::aes(x = get("folds"), y = Inf, label = get("label")),
                 inherit.aes = FALSE, vjust = 1.4, size = 4.2, fontface = "bold",
                 # warn: red for folds with any extrapolation, neutral for the rest
                 colour = ifelse(pct_lab$pct > 0, "#B2182B", "grey35")
