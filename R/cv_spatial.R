@@ -31,6 +31,12 @@
 #' edge effect (O'Sullivan & Unwin, 2014), whereby points located on the edges of the blocks of opposite sets are
 #' not separated spatially. Blocking with a buffering strategy overcomes this issue (see \code{\link{cv_buffer}}).
 #'
+#' @details
+#' For presence-background data (\code{presence_bg = TRUE}), \code{column} holds \code{1} for presences and
+#' \code{0} for \emph{background} points -- locations sampled across the study area to represent the available
+#' conditions rather than confirmed absences. The fold balancing then targets only the presence records (the
+#' blocks still contain all points), so the abundant background cannot dominate the split.
+#'
 #'
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species data or ground truth sample for image classification).
 #' @param column character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
@@ -63,6 +69,11 @@
 #' random block assignments to balance the training/testing records (or the classes/bins of \code{column} when it is provided).
 #' If \code{FALSE}, a single random assignment is returned without balancing (equivalent to \code{iteration = 1}). This argument
 #' has no effect on the other selection methods.
+#' @param presence_bg logical; whether to treat \code{column} as species presence-background data (0s for
+#' background points and 1s for presences; see \sQuote{Details}). When \code{TRUE} (with \code{selection = "random"} and
+#' \code{balance = TRUE}), the balancing search equalises only the presence (1s) records across folds so the many
+#' background points cannot dominate the objective; the blocks still contain all points but the background is
+#' ignored when scoring the balance. Requires a binary numeric \code{column}. The default is \code{FALSE}.
 #' @param user_blocks an sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
 #' the species (response) points. If \code{selection = 'predefined'}, this argument and \strong{folds_column} must be supplied.
 #' @param folds_column character. Indicating the name of the column (in \code{user_blocks}) in which the associated folds are stored.
@@ -87,7 +98,8 @@
 #' @param ... additional option for \code{\link{cv_plot}}.
 #'
 #'
-#' @seealso \code{\link{cv_buffer}} and \code{\link{cv_cluster}}; \code{\link{cv_spatial_autocor}} and \code{\link{cv_block_size}} for selecting block size
+#' @seealso \code{\link{cv_buffer}} and \code{\link{cv_cluster}}; \code{\link{cv_spatial_autocor}} and \code{\link{cv_block_size}} for selecting block size;
+#' \code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate, the folds
 #' @seealso For \emph{CV.user.table} see \code{\link[biomod2]{BIOMOD_Modeling}} in \pkg{biomod2} package
 #'
 #' @references Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321-331.
@@ -151,6 +163,7 @@ cv_spatial <- function(
         selection = "random",
         iteration = 100L,
         balance = TRUE,
+        presence_bg = FALSE,
         user_blocks = NULL,
         folds_column = NULL,
         deg_to_metre = 111325,
@@ -175,6 +188,8 @@ cv_spatial <- function(
     x <- .check_x(x)
     # is column in x?
     column <- .check_column(column, x)
+    # validate presence-background data (0/1 column) when requested
+    invisible(.presence_index(x, column, presence_bg))
 
     # check for user_blocks format
     if(!is.null(user_blocks)){
@@ -331,7 +346,8 @@ cv_spatial <- function(
             response = response,
             seed = seed,
             biomod2 = biomod2,
-            progress = progress
+            progress = progress,
+            opt_cols = .balance_opt_cols(response, presence_bg)
         )
         blocks_df <- res$blocks_df
         train_test_table <- res$records
@@ -416,6 +432,7 @@ cv_spatial <- function(
         k = k,
         size = size,
         column = column,
+        presence_bg = presence_bg,
         blocks = sub_blocks,
         records = train_test_table
     )

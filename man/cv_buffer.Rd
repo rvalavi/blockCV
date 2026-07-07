@@ -61,9 +61,12 @@ spatial autocorrelation, see \code{\link{cv_spatial_autocor}}). In this method, 
 directly abuts a training sample (e.g. presence or absence; 0s and 1s). For more information see the details section.
 }
 \details{
-When working with presence-background (presence and pseudo-absence) species distribution
-data (should be specified by \code{presence_bg = TRUE} argument), only presence records are used
-for specifying the folds (recommended). Consider a target presence point. The buffer is defined around this target point,
+In \emph{presence-background} data the response column holds \code{1} for recorded \emph{presences} and
+\code{0} for \emph{background} (or \dQuote{pseudo-absence}) points -- locations sampled across the study
+area to characterise the available conditions rather than confirmed absences. This framing is common in
+species distribution modelling, but the option suits any presence-only-style data (e.g. sightings,
+occurrences or detections without reliable absences). When working with such data (specified by
+\code{presence_bg = TRUE}), only presence records are used for specifying the folds (recommended). Consider a target presence point. The buffer is defined around this target point,
 using the specified range (\code{size}). By default, the testing fold comprises only the target presence point (all background
 points within the buffer are also added when \code{add_bg = TRUE}).
 Any non-target presence points inside the buffer are excluded.
@@ -101,5 +104,6 @@ Radosavljevic, A., & Anderson, R. P. (2014). Making better Maxent models of spec
 distributions: Complexity, overfitting and evaluation. Journal of Biogeography, 41, 629–643. https://doi.org/10.1111/jbi.12227
 }
 \seealso{
-\code{\link{cv_nndm}}, \code{\link{cv_spatial}}, and \code{\link{cv_spatial_autocor}}
+\code{\link{cv_nndm}}, \code{\link{cv_spatial}}, and \code{\link{cv_spatial_autocor}};
+\code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate, the folds
 }

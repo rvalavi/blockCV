@@ -13,6 +13,8 @@
 #' @param min_size numeric; the minimum size of the blocks (in metres) to explore.
 #' @param max_size numeric; the maximum size of the blocks (in metres) to explore.
 #'
+#' @seealso \code{\link{cv_spatial}} and \code{\link{cv_spatial_autocor}}; \code{\link{cv_plot}},
+#' \code{\link{cv_distance}} and \code{\link{cv_similarity}} to visualise and evaluate folds
 #' @return an interactive shiny session
 #' @export
 #'

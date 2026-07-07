@@ -31,9 +31,12 @@
 #' When \code{space = "feature"} the distances are computed in the (optionally scaled) covariate space of
 #' \code{r} instead of the geographical space, mirroring \code{\link{cv_knndm}}.
 #'
-#' For presence-background leave-one-out objects (\code{presence_bg = TRUE} in \code{\link{cv_buffer}} or
-#' \code{\link{cv_nndm}}) only the focal \emph{presence} of each fold is used as the test point, matching
-#' the nearest neighbour distance matching framing.
+#' When the supplied \code{cv} object was built with \code{presence_bg = TRUE} (in \code{\link{cv_spatial}},
+#' \code{\link{cv_cluster}}, \code{\link{cv_knndm}}, \code{\link{cv_buffer}} or \code{\link{cv_nndm}}), all
+#' three distance distributions are computed on the \emph{presences} only: the prediction, LOO and CV curves
+#' are expressed relative to the presence-only training data rather than the (often random) \emph{background}
+#' points (locations sampled across the study area to represent the available conditions rather than confirmed
+#' absences), matching the nearest neighbour distance matching framing. This is read automatically from \code{cv}.
 #'
 #' @inheritParams cv_knndm
 #' @param cv a \code{blockCV} cross-validation object, i.e. the output of \code{\link{cv_spatial}},
@@ -51,7 +54,7 @@
 #' @param plot logical; whether to draw the plot. The plot is always returned invisibly.
 #'
 #' @seealso \code{\link{cv_similarity}}, \code{\link{cv_knndm}}, \code{\link{cv_nndm}},
-#' \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}
+#' \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_plot}} to visualise the folds
 #'
 #' @references Milà, C., Mateu, J., Pebesma, E., & Meyer, H. (2022). Nearest neighbour distance matching
 #' leave-one-out cross-validation for map validation. Methods in Ecology and Evolution, 13(6), 1304-1316.
@@ -105,6 +108,8 @@ cv_distance <- function(
     # check the cv and sample objects
     .check_cv(cv)
     x <- .check_x(x)
+    # the fold indices in 'cv' must line up with the supplied sample points
+    .check_x_matches_cv(x, cv)
     if(is.na(sf::st_crs(x))){
         stop("The coordinate reference system of 'x' must be defined.")
     }
@@ -127,34 +132,39 @@ cv_distance <- function(
     # resolve the prediction points -------------------------------------------
     predpts <- .knndm_predpoints(x, r, pred_points, model_domain, num_sample, sampling)
 
+    # presence-background objects: express every distance relative to the presences (1s)
+    pbg <- isTRUE(cv$presence_bg) && !is.null(cv$column) && cv$column %in% colnames(x)
+    x_1s <- if(pbg) which(x[, cv$column, drop = TRUE] == 1) else seq_len(n)
+    xp <- if(pbg) x[x_1s, ] else x
+    np <- length(x_1s)
+    # map full-data indices (as stored in folds_list) to the presence-only rows
+    full_to_p <- match(seq_len(n), x_1s)
+
     # sample-to-sample distances and prediction-to-sample distances -----------
     if(space == "geographical"){
-        tdist <- sf::st_distance(x)
+        tdist <- sf::st_distance(xp)
         units(tdist) <- NULL
-        Gij <- sf::st_distance(predpts, x)
+        Gij <- sf::st_distance(predpts, xp)
         units(Gij) <- NULL
         Gij <- apply(Gij, 1, min)
     } else{
-        ft <- .knndm_features(x, r, predpts, scale)
+        ft <- .knndm_features(xp, r, predpts, scale)
         tdist <- as.matrix(stats::dist(ft$train))
         Gij <- .nn_cross(ft$pred, ft$train)
     }
 
     # sample-to-nearest-other-sample (LOO) distances
-    Gj <- vapply(seq_len(n), function(i) min(tdist[i, -i]), numeric(1))
+    Gj <- vapply(seq_len(np), function(i) min(tdist[i, -i]), numeric(1))
 
     # test-to-nearest-train distances of the supplied folds (Gjstar) ----------
     is_loo <- .is_loo(cv)
-    pbg <- is_loo && isTRUE(cv$presence_bg) && !is.null(cv$column)
-    resp <- if(pbg) x[, cv$column, drop = TRUE] else NULL
-
     Gjstar <- unlist(lapply(cv$folds_list, function(f){
         train <- f[[1]]
         test <- f[[2]]
-        # for presence-background LOO, keep only the focal presence as the test point
+        # presence-background: keep only the presences, mapped to the presence-only rows
         if(pbg){
-            keep <- test[resp[test] == 1]
-            if(length(keep)) test <- keep
+            train <- full_to_p[train]; train <- train[!is.na(train)]
+            test  <- full_to_p[test];  test  <- test[!is.na(test)]
         }
         if(!length(train) || !length(test)) return(numeric(0))
         apply(tdist[test, train, drop = FALSE], 1, min)
@@ -167,7 +177,7 @@ cv_distance <- function(
     if(show_random){
         k <- length(cv$folds_list)
         rand_draws <- lapply(seq_len(n_random), function(j){
-            rv <- sample(rep(seq_len(k), ceiling(n / k)), size = n)
+            rv <- sample(rep(seq_len(k), ceiling(np / k)), size = np)
             .nn_diff_fold(tdist, rv)
         })
     } else if(isTRUE(add_random) && is_loo){
@@ -213,7 +223,8 @@ cv_distance <- function(
         ggplot2::geom_step(alpha = 0.7, linewidth = 1.2, ggplot2::aes(y = get("CV"), color = "CV")) +
         ggplot2::scale_color_manual(values = cols, breaks = present) +
         ggplot2::labs(color = "", x = "r", y = expression(G[r]),
-                      subtitle = paste0("Wasserstein-1 to prediction (lower = closer)   ", w_lab)) +
+                      subtitle = paste0("Wasserstein-1 to prediction (lower = closer)   ", w_lab),
+                      caption = if(pbg) "Presence-background object: distances computed on presences only" else NULL) +
         ggplot2::theme_bw() +
         ggplot2::theme(legend.text = ggplot2::element_text(size = 12))
 

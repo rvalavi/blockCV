@@ -86,8 +86,9 @@ nearest neighbour distance distribution function between the test and training d
 distance distribution function between the target prediction and training points (Milà et al., 2022).
 }
 \details{
-When working with presence-background (presence and pseudo-absence) species distribution
-data (should be specified by \code{presence_bg = TRUE} argument), only presence records are used
+When working with presence-background data (presences and \emph{background} points sampled across the study
+area to represent the available conditions rather than confirmed absences, specified by
+\code{presence_bg = TRUE}), only presence records are used
 for specifying the folds (recommended). The testing fold comprises only the target \emph{presence} point (optionally,
 all background points within the distance are also included when \code{add_bg = TRUE}; this is the
 distance that matches the nearest neighbour distance distribution function of training-testing presences and
@@ -129,5 +130,6 @@ C. Milà, J. Mateu, E. Pebesma, and H. Meyer, Nearest Neighbour Distance Matchin
 Leave-One-Out Cross-Validation for map validation, Methods in Ecology and Evolution (2022).
 }
 \seealso{
-\code{\link{cv_buffer}}, \code{\link{cv_knndm}} and \code{\link{cv_spatial_autocor}}
+\code{\link{cv_buffer}}, \code{\link{cv_knndm}} and \code{\link{cv_spatial_autocor}};
+\code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate, the folds
 }

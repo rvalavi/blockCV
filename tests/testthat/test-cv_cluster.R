@@ -4,6 +4,7 @@ expect_names <- c(
     "biomod_table",
     "k",
     "column",
+    "presence_bg",
     "type",
     "records"
 )

@@ -104,5 +104,5 @@ Roberts et al., (2017). Cross-validation strategies for data with temporal, spat
 or phylogenetic structure. Ecography. 40: 913-929.
 }
 \seealso{
-\code{\link{cv_block_size}}
+\code{\link{cv_block_size}}; \code{\link{cv_plot}}, \code{\link{cv_distance}} and \code{\link{cv_similarity}} to visualise and evaluate folds
 }

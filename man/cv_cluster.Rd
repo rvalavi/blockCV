@@ -13,6 +13,7 @@ cv_cluster(
   raster_cluster = FALSE,
   num_sample = 10000L,
   balance = FALSE,
+  presence_bg = FALSE,
   k_multiplier = 3L,
   iteration = 100L,
   seed = NULL,
@@ -47,6 +48,12 @@ otherwise it will be over the extracted raster values of the sample points. See 
 and these small clusters are then assigned to \code{k} folds over \code{iteration} random attempts to balance the training/testing
 records (or the classes/bins of \code{column} when it is provided). If \code{FALSE} (default), the points are clustered directly
 into \code{k} folds, which keeps the folds compact but does not control their size or class balance.}
+
+\item{presence_bg}{logical; whether to treat \code{column} as species presence-background data (0s for
+background points and 1s for presences; see \sQuote{Details}). When \code{TRUE} (and \code{balance = TRUE}), the balancing
+search equalises only the presence (1s) records across folds so the many background points cannot dominate
+the objective; the background points are still clustered spatially but ignored when scoring the balance.
+Requires a binary numeric \code{column}. The default is \code{FALSE}.}
 
 \item{k_multiplier}{integer. The multiplier controlling how many clusters are created before they are merged into folds
 (i.e. \code{k * k_multiplier}). Only used when \code{balance = TRUE}. Larger values give more balanced folds at the cost of less
@@ -114,6 +121,12 @@ grouped into a larger number of clusters (\code{k * k_multiplier}) that are then
 random attempts, keeping the split that best balances the training/testing records (or the classes/bins of \code{column} when
 it is provided). This mirrors the balancing used by \code{\link{cv_spatial}} with \code{selection = "random"}, and \code{k_multiplier}
 controls the trade-off between fold balance (higher values) and fold compactness (lower values).
+
+
+For presence-background data (\code{presence_bg = TRUE}), \code{column} holds \code{1} for presences and
+\code{0} for \emph{background} points -- locations sampled across the study area to represent the available
+conditions rather than confirmed absences. When \code{balance = TRUE} the balancing then equalises only the
+presence records across folds, so the abundant background cannot dominate the split.
 }
 \examples{
 \donttest{
@@ -157,5 +170,6 @@ bc <- cv_cluster(x = pa_data,
 Hastie, T., Tibshirani, R., & Friedman, J. (2009). The elements of statistical learning: Data mining, inference, and prediction ( 2nd ed., Vol. 1).
 }
 \seealso{
-\code{\link{cv_buffer}} and \code{\link{cv_spatial}}
+\code{\link{cv_buffer}} and \code{\link{cv_spatial}};
+\code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate, the folds
 }

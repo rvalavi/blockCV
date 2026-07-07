@@ -11,6 +11,7 @@ cv_similarity(
   num_plot = seq_along(cv$folds_list),
   method = "MESS",
   num_sample = 10000L,
+  seed = NULL,
   jitter_width = 0.1,
   points_size = 2,
   points_alpha = 0.7,
@@ -33,6 +34,9 @@ is used to calculate similarity between the training and testing points.}
 \item{method}{the similarity method including: MESS, L1 and L2. Read the details section.}
 
 \item{num_sample}{number of random samples from raster to calculate similarity distances (only for L1 and L2).}
+
+\item{seed}{integer; an optional random seed. The L1/L2 baseline is built from a random raster
+sample (\code{num_sample}); set \code{seed} to make the result reproducible.}
 
 \item{jitter_width}{numeric; the width of jitter points.}
 
@@ -78,6 +82,12 @@ function performs the following steps for each test sample:
 This provides a simple, distance-based novelty metric, useful for assessing
 extrapolation or dissimilarity in prediction scenarios. Note that this approach is
 experimental.
+
+When the supplied \code{cv} object was built with \code{presence_bg = TRUE}, the similarity
+is computed on the \emph{presences} only: the background points (locations sampled to represent
+the available conditions rather than confirmed absences) are excluded from both the training and
+testing sets of every fold, matching the framing used in \code{\link{cv_distance}}. This is read
+automatically from \code{cv}.
 }
 \examples{
 \donttest{
@@ -109,5 +119,6 @@ cv_similarity(cv = sb, r = covars, x = pa_data, method = "MESS")
 Elith, J., Kearney, M., & Phillips, S. (2010). The art of modelling range-shifting species: The art of modelling range-shifting species. Methods in Ecology and Evolution, 1(4), 330–342.
 }
 \seealso{
-\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}}
+\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}};
+\code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} to evaluate, the folds
 }

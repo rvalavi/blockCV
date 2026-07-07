@@ -10,6 +10,28 @@
 }
 
 
+# number of original sample points represented by a cv object (its folds index
+# into these points). For leave-one-out objects the folds do not each span the
+# whole data, so the distinct referenced indices are counted instead.
+.cv_n_points <- function(cv){
+    if(.is_loo(cv)){
+        length(unique(unlist(cv$folds_list)))
+    } else{
+        length(unlist(cv$folds_list[[1]]))
+    }
+}
+
+
+# the supplied sample data must match the points used to build the cv object,
+# otherwise the fold indices stored in 'cv' no longer line up with 'x'
+.check_x_matches_cv <- function(x, cv){
+    if(nrow(x) != .cv_n_points(cv)){
+        stop("Number of rows in 'x' does not match the folds in 'cv'!", call. = FALSE)
+    }
+    invisible(TRUE)
+}
+
+
 # check points fall within the raster layer
 .check_within <- function(x, r) {
     bbox <- sf::st_bbox(x)
@@ -50,6 +72,26 @@
     }
     return(column)
 }
+
+# validate presence-background data and return the row indices of the presences (1s).
+# When presence_bg is FALSE the full set of row indices is returned unchanged. When
+# TRUE, 'column' is required and must hold a binary 0/1 (numeric) response.
+.presence_index <- function(x, column, presence_bg){
+    if(!isTRUE(presence_bg)){
+        return(seq_len(nrow(x)))
+    }
+    if(is.null(column)){
+        stop("'column' must be provided for presence-background data.")
+    }
+    vals <- x[, column, drop = TRUE]
+    unqsp <- unique(vals)
+    if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
+        stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n",
+             "The data should be numeric.\n")
+    }
+    which(vals == 1)
+}
+
 
 # column should be binary or categorical
 .check_classes <- function(clen, column, th = 15){

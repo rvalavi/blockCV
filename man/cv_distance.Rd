@@ -95,9 +95,12 @@ shown in the subtitle and attached to the returned plot as \code{attr(p, "W")}.
 When \code{space = "feature"} the distances are computed in the (optionally scaled) covariate space of
 \code{r} instead of the geographical space, mirroring \code{\link{cv_knndm}}.
 
-For presence-background leave-one-out objects (\code{presence_bg = TRUE} in \code{\link{cv_buffer}} or
-\code{\link{cv_nndm}}) only the focal \emph{presence} of each fold is used as the test point, matching
-the nearest neighbour distance matching framing.
+When the supplied \code{cv} object was built with \code{presence_bg = TRUE} (in \code{\link{cv_spatial}},
+\code{\link{cv_cluster}}, \code{\link{cv_knndm}}, \code{\link{cv_buffer}} or \code{\link{cv_nndm}}), all
+three distance distributions are computed on the \emph{presences} only: the prediction, LOO and CV curves
+are expressed relative to the presence-only training data rather than the (often random) \emph{background}
+points (locations sampled across the study area to represent the available conditions rather than confirmed
+absences), matching the nearest neighbour distance matching framing. This is read automatically from \code{cv}.
 }
 \examples{
 \donttest{
@@ -128,5 +131,5 @@ matching cross-validation for map accuracy estimation. Geoscientific Model Devel
 }
 \seealso{
 \code{\link{cv_similarity}}, \code{\link{cv_knndm}}, \code{\link{cv_nndm}},
-\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}
+\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_plot}} to visualise the folds
 }

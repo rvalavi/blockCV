@@ -8,6 +8,7 @@ cv_knndm(
   x,
   column = NULL,
   balance = TRUE,
+  presence_bg = FALSE,
   r = NULL,
   pred_points = NULL,
   model_domain = NULL,
@@ -41,6 +42,13 @@ all folds contain all classes and, when \code{balance = TRUE}, to prefer class-c
 \item{balance}{logical. When \code{TRUE} (default) and \code{column} is supplied, class completeness is used as a
 validity gate to prefer groupings in which every class is present in every test fold (see details). When \code{FALSE},
 the grouping with the smallest \code{W} is returned regardless of class completeness and \code{column} only feeds the report.}
+
+\item{presence_bg}{logical; whether to treat \code{column} as species presence-background data (0s for
+background points and 1s for presences; see \sQuote{Details}). When \code{TRUE}, the whole distance matching (the sample-to-sample,
+prediction-to-sample and test-to-train nearest-neighbour distances, and the grouping search) is computed on the
+\emph{presences} only, so the prediction domain is expressed relative to the presence-only training data rather than
+a random background. Each background point then inherits the fold of its nearest presence. The class-completeness gate
+of \code{balance} is not applied in this mode. Requires a binary numeric \code{column}. The default is \code{FALSE}.}
 
 \item{r}{a terra SpatRaster object. This defines the area that the model is going to predict; when
 neither \code{pred_points} nor \code{model_domain} is supplied, prediction points are sampled from it.
@@ -154,6 +162,13 @@ grouping is returned and the final records table reports the missing class(es). 
 weaker than the balancing in \code{\link{cv_spatial}}: it only ensures every class is represented in every
 test fold (no empty class), it does not equalise the class counts across folds. With \code{balance = FALSE}
 the grouping with the overall smallest \code{W} is always returned and \code{column} is used only for the report.
+
+
+For presence-background data (\code{presence_bg = TRUE}), \code{column} holds \code{1} for presences and
+\code{0} for \emph{background} points -- locations sampled across the study area to represent the available
+conditions rather than confirmed absences. The distance matching is then computed on the presences only and
+each background point inherits the fold of its nearest presence, so the prediction geometry reflects the
+presence data rather than a random background.
 }
 \examples{
 \donttest{
@@ -187,5 +202,6 @@ leave-one-out cross-validation for map validation. Methods in Ecology and Evolut
 \seealso{
 \code{\link{cv_nndm}}, \code{\link{cv_spatial}}, \code{\link{cv_cluster}},
 \code{\link{cv_spatial_autocor}}, and \code{CAST::knndm()} for the authors'
-CAST implementation of kNNDM.
+CAST implementation of kNNDM. Use \code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and
+\code{\link{cv_similarity}} to evaluate, the folds.
 }

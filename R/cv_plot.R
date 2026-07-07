@@ -6,6 +6,13 @@
 #' customised with standard \code{ggplot2} layers. For example, you can add a
 #' title, change the theme, or modify colours and scales.
 #'
+#' @details
+#' The \code{bg_alpha} argument only applies to objects created with \code{presence_bg = TRUE}. There the
+#' \code{cv} response holds \code{1} for presences and \code{0} for \emph{background} points -- locations
+#' sampled across the study area to represent the available conditions rather than confirmed absences -- and
+#' the background points are drawn faded so the presences stand out. This point-level \dQuote{background} is
+#' unrelated to the raster \code{r} used as a map backdrop.
+#'
 #' @param cv a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer},
 #' \code{cv_nndm}, or \code{cv_knndm}
 #' @param x a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
@@ -22,6 +29,10 @@
 #' @param raster_colors character; a character vector of colours for raster background e.g. \code{terrain.colors(20)}
 #' @param points_colors character; two colours to be used for train and test points
 #' @param points_alpha numeric; the opacity of points
+#' @param bg_alpha numeric; opacity of the \emph{background} points (response \code{0}) when the \code{cv}
+#' object was built with \code{presence_bg = TRUE} (see \sQuote{Details}). Lower values fade them so the
+#' presences (response \code{1}) stand out; set \code{bg_alpha = points_alpha} to disable the fading. Has no
+#' effect for objects that are not presence-background. The default is \code{0.1}.
 #' @param label_size integer; size of fold labels when a \code{cv_spatial} object is used.
 #' @param remove_na logical; whether to remove excluded points in \code{cv_buffer} from the plot
 #' @param combine_folds logical; if \code{TRUE}, all folds are shown in a single map with points
@@ -30,6 +41,9 @@
 #' @param fold_colors character; a vector of colours for the folds when \code{combine_folds = TRUE};
 #' by default a qualitative palette is generated for the number of folds.
 #'
+#' @seealso \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate the folds;
+#' \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, \code{\link{cv_nndm}} and
+#' \code{\link{cv_knndm}} to create them
 #' @importFrom grDevices gray.colors
 #' @return a ggplot object
 #' @export
@@ -64,6 +78,7 @@ cv_plot <- function(
         raster_colors = gray.colors(10, alpha = 1),
         points_colors = c("#E69F00", "#56B4E9"),
         points_alpha = 0.7,
+        bg_alpha = 0.1,
         label_size = 4,
         combine_folds = FALSE,
         fold_colors = NULL
@@ -93,6 +108,9 @@ cv_plot <- function(
     is_spatial <- inherits(cv, "cv_spatial")
     # does the object carry spatial blocks to draw? (cv_spatial always; cv_knndm when kept)
     has_blocks <- !is.null(cv$blocks)
+    # presence-background objects: fade the background (0s) so the presences stand out
+    pbg_column <- if(isTRUE(cv$presence_bg)) cv$column else NULL
+    pbg_plot <- !is.null(pbg_column) && !missing(x) && pbg_column %in% names(x)
 
     # make geom_tile for raster plots
     if(!is.null(r)){
@@ -180,30 +198,48 @@ cv_plot <- function(
         }
 
     } else if(combine_folds){
+        bg_pts <- if(pbg_plot){ v <- x[[pbg_column]]; !is.na(v) & v == 0 } else NULL
         p1 <- ggplot2::ggplot(data = x) +
             switch(!is.null(r), geom_rast) + # only switch works with ggplot
             switch(!is.null(r), geom_rast_col) +
             switch(has_blocks, geom_poly) +
-            ggplot2::geom_sf(ggplot2::aes(col = get("folds")), alpha = points_alpha) +
+            .cv_point_layers(x, ggplot2::aes(col = get("folds")), points_alpha, bg_alpha, bg_pts) +
             ggplot2::scale_color_manual(values = fold_colors) +
-            ggplot2::labs(x = "", y = "", col = "Folds") + # set the axes labes to NULL
+            ggplot2::labs(x = "", y = "", col = "Folds",
+                          caption = if(pbg_plot) "Presence-background: background points (0) shown faded" else NULL) + # set the axes labes to NULL
             ggplot2::theme_bw() +
             ggplot2::guides(fill = "none")
 
     } else{
+        bg_long <- if(pbg_plot){ v <- x_long[[pbg_column]]; !is.na(v) & v == 0 } else NULL
         p1 <- ggplot2::ggplot(data = x_long) +
             switch(!is.null(r), geom_rast) + # only switch works with ggplot
             switch(!is.null(r), geom_rast_col) +
             switch(has_blocks, geom_poly) +
-            ggplot2::geom_sf(ggplot2::aes(col = get("value")), alpha = points_alpha) +
+            .cv_point_layers(x_long, ggplot2::aes(col = get("value")), points_alpha, bg_alpha, bg_long) +
             ggplot2::scale_color_manual(values = points_colors, na.value = "#BEBEBE03") +
             ggplot2::facet_wrap(~get("folds"), nrow = nrow, ncol = ncol) +
-            ggplot2::labs(x = "", y = "", col = "") + # set the axes labes to NULL
+            ggplot2::labs(x = "", y = "", col = "",
+                          caption = if(pbg_plot) "Presence-background: background points (0) shown faded" else NULL) + # set the axes labes to NULL
             ggplot2::theme_bw() +
             ggplot2::guides(fill = "none")
     }
 
     return(p1)
+}
+
+
+# point layer(s) for cv_plot. When 'bg' is supplied, the background is drawn first
+# at 'bg_alpha' and the presences on top at 'points_alpha', so presence-background 
+# maps highlight the presences. Both layers keep the same 'mapping' (fold or train/test colour).
+.cv_point_layers <- function(data, mapping, points_alpha, bg_alpha, bg = NULL){
+    if(is.null(bg) || !any(bg)){
+        return(ggplot2::geom_sf(mapping, alpha = points_alpha))
+    }
+    list(
+        ggplot2::geom_sf(data = data[bg, ], mapping = mapping, alpha = bg_alpha),
+        ggplot2::geom_sf(data = data[!bg, ], mapping = mapping, alpha = points_alpha)
+    )
 }
 
 
@@ -262,13 +298,8 @@ cv_plot <- function(
     if(max(num_plot) > k){
         num_plot <- num_plot[num_plot <= k]
     }
-    # get the length of unique ids
-    # if(methods::is(cv, "cv_buffer")){
-    if(.is_loo(cv)){
-        len <- length(unique(unlist(cv$folds_list)))
-    } else{
-        len <- length(unlist(folds_list[[1]]))
-    }
+    # number of original sample points (folds index into these)
+    len <- .cv_n_points(cv)
     if(len != nrow(x)){
         stop("Number of rows in 'x' does not match the folds in 'cv'!")
     }

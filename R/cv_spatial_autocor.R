@@ -33,7 +33,7 @@
 #' @param progress logical; whether to shows a progress bar.
 #' @param ... additional option for \code{\link{cv_plot}}
 #'
-#' @seealso \code{\link{cv_block_size}}
+#' @seealso \code{\link{cv_block_size}}; \code{\link{cv_plot}}, \code{\link{cv_distance}} and \code{\link{cv_similarity}} to visualise and evaluate folds
 #'
 #' @references O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 #'

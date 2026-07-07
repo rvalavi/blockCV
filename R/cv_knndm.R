@@ -33,6 +33,13 @@
 #' test fold (no empty class), it does not equalise the class counts across folds. With \code{balance = FALSE}
 #' the grouping with the overall smallest \code{W} is always returned and \code{column} is used only for the report.
 #'
+#' @details
+#' For presence-background data (\code{presence_bg = TRUE}), \code{column} holds \code{1} for presences and
+#' \code{0} for \emph{background} points -- locations sampled across the study area to represent the available
+#' conditions rather than confirmed absences. The distance matching is then computed on the presences only and
+#' each background point inherits the fold of its nearest presence, so the prediction geometry reflects the
+#' presence data rather than a random background.
+#'
 #' @inheritParams cv_spatial
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species
 #' data or ground truth sample for image classification).
@@ -42,6 +49,12 @@
 #' @param balance logical. When \code{TRUE} (default) and \code{column} is supplied, class completeness is used as a
 #' validity gate to prefer groupings in which every class is present in every test fold (see details). When \code{FALSE},
 #' the grouping with the smallest \code{W} is returned regardless of class completeness and \code{column} only feeds the report.
+#' @param presence_bg logical; whether to treat \code{column} as species presence-background data (0s for
+#' background points and 1s for presences; see \sQuote{Details}). When \code{TRUE}, the whole distance matching (the sample-to-sample,
+#' prediction-to-sample and test-to-train nearest-neighbour distances, and the grouping search) is computed on the
+#' \emph{presences} only, so the prediction domain is expressed relative to the presence-only training data rather than
+#' a random background. Each background point then inherits the fold of its nearest presence. The class-completeness gate
+#' of \code{balance} is not applied in this mode. Requires a binary numeric \code{column}. The default is \code{FALSE}.
 #' @param r a terra SpatRaster object. This defines the area that the model is going to predict; when
 #' neither \code{pred_points} nor \code{model_domain} is supplied, prediction points are sampled from it.
 #' It is also required (for the covariates) when \code{space = "feature"}.
@@ -77,7 +90,8 @@
 #'
 #' @seealso \code{\link{cv_nndm}}, \code{\link{cv_spatial}}, \code{\link{cv_cluster}},
 #' \code{\link{cv_spatial_autocor}}, and \code{CAST::knndm()} for the authors'
-#' CAST implementation of kNNDM.
+#' CAST implementation of kNNDM. Use \code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and
+#' \code{\link{cv_similarity}} to evaluate, the folds.
 #'
 #' @references Linnenbrink, J., Milà, C., Ludwig, M., & Meyer, H. (2024). kNNDM CV: k-fold nearest
 #' neighbour distance matching cross-validation for map accuracy estimation. Geoscientific Model
@@ -129,6 +143,7 @@ cv_knndm <- function(
         x,
         column = NULL,
         balance = TRUE,
+        presence_bg = FALSE,
         r = NULL,
         pred_points = NULL,
         model_domain = NULL,
@@ -160,7 +175,11 @@ cv_knndm <- function(
     x <- .check_x(x)
     # is column in x?
     column <- .check_column(column, x)
-    class_balance <- !is.null(column) && balance
+    # presence-background: restrict the distance matching to the presences (1s)
+    x_1s <- .presence_index(x, column, presence_bg)
+    xp <- if(presence_bg) x[x_1s, ] else x
+    # class-completeness gate is not meaningful for presence-background matching
+    class_balance <- !is.null(column) && balance && !presence_bg
     # x's CRS must be defined
     if(is.na(sf::st_crs(x))){
         stop("The coordinate reference system of 'x' must be defined.")
@@ -174,8 +193,9 @@ cv_knndm <- function(
 
     # check k and maxp
     n <- nrow(x)
+    np <- length(x_1s) # number of points used for matching (presences when presence_bg)
     k <- as.integer(abs(k))
-    if(k < 2 || k >= n) stop("'k' must be a natural number between 2 and the number of points.")
+    if(k < 2 || k >= np) stop("'k' must be a natural number between 2 and the number of points (presences when 'presence_bg = TRUE').")
     if(!(maxp > 1 / k && maxp < 1)) stop("'maxp' must be strictly between 1/k and 1.")
 
     if(!is.null(seed)) set.seed(seed)
@@ -197,34 +217,34 @@ cv_knndm <- function(
 
     # distances and clustering coordinates ------------------------------------
     if(space == "geographical"){
-        tdist <- sf::st_distance(x)
+        tdist <- sf::st_distance(xp)
         units(tdist) <- NULL
         # prediction-to-sample nearest neighbour distances
-        Gij <- sf::st_distance(predpts, x)
+        Gij <- sf::st_distance(predpts, xp)
         units(Gij) <- NULL
         Gij <- apply(Gij, 1, min)
         # coordinates used for PC1 ordering and k-means
-        clust_coords <- sf::st_coordinates(x)
-        if(clustering == "blocks" && sf::st_is_longlat(x)){
+        clust_coords <- sf::st_coordinates(xp)
+        if(clustering == "blocks" && sf::st_is_longlat(xp)){
             warning("Block sizes for geographic (lon/lat) coordinates are approximate (converted via 'deg_to_metre').")
         }
     } else{
         # feature space: distances in the (scaled) covariate space
-        ft <- .knndm_features(x, r, predpts, scale)
+        ft <- .knndm_features(xp, r, predpts, scale)
         clust_coords <- ft$train
         tdist <- as.matrix(stats::dist(ft$train))
         Gij <- .nn_cross(ft$pred, ft$train)
     }
 
     # sample-to-nearest-other-sample (LOO) distances
-    Gj <- vapply(seq_len(n), function(i) min(tdist[i, -i]), numeric(1))
+    Gj <- vapply(seq_len(np), function(i) min(tdist[i, -i]), numeric(1))
 
     # random-CV gate (Linnenbrink et al., 2024) -------------------------------
     block_size <- NULL # size of the winning tiling when clustering = "blocks"
     ks <- suppressWarnings(stats::ks.test(Gj, Gij, alternative = "greater"))
     if(ks$p.value >= 0.05){
         message("Gij <= Gj; a random cross-validation assignment is returned (clustering not required).")
-        fold_vect <- sample(rep(seq_len(k), ceiling(n / k)), size = n)
+        fold_vect <- sample(rep(seq_len(k), ceiling(np / k)), size = np)
         Gjstar <- .nn_diff_fold(tdist, fold_vect)
         W <- .wasserstein(Gjstar, Gij)
         method <- "random"
@@ -232,8 +252,8 @@ cv_knndm <- function(
 
     } else{
         # search over candidate groupings -------------------------------------
-        cand <- .knndm_candidates(clustering, k, n, nk_len, tdist, clust_coords,
-                                  linkage, x, hexagon, deg_to_metre)
+        cand <- .knndm_candidates(clustering, k, np, nk_len, tdist, clust_coords,
+                                  linkage, xp, hexagon, deg_to_metre)
 
         best <- NULL
         best_complete <- NULL
@@ -275,9 +295,23 @@ cv_knndm <- function(
     }
 
     # keep the spatial blocks of the selected grouping (blocks variant only) ---
+    # (tagged with the presence-level folds before background is expanded in)
     blocks <- NULL
     if(keep_blocks && method == "blocks" && !is.null(block_size)){
-        blocks <- .knndm_blocks(x, block_size, hexagon, deg_to_metre, fold_vect)
+        blocks <- .knndm_blocks(xp, block_size, hexagon, deg_to_metre, fold_vect)
+    }
+
+    # expand the presence-level folds to the full dataset: each background point
+    # inherits the fold of its nearest presence (prevents leakage and mirrors add_bg)
+    if(presence_bg){
+        pres_fold <- fold_vect
+        fold_vect <- integer(n)
+        fold_vect[x_1s] <- pres_fold
+        bg_idx <- setdiff(seq_len(n), x_1s)
+        if(length(bg_idx)){
+            nn_pres <- sf::st_nearest_feature(sf::st_geometry(x)[bg_idx], sf::st_geometry(xp))
+            fold_vect[bg_idx] <- pres_fold[nn_pres]
+        }
     }
 
     # build folds, biomod table and records (k-fold output) -------------------
@@ -333,6 +367,7 @@ cv_knndm <- function(
         biomod_table = if(biomod2) as.matrix(biomod_table) else NULL,
         k = k,
         column = column,
+        presence_bg = presence_bg,
         type = paste0("kNNDM (", method, ")"),
         space = space,
         q = q,

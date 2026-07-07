@@ -4,6 +4,7 @@ expect_names <- c("folds_list",
                   "k",
                   "size",
                   "column",
+                  "presence_bg",
                   "blocks",
                   "records")
 

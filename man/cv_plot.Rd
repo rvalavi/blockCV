@@ -16,6 +16,7 @@ cv_plot(
   raster_colors = gray.colors(10, alpha = 1),
   points_colors = c("#E69F00", "#56B4E9"),
   points_alpha = 0.7,
+  bg_alpha = 0.1,
   label_size = 4,
   combine_folds = FALSE,
   fold_colors = NULL
@@ -50,6 +51,11 @@ You can choose any of the folds to be shown e.g. \code{1:3} or \code{c(2, 7, 16,
 
 \item{points_alpha}{numeric; the opacity of points}
 
+\item{bg_alpha}{numeric; opacity of the \emph{background} points (response \code{0}) when the \code{cv}
+object was built with \code{presence_bg = TRUE} (see \sQuote{Details}). Lower values fade them so the
+presences (response \code{1}) stand out; set \code{bg_alpha = points_alpha} to disable the fading. Has no
+effect for objects that are not presence-background. The default is \code{0.1}.}
+
 \item{label_size}{integer; size of fold labels when a \code{cv_spatial} object is used.}
 
 \item{combine_folds}{logical; if \code{TRUE}, all folds are shown in a single map with points
@@ -69,6 +75,13 @@ The output of \code{cv_plot()} is a \code{ggplot} object, so it can be
 customised with standard \code{ggplot2} layers. For example, you can add a
 title, change the theme, or modify colours and scales.
 }
+\details{
+The \code{bg_alpha} argument only applies to objects created with \code{presence_bg = TRUE}. There the
+\code{cv} response holds \code{1} for presences and \code{0} for \emph{background} points -- locations
+sampled across the study area to represent the available conditions rather than confirmed absences -- and
+the background points are drawn faded so the presences stand out. This point-level \dQuote{background} is
+unrelated to the raster \code{r} used as a map backdrop.
+}
 \examples{
 \donttest{
 library(blockCV)
@@ -87,4 +100,9 @@ cv_plot(cv = sc,
         points_alpha = 0.5)
 
 }
+}
+\seealso{
+\code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate the folds;
+\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, \code{\link{cv_nndm}} and
+\code{\link{cv_knndm}} to create them
 }

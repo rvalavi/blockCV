@@ -29,6 +29,12 @@
 #' extrapolation or dissimilarity in prediction scenarios. Note that this approach is
 #' experimental.
 #'
+#' When the supplied \code{cv} object was built with \code{presence_bg = TRUE}, the similarity
+#' is computed on the \emph{presences} only: the background points (locations sampled to represent
+#' the available conditions rather than confirmed absences) are excluded from both the training and
+#' testing sets of every fold, matching the framing used in \code{\link{cv_distance}}. This is read
+#' automatically from \code{cv}.
+#'
 #' @inheritParams cv_plot
 #' @param x a simple features (sf) object of the spatial sample points used for creating
 #' the \code{cv} object.
@@ -36,6 +42,8 @@
 #' is used to calculate similarity between the training and testing points.
 #' @param method the similarity method including: MESS, L1 and L2. Read the details section.
 #' @param num_sample number of random samples from raster to calculate similarity distances (only for L1 and L2).
+#' @param seed integer; an optional random seed. The L1/L2 baseline is built from a random raster
+#' sample (\code{num_sample}); set \code{seed} to make the result reproducible.
 #' @param num_plot a vector of indices of folds for plotting (default uses all).
 #' @param jitter_width numeric; the width of jitter points.
 #' @param points_size numeric; the size of points.
@@ -43,7 +51,8 @@
 #' @param points_colors character; a character vector of colours for points
 #' @inheritParams cv_spatial
 #'
-#' @seealso \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}}
+#' @seealso \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}};
+#' \code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} to evaluate, the folds
 #'
 #' @references Elith, J., Kearney, M., & Phillips, S. (2010). The art of modelling range-shifting species: The art of modelling range-shifting species. Methods in Ecology and Evolution, 1(4), 330–342.
 #'
@@ -82,6 +91,7 @@ cv_similarity <- function(
         num_plot = seq_along(cv$folds_list),
         method = "MESS",
         num_sample = 10000L,
+        seed = NULL,
         jitter_width = 0.1,
         points_size = 2,
         points_alpha = 0.7,
@@ -124,6 +134,10 @@ cv_similarity <- function(
     if(max(num_plot) > k){
         num_plot <- num_plot[num_plot <= k]
     }
+    # presence-background: assess similarity on the presences only (mirror cv_distance),
+    # i.e. drop the background points from every fold's train/test sets
+    pbg <- isTRUE(cv$presence_bg) && !is.null(cv$column) && cv$column %in% colnames(x)
+    presence_idx <- if(pbg) which(x[, cv$column, drop = TRUE] == 1) else NULL
     # extract the raster values
     points <- terra::extract(r, x, ID = FALSE)
     # to set as nrow for df; cv_buffer has only one target points unless P-BG
@@ -142,6 +156,7 @@ cv_similarity <- function(
         f <- function(x, s) {
             mns <- attr(s,"scaled:center")
             sds <- attr(s,"scaled:scale")
+            sds[sds == 0 | is.na(sds)] <- 1 # guard constant predictors (avoid divide-by-zero)
             for (i in names(mns)) {
                 x[[i]] <- (x[[i]] - mns[i]) / sds[i]
             }
@@ -149,38 +164,64 @@ cv_similarity <- function(
             attr(x, "scaled:scale") <- NULL
             return(x)
         }
+        # the baseline is a random raster sample; seed it so results are reproducible
+        if(!is.null(seed)) set.seed(seed)
         rand_points <- terra::spatSample(r, size = num_sample, na.rm = TRUE)
         rand_points <- rand_points[stats::complete.cases(rand_points), ] # just make sure..
         # scale and centre the random points
-        rand_points <- as.matrix(scale(rand_points))
+        rand_points <- scale(rand_points)
+        # constant predictors become NaN after scaling; set them to the centred value (0)
+        zero_var <- which(attr(rand_points, "scaled:scale") == 0 |
+                              is.na(attr(rand_points, "scaled:scale")))
+        if(length(zero_var)) rand_points[, zero_var] <- 0
         # scale and centre the samples points based on the same stats
         points <- as.matrix(f(x = points, s = rand_points))
+        rand_points <- as.matrix(rand_points)
         # remove the attributes
         attr(rand_points, "scaled:center") <- NULL
         attr(rand_points, "scaled:scale") <- NULL
+        # samples with missing covariates cannot be used by the distance routine
+        complete_idx <- which(stats::complete.cases(points))
     }
 
-    # calculate MESS for testing data
+    # calculate similarity for testing data
     for(i in num_plot){
         df[, paste("Fold", i, sep = "")] <- NA
         train <- folds_list[[i]][[1]]
         test <- folds_list[[i]][[2]]
+        # presence-background: keep the presences only (drop background points)
+        if(pbg){
+            train <- intersect(train, presence_idx)
+            test  <- intersect(test,  presence_idx)
+        }
+        # L1/L2 cannot use samples with missing covariate values
+        if(!MESS){
+            train <- intersect(train, complete_idx)
+            test  <- intersect(test,  complete_idx)
+        }
+        # nothing left to compare in this fold
+        if(!length(train) || !length(test)){
+            if(progress) utils::setTxtProgressBar(pb, i)
+            next
+        }
         if (MESS) {
-            mes <- sapply(1:m, function(j) .messi3(points[test, j], points[train, j]))
+            mes <- sapply(seq_len(m), function(j) .messi3(points[test, j], points[train, j]))
             if(.is_loo(cv)){
                 mmes <- min(mes)
             } else{
+                # a single test point collapses 'mes' to a vector; keep it a 1-row matrix
+                if(is.null(dim(mes))) mes <- matrix(mes, nrow = length(test))
                 mmes <- apply(mes, 1, min, na.rm = TRUE)
             }
         } else {
             mmes <- similarity_cpp(
-                train_mat = points[train, ],
-                test_mat = points[test,, drop=FALSE],
-                rand_mat = rand_points,
+                train_mat = points[train, , drop = FALSE],
+                test_mat  = points[test,  , drop = FALSE],
+                rand_mat  = rand_points,
                 L1 = L1
             )
         }
-        df[1:length(mmes), paste("Fold", i, sep = "")] <- mmes
+        df[seq_along(mmes), paste("Fold", i, sep = "")] <- mmes
         if(progress) utils::setTxtProgressBar(pb, i)
     }
     fold_names <- paste("Fold", num_plot, sep = "")
@@ -238,7 +279,8 @@ cv_similarity <- function(
         ggplot2::scale_color_gradientn(colours = points_colors,
                                        limits = c(-maxabs, maxabs),
                                        na.value = "#BEBEBE03") +
-        ggplot2::labs(x = "Folds", y = y_name, col = col_name) +
+        ggplot2::labs(x = "Folds", y = y_name, col = col_name,
+                      caption = if(pbg) "Presence-background object: similarity computed on presences only" else NULL) +
         ggplot2::theme_bw()
 
     return(p1)

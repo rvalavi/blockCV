@@ -29,6 +29,12 @@
 #' it is provided). This mirrors the balancing used by \code{\link{cv_spatial}} with \code{selection = "random"}, and \code{k_multiplier}
 #' controls the trade-off between fold balance (higher values) and fold compactness (lower values).
 #'
+#' @details
+#' For presence-background data (\code{presence_bg = TRUE}), \code{column} holds \code{1} for presences and
+#' \code{0} for \emph{background} points -- locations sampled across the study area to represent the available
+#' conditions rather than confirmed absences. When \code{balance = TRUE} the balancing then equalises only the
+#' presence records across folds, so the abundant background cannot dominate the split.
+#'
 #' @inheritParams cv_spatial
 #' @param column character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
 #'  response i.e. 0s and 1s) is stored. It is used to report whether all the folds contain all the classes and, when
@@ -44,6 +50,11 @@
 #' and these small clusters are then assigned to \code{k} folds over \code{iteration} random attempts to balance the training/testing
 #' records (or the classes/bins of \code{column} when it is provided). If \code{FALSE} (default), the points are clustered directly
 #' into \code{k} folds, which keeps the folds compact but does not control their size or class balance.
+#' @param presence_bg logical; whether to treat \code{column} as species presence-background data (0s for
+#' background points and 1s for presences; see \sQuote{Details}). When \code{TRUE} (and \code{balance = TRUE}), the balancing
+#' search equalises only the presence (1s) records across folds so the many background points cannot dominate
+#' the objective; the background points are still clustered spatially but ignored when scoring the balance.
+#' Requires a binary numeric \code{column}. The default is \code{FALSE}.
 #' @param k_multiplier integer. The multiplier controlling how many clusters are created before they are merged into folds
 #' (i.e. \code{k * k_multiplier}). Only used when \code{balance = TRUE}. Larger values give more balanced folds at the cost of less
 #' compact folds; smaller values keep the folds compact but less balanced. The default is \code{3}.
@@ -51,7 +62,8 @@
 #' @param seed integer; a random seed for reproducibility of the balancing search.
 #' @param ... additional arguments for \code{stats::kmeans} function, e.g. \code{algorithm = "MacQueen"}.
 #'
-#' @seealso \code{\link{cv_buffer}} and \code{\link{cv_spatial}}
+#' @seealso \code{\link{cv_buffer}} and \code{\link{cv_spatial}};
+#' \code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate, the folds
 #'
 #' @references Hastie, T., Tibshirani, R., & Friedman, J. (2009). The elements of statistical learning: Data mining, inference, and prediction ( 2nd ed., Vol. 1).
 #'
@@ -113,6 +125,7 @@ cv_cluster <- function(
         raster_cluster = FALSE,
         num_sample = 10000L,
         balance = FALSE,
+        presence_bg = FALSE,
         k_multiplier = 3L,
         iteration = 100L,
         seed = NULL,
@@ -127,6 +140,8 @@ cv_cluster <- function(
     x <- .check_x(x)
     # is column in x?
     column <- .check_column(column, x)
+    # validate presence-background data (0/1 column) when requested
+    invisible(.presence_index(x, column, presence_bg))
     # k_multiplier and iteration must be natural numbers
     k_multiplier <- max(1L, abs(as.integer(k_multiplier)))
     iteration <- max(1L, abs(as.integer(iteration)))
@@ -216,7 +231,8 @@ cv_cluster <- function(
             response = response,
             seed = seed,
             biomod2 = biomod2,
-            progress = progress
+            progress = progress,
+            opt_cols = .balance_opt_cols(response, presence_bg)
         )
         fold_list <- res$folds_list
         fold_ids <- res$folds_ids
@@ -261,6 +277,7 @@ cv_cluster <- function(
         biomod_table = switch(biomod2, as.matrix(biomod_table)),
         k = k,
         column = column,
+        presence_bg = presence_bg,
         type = ifelse(is.null(r), "Spatial Cluster", "Environmental Cluster"),
         records = train_test_table
     )

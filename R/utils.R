@@ -132,13 +132,31 @@
 }
 
 
+# columns of the records table the balance search should optimise. For
+# presence-background data only the presence (level 1) cells are balanced so the
+# many background records cannot dominate the objective; otherwise all cells are
+# used (returned as NULL).
+.balance_opt_cols <- function(response, presence_bg){
+    if(!isTRUE(presence_bg) || is.null(response$values)){
+        return(NULL)
+    }
+    if(!"1" %in% as.character(response$levels)){
+        return(NULL)
+    }
+    c("train_1", "test_1")
+}
+
+
 # assign spatial pieces (blocks or clusters) to k folds using a random search
 # that keeps the most balanced split (highest minimum and lowest standard
 # deviation of the records table). Shared by cv_spatial (random selection) and
 # cv_cluster (balance = TRUE). blocks_df must have a 'records' column (the index
 # of each point) and a 'block_id' column (the piece each point belongs to).
+# 'opt_cols' restricts the objective to a subset of the records-table columns
+# (used for presence-background balancing); NULL uses every cell.
 .balance_folds <- function(blocks_df, blocks_len, k, iteration, response,
-                           seed = NULL, biomod2 = TRUE, progress = FALSE){
+                           seed = NULL, biomod2 = TRUE, progress = FALSE,
+                           opt_cols = NULL){
 
     # keep only the columns needed for the assignment
     blocks_df <- blocks_df[, c("records", "block_id")]
@@ -188,11 +206,13 @@
             }
         }
 
+        # objective cells: presence-only when opt_cols is set, otherwise all cells
+        obj <- if(is.null(opt_cols)) train_test_table else train_test_table[, opt_cols, drop = FALSE]
         # save the best folds in the iteration
-        if(min(train_test_table) >= min_num && stats::sd(unlist(train_test_table)) < max_sd){
+        if(min(obj) >= min_num && stats::sd(unlist(obj)) < max_sd){
             train_test_table2 <- train_test_table
-            min_num <- min(train_test_table2)
-            max_sd <- stats::sd(unlist(train_test_table))
+            min_num <- min(obj)
+            max_sd <- stats::sd(unlist(obj))
             blocks_df2 <- blocks_df_i
             fold_list2 <- fold_list
             fold_vect2 <- fold_vect
