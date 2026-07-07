@@ -7,8 +7,6 @@
 cv_knndm(
   x,
   column = NULL,
-  balance = TRUE,
-  presence_bg = FALSE,
   r = NULL,
   pred_points = NULL,
   model_domain = NULL,
@@ -18,15 +16,17 @@ cv_knndm(
   space = "geographical",
   hexagon = TRUE,
   keep_blocks = TRUE,
-  num_sample = 10000,
+  num_sample = 10000L,
   sampling = "regular",
   nk_len = 100L,
   linkage = "ward.D2",
   scale = TRUE,
+  balance = TRUE,
+  presence_bg = FALSE,
   biomod2 = TRUE,
   deg_to_metre = 111325,
   seed = NULL,
-  n_bins = 4L,
+  num_bins = 4L,
   plot = interactive(),
   report = interactive()
 )
@@ -38,17 +38,6 @@ data or ground truth sample for image classification).}
 \item{column}{character (optional). Indicating the name of the column in which response variable
 (e.g. species data as a binary response i.e. 0s and 1s) is stored. This is used to report whether
 all folds contain all classes and, when \code{balance = TRUE}, to prefer class-complete candidate groupings.}
-
-\item{balance}{logical. When \code{TRUE} (default) and \code{column} is supplied, class completeness is used as a
-validity gate to prefer groupings in which every class is present in every test fold (see details). When \code{FALSE},
-the grouping with the smallest \code{W} is returned regardless of class completeness and \code{column} only feeds the report.}
-
-\item{presence_bg}{logical; whether to treat \code{column} as species presence-background data (0s for
-background points and 1s for presences; see \sQuote{Details}). When \code{TRUE}, the whole distance matching (the sample-to-sample,
-prediction-to-sample and test-to-train nearest-neighbour distances, and the grouping search) is computed on the
-\emph{presences} only, so the prediction domain is expressed relative to the presence-only training data rather than
-a random background. Each background point then inherits the fold of its nearest presence. The class-completeness gate
-of \code{balance} is not applied in this mode. Requires a binary numeric \code{column}. The default is \code{FALSE}.}
 
 \item{r}{a terra SpatRaster object. This defines the area that the model is going to predict; when
 neither \code{pred_points} nor \code{model_domain} is supplied, prediction points are sampled from it.
@@ -93,6 +82,17 @@ when \code{pred_points} is not supplied.}
 
 \item{scale}{logical; whether to scale the covariates when \code{space = "feature"}.}
 
+\item{balance}{logical. When \code{TRUE} (default) and \code{column} is supplied, class completeness is used as a
+validity gate to prefer groupings in which every class is present in every test fold (see details). When \code{FALSE},
+the grouping with the smallest \code{W} is returned regardless of class completeness and \code{column} only feeds the report.}
+
+\item{presence_bg}{logical; whether to treat \code{column} as species presence-background data (0s for
+background points and 1s for presences; see \sQuote{Details}). When \code{TRUE}, the whole distance matching (the sample-to-sample,
+prediction-to-sample and test-to-train nearest-neighbour distances, and the grouping search) is computed on the
+\emph{presences} only, so the prediction domain is expressed relative to the presence-only training data rather than
+a random background. Each background point then inherits the fold of its nearest presence. The class-completeness gate
+of \code{balance} is not applied in this mode. Requires a binary numeric \code{column}. The default is \code{FALSE}.}
+
 \item{biomod2}{logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 a \emph{CV.user.table} for cross-validation.}
 
@@ -100,8 +100,8 @@ a \emph{CV.user.table} for cross-validation.}
 
 \item{seed}{integer; a random seed for reproducibility.}
 
-\item{n_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
-The default is \code{4}. Set \code{n_bins = NULL} to disable binning and treat every unique value as a
+\item{num_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+The default is \code{4}. Set \code{num_bins = NULL} to disable binning and treat every unique value as a
 separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
 The raw response values are not modified; bins are only used for fold balancing and record summaries.}
 

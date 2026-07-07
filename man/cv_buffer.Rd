@@ -10,9 +10,9 @@ cv_buffer(
   size,
   presence_bg = FALSE,
   add_bg = FALSE,
-  n_bins = 4L,
-  progress = interactive(),
-  report = interactive()
+  num_bins = 4L,
+  report = interactive(),
+  progress = interactive()
 )
 }
 \arguments{
@@ -31,15 +31,15 @@ types (presence-absence, continuous, count or multi-class responses), this optio
 recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 the background pints to testing points.}
 
-\item{n_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
-The default is \code{4}. Set \code{n_bins = NULL} to disable binning and treat every unique value as a
+\item{num_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+The default is \code{4}. Set \code{num_bins = NULL} to disable binning and treat every unique value as a
 separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
 The raw response values are not modified; bins are only used for fold balancing and record summaries.}
 
-\item{progress}{logical; whether to shows a progress bar. Defaults to \code{interactive()}.}
-
 \item{report}{logical; whether to print summary of records in each fold.
 Defaults to \code{interactive()}.}
+
+\item{progress}{logical; whether to shows a progress bar. Defaults to \code{interactive()}.}
 }
 \value{
 An object of class S3. A list of objects including:
@@ -96,6 +96,15 @@ bloo <- cv_buffer(x = pa_data,
                   column = "occ",
                   size = 350000, # size in metres no matter the CRS
                   presence_bg = FALSE)
+
+# presence-background data
+points_pb <- read.csv(system.file("extdata/", "species_pb.csv", package = "blockCV"))
+pb_data <- sf::st_as_sf(points_pb, coords = c("x", "y"), crs = 7845)
+
+bloo_pb <- cv_buffer(x = pb_data,
+                     column = "occ",
+                     size = 350000,
+                     presence_bg = TRUE)
 
 }
 }

@@ -373,16 +373,31 @@ cv_plot(cv = sb1,
 
 ### Environmental similarity diagnostics
 
-The `cv_similarity` function evaluates environmental similarity between training and testing folds, helping to detect potential extrapolation in the testing data. It supports three similarity measures: Multivariate Environmental Similarity Surface (MESS), Manhattan distance (L1), and Euclidean distance (L2). Negative values indicate potential environmental novelty.
+The `cv_similarity` function evaluates environmental similarity between training and testing folds, helping to detect potential extrapolation in the testing data. It supports three similarity measures: Multivariate Environmental Similarity Surface (MESS), Manhattan distance (L1), and Euclidean distance (L2). Negative values indicate potential environmental novelty. Each fold is annotated with the percentage of its testing points that are novel (shown in red when a fold extrapolates), and a per-fold summary table is attached to the returned plot as `attr(p, "extrapolation")`.
 
 
 ```{r fig.height=4, fig.width=6}
-cv_similarity(cv = ecv, # the environmental clustering
-              x = pa_data, 
-              r = rasters, 
-              method = "MESS",
-              progress = FALSE)
+sim <- cv_similarity(cv = ecv, # the environmental clustering
+                     x = pa_data,
+                     r = rasters,
+                     method = "MESS",
+                     progress = FALSE)
+sim
 
+# the per-fold extrapolation summary (number of test points, % novel,
+# min/median similarity, and the most limiting variable for MESS)
+attr(sim, "extrapolation")
+```
+
+Setting `type = "map"` shows *where* the extrapolation happens: the sample points are drawn in geographical space and each testing point is coloured by its similarity value, so novel (negative) areas stand out.
+
+```{r fig.height=4.5, fig.width=6}
+cv_similarity(cv = ecv,
+              x = pa_data,
+              r = rasters,
+              method = "MESS",
+              type = "map",
+              progress = FALSE)
 ```
 
 ### Nearest-neighbour distance diagnostics
@@ -403,7 +418,7 @@ dist_sb <- cv_distance(cv = sb1,
                        x = pa_data,
                        r = rasters,
                        num_sample = 3000,
-                       n_random = 5,
+                       num_random = 5,
                        seed = 6,
                        plot = FALSE) +
   ggplot2::labs(title = "Spatial blocks") +
@@ -413,7 +428,7 @@ dist_scv <- cv_distance(cv = bscv,
                         x = pa_data,
                         r = rasters,
                         num_sample = 3000,
-                        n_random = 5,
+                        num_random = 5,
                         seed = 6,
                         plot = FALSE) +
   ggplot2::labs(title = "Spatial clustering (balanced)") +
@@ -432,7 +447,7 @@ dist_knn <- cv_distance(cv = knn_blocks,
                         x = pa_data,
                         r = rasters,
                         num_sample = 3000,
-                        n_random = 5,
+                        num_random = 5,
                         seed = 6,
                         plot = FALSE) +
   ggplot2::labs(title = "kNNDM blocks") +

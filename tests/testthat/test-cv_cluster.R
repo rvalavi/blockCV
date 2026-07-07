@@ -74,7 +74,7 @@ test_that("continuous column is reported with quantile bins", {
         column = "biomass",
         k = 5,
         biomod2 = FALSE,
-        n_bins = 4
+        num_bins = 4
     )
 
     expect_equal(dim(eb$records), c(5, 8))
@@ -106,7 +106,7 @@ test_that("continuous quantile bins tolerate tied breaks", {
         column = "biomass",
         k = 5,
         biomod2 = FALSE,
-        n_bins = 4
+        num_bins = 4
     )
 
     bins <- attr(eb$records, "column_bins")

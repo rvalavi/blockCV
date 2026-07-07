@@ -92,12 +92,12 @@ cv_nndm <- function(
         size,
         pred_points = NULL,
         model_domain = NULL,
-        num_sample = 1e4,
+        num_sample = 10000L,
         sampling = "random",
         min_train = 0.05,
         presence_bg = FALSE,
         add_bg = FALSE,
-        n_bins = 4L,
+        num_bins = 4L,
         plot = interactive(),
         report = interactive()
 ){
@@ -187,7 +187,7 @@ cv_nndm <- function(
     }
     )
     # calculate train test table summary
-    train_test_table <- .table_summary(fold_list, x, column, n, n_bins = n_bins)
+    train_test_table <- .table_summary(fold_list, x, column, n, num_bins = num_bins)
     if(report){
         print(summary(train_test_table)[c(1,4,6), ])
     }

@@ -163,7 +163,7 @@ cv_plot <- function(
                 ))
             }
         } else{
-            x_long <- .x_to_long(x, cv, num_plot = num_plots)
+            x_long <- .x_to_long(x, cv, num_plots = num_plots)
             # exclude NAs from cv_buffer
             if(.is_loo(cv) && remove_na){
                 x_long <- x_long[which(stats::complete.cases(x_long$value)), ]
@@ -280,23 +280,23 @@ cv_plot <- function(
 
 
 # transform x and fold numbers for plotting
-.x_to_long <- function(x, cv, num_plot=1:10){
+.x_to_long <- function(x, cv, num_plots=1:10){
     # get the folds list
     folds_list <- cv$folds_list
     # The iteration must be a natural number
     tryCatch(
         {
-            num_plot <- abs(as.integer(num_plot))
-            num_plot <- sort(num_plot)
+            num_plots <- abs(as.integer(num_plots))
+            num_plots <- sort(num_plots)
         },
         error = function(cond) {
-            message("'num_plot' must be natural numbers.")
+            message("'num_plots' must be natural numbers.")
         }
     )
     # length of the folds
     k <- length(folds_list)
-    if(max(num_plot) > k){
-        num_plot <- num_plot[num_plot <= k]
+    if(max(num_plots) > k){
+        num_plots <- num_plots[num_plots <= k]
     }
     # number of original sample points (folds index into these)
     len <- .cv_n_points(cv)
@@ -306,7 +306,7 @@ cv_plot <- function(
     # create a dataframe temp
     df <- data.frame(id = seq_len(len))
     # make the indices in x
-    for (i in num_plot){
+    for (i in num_plots){
         df[, paste("Fold", i, sep = "")] <- NA
         test <- folds_list[[i]][[2]]
         train <- folds_list[[i]][[1]]
@@ -320,7 +320,7 @@ cv_plot <- function(
     # convert to dataframe for reshaping
     x_df <- as.data.frame(xf)
     # name of columns to rehspae long
-    fold_names <- paste("Fold", num_plot, sep = "")
+    fold_names <- paste("Fold", num_plots, sep = "")
     # reshape x-df to long
     x_reshape <- stats::reshape(
         x_df,

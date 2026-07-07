@@ -136,7 +136,7 @@ test_that("cv_buffer bins a continuous column into quantiles in the report", {
         column = "biomass",
         size = 250000,
         presence_bg = FALSE,
-        n_bins = 4,
+        num_bins = 4,
         progress = FALSE
     )
 

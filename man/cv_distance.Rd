@@ -12,8 +12,8 @@ cv_distance(
   model_domain = NULL,
   space = "geographical",
   add_random = TRUE,
-  n_random = 10L,
-  num_sample = 10000,
+  num_random = 10L,
+  num_sample = 10000L,
   sampling = "regular",
   scale = TRUE,
   seed = NULL,
@@ -43,7 +43,7 @@ is not), prediction points are sampled from it.}
 \item{add_random}{logical; when \code{TRUE} (default), overlay the CV curve of a random \code{k}-fold
 split with the same number of folds as \code{cv} (ignored for leave-one-out objects, see details).}
 
-\item{n_random}{integer; the number of random \code{k}-fold splits used to estimate the random baseline
+\item{num_random}{integer; the number of random \code{k}-fold splits used to estimate the random baseline
 when \code{add_random = TRUE}. The plotted random curve is the mean across these splits, with a 10-90%
 band.}
 

@@ -46,15 +46,6 @@
 #' @param column character (optional). Indicating the name of the column in which response variable
 #' (e.g. species data as a binary response i.e. 0s and 1s) is stored. This is used to report whether
 #' all folds contain all classes and, when \code{balance = TRUE}, to prefer class-complete candidate groupings.
-#' @param balance logical. When \code{TRUE} (default) and \code{column} is supplied, class completeness is used as a
-#' validity gate to prefer groupings in which every class is present in every test fold (see details). When \code{FALSE},
-#' the grouping with the smallest \code{W} is returned regardless of class completeness and \code{column} only feeds the report.
-#' @param presence_bg logical; whether to treat \code{column} as species presence-background data (0s for
-#' background points and 1s for presences; see \sQuote{Details}). When \code{TRUE}, the whole distance matching (the sample-to-sample,
-#' prediction-to-sample and test-to-train nearest-neighbour distances, and the grouping search) is computed on the
-#' \emph{presences} only, so the prediction domain is expressed relative to the presence-only training data rather than
-#' a random background. Each background point then inherits the fold of its nearest presence. The class-completeness gate
-#' of \code{balance} is not applied in this mode. Requires a binary numeric \code{column}. The default is \code{FALSE}.
 #' @param r a terra SpatRaster object. This defines the area that the model is going to predict; when
 #' neither \code{pred_points} nor \code{model_domain} is supplied, prediction points are sampled from it.
 #' It is also required (for the covariates) when \code{space = "feature"}.
@@ -84,6 +75,15 @@
 #' @param linkage character; the agglomeration method passed to \code{\link[stats]{hclust}} when
 #' \code{clustering = "hierarchical"}.
 #' @param scale logical; whether to scale the covariates when \code{space = "feature"}.
+#' @param balance logical. When \code{TRUE} (default) and \code{column} is supplied, class completeness is used as a
+#' validity gate to prefer groupings in which every class is present in every test fold (see details). When \code{FALSE},
+#' the grouping with the smallest \code{W} is returned regardless of class completeness and \code{column} only feeds the report.
+#' @param presence_bg logical; whether to treat \code{column} as species presence-background data (0s for
+#' background points and 1s for presences; see \sQuote{Details}). When \code{TRUE}, the whole distance matching (the sample-to-sample,
+#' prediction-to-sample and test-to-train nearest-neighbour distances, and the grouping search) is computed on the
+#' \emph{presences} only, so the prediction domain is expressed relative to the presence-only training data rather than
+#' a random background. Each background point then inherits the fold of its nearest presence. The class-completeness gate
+#' of \code{balance} is not applied in this mode. Requires a binary numeric \code{column}. The default is \code{FALSE}.
 #' @param seed integer; a random seed for reproducibility.
 #' @param plot logical; whether to plot the distance distribution functions. Defaults to \code{interactive()}.
 #' @param report logical; whether to print summary of records in each fold. Defaults to \code{interactive()}.
@@ -142,8 +142,6 @@
 cv_knndm <- function(
         x,
         column = NULL,
-        balance = TRUE,
-        presence_bg = FALSE,
         r = NULL,
         pred_points = NULL,
         model_domain = NULL,
@@ -153,15 +151,17 @@ cv_knndm <- function(
         space = "geographical",
         hexagon = TRUE,
         keep_blocks = TRUE,
-        num_sample = 1e4,
+        num_sample = 10000L,
         sampling = "regular",
         nk_len = 100L,
         linkage = "ward.D2",
         scale = TRUE,
+        balance = TRUE,
+        presence_bg = FALSE,
         biomod2 = TRUE,
         deg_to_metre = 111325,
         seed = NULL,
-        n_bins = 4L,
+        num_bins = 4L,
         plot = interactive(),
         report = interactive()
 ){
@@ -273,7 +273,7 @@ cv_knndm <- function(
                 best <- candidate
             }
             if(class_balance &&
-               .knndm_class_complete(folds, x, column, k, n_bins) &&
+               .knndm_class_complete(folds, x, column, k, num_bins) &&
                (is.null(best_complete) || w < best_complete$W)){
                 best_complete <- candidate
             }
@@ -329,7 +329,7 @@ cv_knndm <- function(
     }
 
     # calculate train test table summary
-    train_test_table <- .table_summary(fold_list, x, column, k, n_bins = n_bins)
+    train_test_table <- .table_summary(fold_list, x, column, k, num_bins = num_bins)
     # give a warning if any fold is empty
     zerofolds <- which(apply(train_test_table, 1, function(x) any(x < 1)))
     if(length(zerofolds) > 0){
@@ -506,11 +506,11 @@ cv_knndm <- function(
 
 
 # check whether every class (or quantile bin) is represented in every test fold
-.knndm_class_complete <- function(fold_vect, x, column, k, n_bins = NULL){
+.knndm_class_complete <- function(fold_vect, x, column, k, num_bins = NULL){
     fold_list <- lapply(seq_len(k), function(i){
         list(which(fold_vect != i), which(fold_vect == i))
     })
-    train_test_table <- .table_summary(fold_list, x, column, k, n_bins = n_bins)
+    train_test_table <- .table_summary(fold_list, x, column, k, num_bins = num_bins)
     test_cols <- startsWith(names(train_test_table), "test_")
     all(as.matrix(train_test_table[, test_cols, drop = FALSE]) > 0)
 }

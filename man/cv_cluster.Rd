@@ -14,13 +14,13 @@ cv_cluster(
   num_sample = 10000L,
   balance = FALSE,
   presence_bg = FALSE,
-  k_multiplier = 3L,
+  k_multiplier = 5L,
   iteration = 100L,
   seed = NULL,
   biomod2 = TRUE,
+  num_bins = 4L,
   report = interactive(),
   progress = interactive(),
-  n_bins = 4L,
   ...
 )
 }
@@ -30,7 +30,7 @@ cv_cluster(
 \item{column}{character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
 response i.e. 0s and 1s) is stored. It is used to report whether all the folds contain all the classes and, when
 \code{balance = TRUE}, to balance those classes across the folds.
-Continuous numeric responses are binned into quantiles using \code{n_bins} before records are counted.}
+Continuous numeric responses are binned into quantiles using \code{num_bins} before records are counted.}
 
 \item{r}{a terra SpatRaster object of covariates to identify environmental groups. If provided, clustering will be done
 in environmental space rather than spatial coordinates of sample points.}
@@ -57,7 +57,7 @@ Requires a binary numeric \code{column}. The default is \code{FALSE}.}
 
 \item{k_multiplier}{integer. The multiplier controlling how many clusters are created before they are merged into folds
 (i.e. \code{k * k_multiplier}). Only used when \code{balance = TRUE}. Larger values give more balanced folds at the cost of less
-compact folds; smaller values keep the folds compact but less balanced. The default is \code{3}.}
+compact folds; smaller values keep the folds compact but less balanced. The default is \code{5}.}
 
 \item{iteration}{integer value. The number of random attempts to assign the clusters to folds when \code{balance = TRUE}.}
 
@@ -66,16 +66,16 @@ compact folds; smaller values keep the folds compact but less balanced. The defa
 \item{biomod2}{logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 a \emph{CV.user.table} for cross-validation.}
 
+\item{num_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+The default is \code{4}. Set \code{num_bins = NULL} to disable binning and treat every unique value as a
+separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
+The raw response values are not modified; bins are only used for fold balancing and record summaries.}
+
 \item{report}{logical; whether to print the report of the records per fold.
 Defaults to \code{interactive()}.}
 
 \item{progress}{logical; whether to shows a progress bar for random fold selection.
 Defaults to \code{interactive()}.}
-
-\item{n_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
-The default is \code{4}. Set \code{n_bins = NULL} to disable binning and treat every unique value as a
-separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
-The raw response values are not modified; bins are only used for fold balancing and record summaries.}
 
 \item{...}{additional arguments for \code{stats::kmeans} function, e.g. \code{algorithm = "MacQueen"}.}
 }
@@ -163,6 +163,18 @@ bc <- cv_cluster(x = pa_data,
                  k = 5,
                  balance = TRUE, # balance the records across the folds
                  k_multiplier = 3) # cluster into k * k_multiplier groups, then merge into k folds
+
+# presence-background data: balance folds based on presences
+points_pb <- read.csv(system.file("extdata/", "species_pb.csv", package = "blockCV"))
+pb_data <- sf::st_as_sf(points_pb, coords = c("x", "y"), crs = 7845)
+# pb_data <- pb_data[c(which(pb_data$occ == 1)[1:50], which(pb_data$occ == 0)[1:200]), ]
+
+bc_pb <- cv_cluster(x = pb_data,
+                    column = "occ",
+                    k = 5,
+                    presence_bg = TRUE,
+                    balance = TRUE,
+                    k_multiplier = 5)
 
 }
 }

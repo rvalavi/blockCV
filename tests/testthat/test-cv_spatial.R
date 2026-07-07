@@ -106,7 +106,7 @@ test_that("numeric multi-class column is not quantile-binned", {
 
 })
 
-test_that("n_bins = NULL disables quantile binning for a continuous column", {
+test_that("num_bins = NULL disables quantile binning for a continuous column", {
 
     # deterministic, non-integer, > 15 unique values (would be binned by default)
     cont_data <- pa_data
@@ -124,7 +124,7 @@ test_that("n_bins = NULL disables quantile binning for a continuous column", {
             selection = "random",
             iteration = 5,
             biomod2 = FALSE,
-            n_bins = NULL,
+            num_bins = NULL,
             progress = FALSE,
             plot = FALSE
         )

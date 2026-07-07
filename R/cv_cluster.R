@@ -39,7 +39,7 @@
 #' @param column character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
 #'  response i.e. 0s and 1s) is stored. It is used to report whether all the folds contain all the classes and, when
 #'  \code{balance = TRUE}, to balance those classes across the folds.
-#'  Continuous numeric responses are binned into quantiles using \code{n_bins} before records are counted.
+#'  Continuous numeric responses are binned into quantiles using \code{num_bins} before records are counted.
 #' @param r a terra SpatRaster object of covariates to identify environmental groups. If provided, clustering will be done
 #' in environmental space rather than spatial coordinates of sample points.
 #' @param scale logical; whether to scale the input rasters (recommended) for clustering.
@@ -57,7 +57,7 @@
 #' Requires a binary numeric \code{column}. The default is \code{FALSE}.
 #' @param k_multiplier integer. The multiplier controlling how many clusters are created before they are merged into folds
 #' (i.e. \code{k * k_multiplier}). Only used when \code{balance = TRUE}. Larger values give more balanced folds at the cost of less
-#' compact folds; smaller values keep the folds compact but less balanced. The default is \code{3}.
+#' compact folds; smaller values keep the folds compact but less balanced. The default is \code{5}.
 #' @param iteration integer value. The number of random attempts to assign the clusters to folds when \code{balance = TRUE}.
 #' @param seed integer; a random seed for reproducibility of the balancing search.
 #' @param ... additional arguments for \code{stats::kmeans} function, e.g. \code{algorithm = "MacQueen"}.
@@ -115,6 +115,18 @@
 #'                  balance = TRUE, # balance the records across the folds
 #'                  k_multiplier = 3) # cluster into k * k_multiplier groups, then merge into k folds
 #'
+#' # presence-background data: balance folds based on presences
+#' points_pb <- read.csv(system.file("extdata/", "species_pb.csv", package = "blockCV"))
+#' pb_data <- sf::st_as_sf(points_pb, coords = c("x", "y"), crs = 7845)
+#' # pb_data <- pb_data[c(which(pb_data$occ == 1)[1:50], which(pb_data$occ == 0)[1:200]), ]
+#'
+#' bc_pb <- cv_cluster(x = pb_data,
+#'                     column = "occ",
+#'                     k = 5,
+#'                     presence_bg = TRUE,
+#'                     balance = TRUE,
+#'                     k_multiplier = 5)
+#'
 #' }
 cv_cluster <- function(
         x,
@@ -126,13 +138,13 @@ cv_cluster <- function(
         num_sample = 10000L,
         balance = FALSE,
         presence_bg = FALSE,
-        k_multiplier = 3L,
+        k_multiplier = 5L,
         iteration = 100L,
         seed = NULL,
         biomod2 = TRUE,
+        num_bins = 4L,
         report = interactive(),
         progress = interactive(),
-        n_bins = 4L,
         ...
 ){
 
@@ -215,7 +227,7 @@ cv_cluster <- function(
     }
 
     # create train-test table
-    response <- .column_response(x, column, n_bins = n_bins)
+    response <- .column_response(x, column, num_bins = num_bins)
 
     # progress bar only makes sense for the balancing search
     if(!balance || iteration < 3) progress <- FALSE

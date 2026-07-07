@@ -44,6 +44,19 @@ test_that("test that cv_similarity function works with cv_spatil and L2", {
 
 })
 
+test_that("test that cv_similarity returns an extrapolation table and a spatial map", {
+
+    plt <- cv_similarity(cv = scv, x = pa_data, r = aus, method = "MESS")
+    extr <- attr(plt, "extrapolation")
+    expect_s3_class(extr, "data.frame")
+    expect_true(all(c("fold", "n_test", "pct_novel", "limiting_var") %in% names(extr)))
+
+    mp <- cv_similarity(cv = scv, x = pa_data, r = aus, method = "MESS", type = "map")
+    expect_true(ggplot2::is_ggplot(mp))
+    expect_true(any(vapply(mp$layers, function(l) inherits(l$geom, "GeomSf"), logical(1))))
+
+})
+
 
 test_that("test that cv_similarity function works with cv_buffer", {
     bloo <- cv_buffer(

@@ -7,16 +7,16 @@
 
 
 # prepare the response classes/strata used for fold balance summaries
-.column_response <- function(x, column, n_bins = NULL){
+.column_response <- function(x, column, num_bins = NULL){
     if(is.null(column)){
         return(list(values = NULL, levels = NULL, bins = NULL))
     }
 
     values <- x[, column, drop = TRUE]
-    if(!is.null(n_bins)){
-        n_bins <- .check_n_bins(n_bins)
-        if(.is_continuous_response(values, n_bins)){
-            return(.quantile_response(values, n_bins))
+    if(!is.null(num_bins)){
+        num_bins <- .check_num_bins(num_bins)
+        if(.is_continuous_response(values, num_bins)){
+            return(.quantile_response(values, num_bins))
         }
     }
 
@@ -26,36 +26,36 @@
 }
 
 
-.check_n_bins <- function(n_bins){
-    if(length(n_bins) != 1){
-        stop("'n_bins' must be a single integer value.")
+.check_num_bins <- function(num_bins){
+    if(length(num_bins) != 1){
+        stop("'num_bins' must be a single integer value.")
     }
-    n_bins <- suppressWarnings(as.integer(n_bins))
-    if(is.na(n_bins) || n_bins < 2){
-        stop("'n_bins' must be an integer value of 2 or higher.")
+    num_bins <- suppressWarnings(as.integer(num_bins))
+    if(is.na(num_bins) || num_bins < 2){
+        stop("'num_bins' must be an integer value of 2 or higher.")
     }
-    n_bins
+    num_bins
 }
 
 
-.is_continuous_response <- function(values, n_bins){
+.is_continuous_response <- function(values, num_bins){
     values <- values[!is.na(values)]
     if(!is.numeric(values) || length(values) == 0){
         return(FALSE)
     }
     n_unique <- length(unique(values))
-    if(n_unique <= n_bins){
+    if(n_unique <= num_bins){
         return(FALSE)
     }
     any(values != floor(values)) || n_unique > 15L
 }
 
 
-.quantile_response <- function(values, n_bins){
+.quantile_response <- function(values, num_bins){
     vals <- values[!is.na(values)]
     breaks <- unique(as.numeric(stats::quantile(
         vals,
-        probs = seq(0, 1, length.out = n_bins + 1),
+        probs = seq(0, 1, length.out = num_bins + 1),
         na.rm = TRUE
     )))
 
@@ -73,7 +73,7 @@
         upper = breaks[-1],
         stringsAsFactors = FALSE
     )
-    attr(bins, "requested_bins") <- n_bins
+    attr(bins, "requested_bins") <- num_bins
 
     list(values = binned, levels = labels, bins = bins)
 }
@@ -119,8 +119,8 @@
 
 
 # count the train and test records
-.table_summary <- function(fold_list, x, column, n, n_bins = NULL){
-    response <- .column_response(x, column, n_bins = n_bins)
+.table_summary <- function(fold_list, x, column, n, num_bins = NULL){
+    response <- .column_response(x, column, num_bins = num_bins)
     tt_count <- .records_table(n, response)
     for(i in seq_len(n)){
         train_set <- fold_list[[i]][[1]]

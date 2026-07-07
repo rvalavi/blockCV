@@ -44,10 +44,10 @@
 #' when \code{balance = TRUE}, to balance those classes across the folds. If \code{column = NULL}
 #' the response variable classes will be treated the same and only training and testing records will be counted (and balanced).
 #' This is used for binary (e.g. presence-absence/background) or multi-class responses (e.g. land cover classes for
-#' remote sensing image classification). Continuous numeric responses are binned into quantiles using \code{n_bins}
+#' remote sensing image classification). Continuous numeric responses are binned into quantiles using \code{num_bins}
 #' before balancing.
-#' @param n_bins integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
-#' The default is \code{4}. Set \code{n_bins = NULL} to disable binning and treat every unique value as a
+#' @param num_bins integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+#' The default is \code{4}. Set \code{num_bins = NULL} to disable binning and treat every unique value as a
 #' separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
 #' The raw response values are not modified; bins are only used for fold balancing and record summaries.
 #' @param r a terra SpatRaster object (optional). If provided, its extent will be used to specify the blocks.
@@ -88,13 +88,13 @@
 #' within a block. The value should be a numeric between 0 and 5.
 #' @param seed integer; a random seed for reproducibility (although an external seed
 #' should also work).
-#' @param progress logical; whether to shows a progress bar for random fold selection.
-#' Defaults to \code{interactive()}.
-#' @param report logical; whether to print the report of the records per fold.
-#' Defaults to \code{interactive()}.
 #' @param plot logical; whether to plot the final blocks with fold numbers in ggplot.
 #' Defaults to \code{interactive()}.
 #' You can re-create this with \code{\link{cv_plot}}.
+#' @param report logical; whether to print the report of the records per fold.
+#' Defaults to \code{interactive()}.
+#' @param progress logical; whether to shows a progress bar for random fold selection.
+#' Defaults to \code{interactive()}.
 #' @param ... additional option for \code{\link{cv_plot}}.
 #'
 #'
@@ -171,10 +171,10 @@ cv_spatial <- function(
         offset = c(0, 0),
         extend = 0,
         seed = NULL,
-        progress = interactive(),
-        report = interactive(),
+        num_bins = 4L,
         plot = interactive(),
-        n_bins = 4L,
+        report = interactive(),
+        progress = interactive(),
         ... # other arguments for cv_plot
 ){
 
@@ -334,7 +334,7 @@ cv_spatial <- function(
 
     # creating folds ----------------------------------------------------------
     # create records table
-    response <- .column_response(x, column, n_bins = n_bins)
+    response <- .column_response(x, column, num_bins = num_bins)
 
     if(selection == "random"){
         # search random block-to-fold assignments for the most balanced split

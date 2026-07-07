@@ -8,8 +8,9 @@ cv_similarity(
   cv,
   x,
   r,
-  num_plot = seq_along(cv$folds_list),
+  num_plots = seq_along(cv$folds_list),
   method = "MESS",
+  type = "distribution",
   num_sample = 10000L,
   seed = NULL,
   jitter_width = 0.1,
@@ -29,9 +30,13 @@ the \code{cv} object.}
 \item{r}{a terra SpatRaster object of environmental predictor that are going to be used for modelling. This
 is used to calculate similarity between the training and testing points.}
 
-\item{num_plot}{a vector of indices of folds for plotting (default uses all).}
+\item{num_plots}{a vector of indices of folds for plotting (default uses all).}
 
 \item{method}{the similarity method including: MESS, L1 and L2. Read the details section.}
+
+\item{type}{character; \code{"distribution"} (default) draws the per-fold similarity distributions,
+while \code{"map"} plots the sample points in geographical space and colours each test point by its
+similarity value, showing \emph{where} extrapolation occurs.}
 
 \item{num_sample}{number of random samples from raster to calculate similarity distances (only for L1 and L2).}
 
@@ -44,13 +49,18 @@ sample (\code{num_sample}); set \code{seed} to make the result reproducible.}
 
 \item{points_alpha}{numeric; the opacity of points}
 
-\item{points_colors}{character; a character vector of colours for points}
+\item{points_colors}{character; a character vector of colours for the diverging value scale.
+Defaults to a red-grey-blue ramp (red = novel/negative, blue = similar/positive) centred at zero.}
 
 \item{progress}{logical; whether to shows a progress bar for random fold selection.
 Defaults to \code{interactive()}.}
 }
 \value{
-a ggplot object
+a ggplot object. A per-fold extrapolation summary is attached as
+\code{attr(p, "extrapolation")}: a data.frame with the number of test points, the percentage
+flagged as novel (similarity value below zero), the minimum and median similarity, and -- for
+\code{method = "MESS"} -- the most limiting variable (the covariate most often driving the
+novelty). The overall novelty rate is also shown in the plot subtitle.
 }
 \description{
 This function evaluates environmental similarity between training and testing folds,

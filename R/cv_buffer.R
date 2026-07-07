@@ -40,9 +40,9 @@
 #' @param add_bg logical; add background points to the test set when \code{presence_bg = TRUE}. We do not
 #' recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 #' the background pints to testing points.
-#' @param progress logical; whether to shows a progress bar. Defaults to \code{interactive()}.
 #' @param report logical; whether to print summary of records in each fold.
 #' Defaults to \code{interactive()}.
+#' @param progress logical; whether to shows a progress bar. Defaults to \code{interactive()}.
 #'
 #' @seealso \code{\link{cv_nndm}}, \code{\link{cv_spatial}}, and \code{\link{cv_spatial_autocor}};
 #' \code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate, the folds
@@ -75,6 +75,15 @@
 #'                   size = 350000, # size in metres no matter the CRS
 #'                   presence_bg = FALSE)
 #'
+#' # presence-background data
+#' points_pb <- read.csv(system.file("extdata/", "species_pb.csv", package = "blockCV"))
+#' pb_data <- sf::st_as_sf(points_pb, coords = c("x", "y"), crs = 7845)
+#'
+#' bloo_pb <- cv_buffer(x = pb_data,
+#'                      column = "occ",
+#'                      size = 350000,
+#'                      presence_bg = TRUE)
+#'
 #' }
 cv_buffer <- function(
         x,
@@ -82,9 +91,9 @@ cv_buffer <- function(
         size,
         presence_bg = FALSE,
         add_bg = FALSE,
-        n_bins = 4L,
-        progress = interactive(),
-        report = interactive()
+        num_bins = 4L,
+        report = interactive(),
+        progress = interactive()
 ){
 
     # check x is an sf object
@@ -137,7 +146,7 @@ cv_buffer <- function(
     })
 
     # calculate train test table summary
-    train_test_table <- .table_summary(fold_list, x, column, n, n_bins = n_bins)
+    train_test_table <- .table_summary(fold_list, x, column, n, num_bins = num_bins)
     if(report){
         print(summary(train_test_table)[c(1,4,6), ])
     }

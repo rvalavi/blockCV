@@ -48,7 +48,7 @@
 #' or \code{model_domain} is required.
 #' @param add_random logical; when \code{TRUE} (default), overlay the CV curve of a random \code{k}-fold
 #' split with the same number of folds as \code{cv} (ignored for leave-one-out objects, see details).
-#' @param n_random integer; the number of random \code{k}-fold splits used to estimate the random baseline
+#' @param num_random integer; the number of random \code{k}-fold splits used to estimate the random baseline
 #' when \code{add_random = TRUE}. The plotted random curve is the mean across these splits, with a 10-90%
 #' band.
 #' @param plot logical; whether to draw the plot. The plot is always returned invisibly.
@@ -93,8 +93,8 @@ cv_distance <- function(
         model_domain = NULL,
         space = "geographical",
         add_random = TRUE,
-        n_random = 10L,
-        num_sample = 1e4,
+        num_random = 10L,
+        num_sample = 10000L,
         sampling = "regular",
         scale = TRUE,
         seed = NULL,
@@ -172,11 +172,11 @@ cv_distance <- function(
 
     # optional random k-fold curve(s) with matched number of folds -----------
     show_random <- isTRUE(add_random) && !is_loo
-    n_random <- max(1L, as.integer(n_random))
+    num_random <- max(1L, as.integer(num_random))
     rand_draws <- NULL
     if(show_random){
         k <- length(cv$folds_list)
-        rand_draws <- lapply(seq_len(n_random), function(j){
+        rand_draws <- lapply(seq_len(num_random), function(j){
             rv <- sample(rep(seq_len(k), ceiling(np / k)), size = np)
             .nn_diff_fold(tdist, rv)
         })
