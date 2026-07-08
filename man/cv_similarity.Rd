@@ -17,7 +17,8 @@ cv_similarity(
   points_size = 2,
   points_alpha = 0.7,
   points_colors = NULL,
-  progress = TRUE
+  progress = interactive(),
+  plot = TRUE
 )
 }
 \arguments{
@@ -52,15 +53,26 @@ sample (\code{num_sample}); set \code{seed} to make the result reproducible.}
 \item{points_colors}{character; a character vector of colours for the diverging value scale.
 Defaults to a red-grey-blue ramp (red = novel/negative, blue = similar/positive) centred at zero.}
 
-\item{progress}{logical; whether to shows a progress bar for random fold selection.
+\item{progress}{logical; whether to show a progress bar while computing fold similarities.
 Defaults to \code{interactive()}.}
+
+\item{plot}{logical; whether to draw the plot (default \code{TRUE}). The plot object is always built and
+returned in \code{$plot} either way (so it can be customised or arranged); \code{plot = FALSE} only
+suppresses drawing it now.}
 }
 \value{
-a ggplot object. A per-fold extrapolation summary is attached as
-\code{attr(p, "extrapolation")}: a data.frame with the number of test points, the percentage
-flagged as novel (similarity value below zero), the minimum and median similarity, and -- for
-\code{method = "MESS"} -- the most limiting variable (the covariate most often driving the
-novelty). The overall novelty rate is also shown in the plot subtitle.
+an object of class \code{cv_similarity}: a list with
+\itemize{
+  \item{\code{extrapolation} - a per-fold data.frame with the number of test points, the percentage
+  flagged as novel (similarity value below zero), the minimum and median similarity, and -- for
+  \code{method = "MESS"} -- the most limiting variable (the covariate most often driving the novelty).}
+  \item{\code{overall} - the overall novelty rate (percentage of test points below zero) across the
+  plotted folds.}
+  \item{\code{plot} - the \code{ggplot} (a per-fold distribution, or a spatial map for \code{type =
+  "map"}), always built whether or not it is drawn.}
+}
+The plot is drawn when \code{plot = TRUE} (default). Printing the object shows a compact text summary
+rather than redrawing the plot; call \code{plot()} on the returned object to redraw it.
 }
 \description{
 This function evaluates environmental similarity between training and testing folds,

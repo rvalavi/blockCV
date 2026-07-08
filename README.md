@@ -27,10 +27,11 @@ data for predictor variables.
  
 ## Main features
 
--   Five cross-validation strategies: spatial blocks (`cv_spatial`),
-    clustering (`cv_cluster`), buffering (`cv_buffer`), leave-one-out
-    nearest neighbour distance matching (`cv_nndm`), and k-fold nearest
-    neighbour distance matching (`cv_knndm`)
+-   Six cross-validation strategies: spatial blocks (`cv_spatial`),
+    clustering (`cv_cluster`), existing grouping factors (`cv_group`),
+    buffering (`cv_buffer`), leave-one-out nearest neighbour distance
+    matching (`cv_nndm`), and k-fold nearest neighbour distance matching
+    (`cv_knndm`)
 -   Spatial blocks can be hexagonal (default), rectangular, or supplied
     as user-defined polygons
 -   Spatial blocks can be assigned to folds using random, systematic,
@@ -52,13 +53,17 @@ data for predictor variables.
     ggplot facets, with combined-fold plotting for k-fold methods
 -   Raster processing uses `terra`, with support for `stars`, `raster`,
     and files on disk
--   `cv_distance` and `cv_similarity` evaluate whether folds match the
-    prediction domain and where testing folds require extrapolation
+-   `cv_summary`, `cv_distance`, and `cv_similarity` evaluate fold
+    balance, prediction-domain distances, and where testing folds require
+    extrapolation
 
 ## What's new in v4.0
 
 -   Added `cv_knndm`, a k-fold nearest neighbour distance matching
     method with block, hierarchical, and k-means grouping options
+-   Added `cv_group` for leave-group-out cross-validation with existing
+    grouping factors
+-   Added `cv_summary` for one-call fold-quality summaries and warnings
 -   Added `cv_distance` to assess how well any `blockCV` fold design
     matches the nearest-neighbour distance pattern of the prediction
     domain
@@ -92,10 +97,12 @@ To see the practical examples of the package see:
 
 1.  [blockCV introduction: how to create block cross-validation
     folds](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_1.html)
-2.  [Block cross-validation for species distribution
-    modelling](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_2.html)
-3.  [Using blockCV with
-    `caret`](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_3.html)
+2.  [Choosing and diagnosing spatial
+    folds](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_2.html)
+3.  [Block cross-validation for species distribution
+    modelling](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_3.html)
+4.  [Using blockCV with
+    `caret`](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_4.html)
 
 ## Basic usage
 

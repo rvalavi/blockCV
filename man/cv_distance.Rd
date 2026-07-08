@@ -57,11 +57,26 @@ when \code{pred_points} is not supplied.}
 
 \item{seed}{integer; a random seed for reproducibility.}
 
-\item{plot}{logical; whether to draw the plot. The plot is always returned invisibly.}
+\item{plot}{logical; whether to draw the distance-distribution plot (default \code{TRUE}). The plot
+object is always built and returned in \code{$plot} either way (so it can be customised or arranged with
+e.g. \code{cowplot}); \code{plot = FALSE} only suppresses drawing it now.}
 }
 \value{
-a ggplot object. The Wasserstein-1 distances of each curve to the Prediction curve are attached
-as \code{attr(p, "W")} (a named numeric vector; lower means a closer match to the prediction domain).
+an object of class \code{cv_distance}: a list with
+\itemize{
+  \item{\code{distances} - a per-fold data.frame of the test-to-nearest-train distances (the
+  leakage signal): the number of test points (\code{n_test}), the \code{min}, quartiles (\code{q1},
+  \code{median}, \code{q3}) and \code{max} of those distances, and \code{pct_below_pred}, the percentage
+  of test points nearer to training than the median prediction distance (higher means a more optimistic,
+  leakier fold). For leave-one-out objects each fold holds a single test point, so there is one row per
+  held-out point.}
+  \item{\code{W} - a named numeric vector of the Wasserstein-1 distance of each curve to the
+  Prediction curve (lower means a closer match to the prediction domain).}
+  \item{\code{plot} - the \code{ggplot} of the nearest-neighbour distance distributions (always built,
+  whether or not it is drawn).}
+}
+The distributions are drawn when \code{plot = TRUE} (default). Printing the object shows a compact text
+summary rather than redrawing the plot; call \code{plot()} on the returned object to redraw it.
 }
 \description{
 A diagnostic that works on \emph{any} \code{blockCV} cross-validation object (the output of

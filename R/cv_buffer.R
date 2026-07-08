@@ -108,23 +108,12 @@ cv_buffer <- function(
         stop("The coordinate reference system of 'x' must be defined.")
     }
 
-    if(is.null(column) && presence_bg) stop("'column' must be provided for presence-background data.")
+    x_1s <- .presence_index(x, column, presence_bg)
 
 
     # distance matrix by sf
     dmatrix <- sf::st_distance(x)
     units(dmatrix) <- NULL
-
-    if(presence_bg){
-        unqsp <- unique(x[, column, drop = TRUE])
-        if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
-            stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n", "The data should be numeric.\n")
-        }
-        # indices of presences
-        x_1s <- which(x[, column, drop = TRUE] == 1)
-    } else{
-        x_1s <- 1:nrow(x)
-    }
 
     # the k
     n <- length(x_1s)

@@ -126,16 +126,7 @@ cv_nndm <- function(
     # convert to sf object
     rx <- sf::st_as_sf(rx)
 
-    if(presence_bg){
-        unqsp <- unique(x[, column, drop = TRUE])
-        if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
-            stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n", "The data should be numeric.\n")
-        }
-        # indices of presences
-        x_1s <- which(x[, column, drop = TRUE] == 1)
-    } else{
-        x_1s <- 1:nrow(x)
-    }
+    x_1s <- .presence_index(x, column, presence_bg)
 
     # the k
     n <- length(x_1s)

@@ -53,7 +53,9 @@
 #' @param num_random integer; the number of random \code{k}-fold splits used to estimate the random baseline
 #' when \code{add_random = TRUE}. The plotted random curve is the mean across these splits, with a 10-90%
 #' band.
-#' @param plot logical; whether to draw the plot. The plot is always returned invisibly.
+#' @param plot logical; whether to draw the distance-distribution plot (default \code{TRUE}). The plot
+#' object is always built and returned in \code{$plot} either way (so it can be customised or arranged with
+#' e.g. \code{cowplot}); \code{plot = FALSE} only suppresses drawing it now.
 #'
 #' @seealso \code{\link{cv_similarity}}, \code{\link{cv_knndm}}, \code{\link{cv_nndm}},
 #' \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_group}},
@@ -65,8 +67,21 @@
 #' Linnenbrink, J., Milà, C., Ludwig, M., & Meyer, H. (2024). kNNDM CV: k-fold nearest neighbour distance
 #' matching cross-validation for map accuracy estimation. Geoscientific Model Development, 17(15), 5897-5912.
 #'
-#' @return a ggplot object. The Wasserstein-1 distances of each curve to the Prediction curve are attached
-#' as \code{attr(p, "W")} (a named numeric vector; lower means a closer match to the prediction domain).
+#' @return an object of class \code{cv_distance}: a list with
+#' \itemize{
+#'   \item{\code{distances} - a per-fold data.frame of the test-to-nearest-train distances (the
+#'   leakage signal): the number of test points (\code{n_test}), the \code{min}, quartiles (\code{q1},
+#'   \code{median}, \code{q3}) and \code{max} of those distances, and \code{pct_below_pred}, the percentage
+#'   of test points nearer to training than the median prediction distance (higher means a more optimistic,
+#'   leakier fold). For leave-one-out objects each fold holds a single test point, so there is one row per
+#'   held-out point.}
+#'   \item{\code{W} - a named numeric vector of the Wasserstein-1 distance of each curve to the
+#'   Prediction curve (lower means a closer match to the prediction domain).}
+#'   \item{\code{plot} - the \code{ggplot} of the nearest-neighbour distance distributions (always built,
+#'   whether or not it is drawn).}
+#' }
+#' The distributions are drawn when \code{plot = TRUE} (default). Printing the object shows a compact text
+#' summary rather than redrawing the plot; call \code{plot()} on the returned object to redraw it.
 #' @export
 #'
 #' @examples
@@ -103,8 +118,40 @@ cv_distance <- function(
         seed = NULL,
         plot = TRUE
 ){
-    # check required packages
     .check_pkgs("ggplot2")
+
+    # numeric diagnostics (the pure-data core, also reused by cv_summary())
+    d <- .cv_distance_data(
+        cv = cv, x = x, r = r, pred_points = pred_points, model_domain = model_domain,
+        space = space, add_random = add_random, num_random = num_random,
+        num_sample = num_sample, sampling = sampling, scale = scale, seed = seed
+    )
+
+    # the plot object is always built (so it can be customised/arranged even when
+    # not drawn); 'plot' controls only whether it is drawn now
+    p <- .cv_distance_plot(d)
+    if(isTRUE(plot)) plot(p)
+
+    out <- list(
+        distances = d$distances,
+        W = d$W,
+        plot = p
+    )
+    class(out) <- "cv_distance"
+    invisible(out)
+}
+
+
+# ---- pure-data core --------------------------------------------------------
+# All the numeric diagnostics behind cv_distance(), with no ggplot2 dependency.
+# Returns the per-fold distance summary and Wasserstein-1 values, plus the raw
+# nearest-neighbour vectors the plot is built from. Shared by cv_distance() (to
+# draw the plot) and cv_summary() (data only).
+.cv_distance_data <- function(
+        cv, x, r = NULL, pred_points = NULL, model_domain = NULL,
+        space = "geographical", add_random = TRUE, num_random = 10L,
+        num_sample = 10000L, sampling = "regular", scale = TRUE, seed = NULL
+){
     space <- match.arg(space, choices = c("geographical", "feature"))
     sampling <- match.arg(sampling, choices = c("regular", "random"))
 
@@ -160,8 +207,10 @@ cv_distance <- function(
     Gj <- vapply(seq_len(np), function(i) min(tdist[i, -i]), numeric(1))
 
     # test-to-nearest-train distances of the supplied folds (Gjstar) ----------
+    # kept per fold so a per-fold leakage summary can be reported; the pooled
+    # vector feeds the CV distribution curve
     is_loo <- .is_loo(cv)
-    Gjstar <- unlist(lapply(cv$folds_list, function(f){
+    Gjstar_list <- lapply(cv$folds_list, function(f){
         train <- f[[1]]
         test <- f[[2]]
         # presence-background: keep only the presences, mapped to the presence-only rows
@@ -171,6 +220,32 @@ cv_distance <- function(
         }
         if(!length(train) || !length(test)) return(numeric(0))
         apply(tdist[test, train, drop = FALSE], 1, min)
+    })
+    Gjstar <- unlist(Gjstar_list)
+
+    # per-fold summary of the test-to-nearest-train distances -----------------
+    # These distances are the leakage signal: a test point whose nearest training
+    # point is close is easy to predict, so a fold full of small distances gives
+    # an optimistic error estimate. The median prediction distance is the target
+    # the design should approach, so 'pct_below_pred' reports the share of test
+    # points sitting nearer to training than that reference (higher = leakier).
+    pred_med <- stats::median(Gij)
+    probs <- c(0, 0.25, 0.5, 0.75, 1)
+    dist_summary <- do.call(rbind, lapply(seq_along(Gjstar_list), function(i){
+        d <- Gjstar_list[[i]]
+        if(!length(d)) return(NULL)
+        q <- stats::quantile(d, probs = probs, names = FALSE)
+        data.frame(
+            fold = i,
+            n_test = length(d),
+            min = signif(q[1], 4),
+            q1 = signif(q[2], 4),
+            median = signif(q[3], 4),
+            q3 = signif(q[4], 4),
+            max = signif(q[5], 4),
+            pct_below_pred = round(100 * mean(d < pred_med), 1),
+            row.names = NULL
+        )
     }))
 
     # optional random k-fold curve(s) with matched number of folds -----------
@@ -192,6 +267,27 @@ cv_distance <- function(
     if(show_random){
         W <- c(W, Random = mean(vapply(rand_draws, .wasserstein, numeric(1), b = Gij)))
     }
+
+    list(
+        distances = dist_summary,
+        W = W,
+        # raw nearest-neighbour vectors for the distribution plot
+        Gij = Gij,
+        Gjstar = Gjstar,
+        Gj = Gj,
+        rand_draws = rand_draws,
+        show_random = show_random,
+        pbg = pbg
+    )
+}
+
+
+# ---- plot builder ----------------------------------------------------------
+# Build the nearest-neighbour distance distribution ggplot from the output of
+# .cv_distance_data(). Does not draw; the caller decides when to plot().
+.cv_distance_plot <- function(d){
+    Gij <- d$Gij; Gjstar <- d$Gjstar; Gj <- d$Gj
+    rand_draws <- d$rand_draws; show_random <- d$show_random; W <- d$W
 
     # distance distribution functions for plotting ----------------------------
     max_r <- max(c(Gij, Gjstar, Gj, unlist(rand_draws)))
@@ -227,11 +323,30 @@ cv_distance <- function(
         ggplot2::scale_color_manual(values = cols, breaks = present) +
         ggplot2::labs(color = "", x = "r", y = expression(G[r]),
                       subtitle = paste0("Wasserstein-1 to prediction (lower = closer)   ", w_lab),
-                      caption = if(pbg) "Presence-background object: distances computed on presences only" else NULL) +
+                      caption = if(d$pbg) "Presence-background object: distances computed on presences only" else NULL) +
         ggplot2::theme_bw() +
         ggplot2::theme(legend.text = ggplot2::element_text(size = 12))
 
-    attr(plt, "W") <- W
-    if(plot) plot(plt)
-    invisible(plt)
+    plt
+}
+
+
+#' @export
+#' @method print cv_distance
+print.cv_distance <- function(x, ...){
+    cat("blockCV cv_distance diagnostic\n")
+    cat("\nWasserstein-1 distance to the prediction distribution (lower = closer):\n")
+    print(round(x$W, 4))
+    if(!is.null(x$distances)){
+        cat("\nPer-fold test-to-nearest-train distances:\n")
+        print(x$distances, row.names = FALSE)
+    }
+    invisible(x)
+}
+
+#' @export
+#' @method plot cv_distance
+plot.cv_distance <- function(x, y, ...){
+    plot(x$plot)
+    invisible(x$plot)
 }

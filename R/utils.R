@@ -6,6 +6,30 @@
 }
 
 
+# blend environmental covariates with the coordinates for spatially constrained
+# environmental clustering. Each block is normalised by its number of columns and
+# weighted so the k-means Euclidean distance on the result equals
+# sqrt((1 - w) * d_env^2 + w * d_geo^2): w = 0 is pure environmental clustering and
+# w = 1 clusters on the coordinates alone. The coordinates are always standardised
+# (map units differ across axes and datasets); the covariates are standardised only
+# when scale_env = TRUE, so scale = FALSE keeps the covariates on their native units.
+# Constant (zero-variance) columns scale to NaN and are set to 0 so they contribute
+# no distance.
+.augment_geo <- function(env, xy, w, scale_env = TRUE){
+    zscore <- function(m){
+        m <- scale(as.matrix(m))
+        m[is.nan(m)] <- 0
+        m
+    }
+    env <- as.matrix(env)
+    if(scale_env) env <- zscore(env)
+    xy <- zscore(xy)
+    env <- env * sqrt((1 - w) / NCOL(env))
+    xy  <- xy  * sqrt(w / NCOL(xy))
+    cbind(env, xy)
+}
+
+
 # prepare the response classes/strata used for fold balance summaries
 .column_response <- function(x, column, num_bins = NULL){
     if(is.null(column)){

@@ -14,9 +14,9 @@ vignette: >
 
 ## Introduction
 
-The package `blockCV` offers a range of functions for generating train and test folds for **k-fold** and **leave-one-out (LOO)** cross-validation (CV). It allows for separation of data spatially and environmentally, with various options for block construction. Additionally, it includes a function for assessing the level of spatial autocorrelation in response or raster covariates, to aid in selecting an appropriate distance band for data separation. The `blockCV` package is suitable for the evaluation of a variety of spatial modelling applications, including classification of remote sensing imagery, soil mapping, and species distribution modelling (SDM). It also provides support for different SDM scenarios, including presence-absence and presence-background species data, rare and common species, and raster data for predictor variables.
+The package `blockCV` offers a range of functions for generating train and test folds for **k-fold** and **leave-one-out (LOO)** cross-validation (CV). It allows for separation of data spatially, environmentally, by nearest-neighbour distance matching, or by user-defined groups. The `blockCV` package is suitable for the evaluation of a variety of spatial modelling applications, including classification of remote sensing imagery, soil mapping, and species distribution modelling (SDM). It also provides support for different SDM scenarios, including presence-absence and presence-background species data, rare and common species, and raster data for predictor variables.
 
-This tutorial demonstrates `cv_spatial`, `cv_cluster`, `cv_buffer`, `cv_nndm`, and `cv_knndm`, plus tools for plotting folds, checking environmental similarity, and selecting spatial block sizes.
+This tutorial demonstrates `cv_spatial`, `cv_cluster`, `cv_group`, `cv_buffer`, `cv_nndm`, and `cv_knndm`, plus tools for plotting folds. See [Tutorial 2](tutorial_2.html) for fold-quality diagnostics and block-size selection.
 
 
 Please cite `blockCV` by: *Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods Ecol Evol. 2019; 10:225–232.* [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
@@ -100,7 +100,7 @@ tm_shape(rasters[[1]]) +
 
 ## Block cross-validation strategies
 
-The `blockCV` stores training and testing folds in three different formats. The common format for all three blocking strategies is a list of the indices of observations in each fold. For `cv_spatial` and `cv_cluster` (but not `cv_buffer` and `cv_nndm`), the folds are also stored in a matrix format suitable for the `biomod2` package and a vector of fold's number for each observation. This is equal to the number of observation in spatial sample data (argument `x` in functions). These three formats are stored in the cv objects as `folds_list`, `biomod_table` and `folds_ids` respectively.
+The `blockCV` stores training and testing folds in a common list format: `folds_list`, a list of the indices of observations in each fold. For k-fold methods that assign each observation to one fold, the folds are also stored as `folds_ids`, a vector of fold numbers for each observation, and often as `biomod_table`, a matrix suitable for the `biomod2` package. Use the format that suits your modelling workflow.
 
 ### Spatial blocks
 The function `cv_spatial` creates spatial blocks/polygons then assigns blocks to the training and testing folds with *random*, *checkerboard pattern* or a *systematic* way (with the selection argument). When `selection = "random"`, the function tries to find evenly distributed records in training and testing folds. Spatial blocks can be defined either by `size` or number of rows and columns.
@@ -226,7 +226,7 @@ cowplot::plot_grid(scv_plot, bscv_plot, nrow = 1)
 Increasing `k_multiplier` usually improves the balance of records or classes across folds because there are more small clusters to assign, but it reduces the spatial separation and compactness of the final folds.
 
 
-The clustering can be done in environmental space by supplying `r`. Notice, this could be an extreme case of cross-validation as the testing folds could possibly fall in novel environmental conditions than what the training points are (check `cv_similarity` for testing this). Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster value should be deleted prior to the analysis or a different raster be used.
+The clustering can be done in environmental space by supplying `r`. Notice, this could be an extreme case of cross-validation as the testing folds could possibly fall in novel environmental conditions compared with the training points. [Tutorial 2](tutorial_2.html) shows how to check this with `cv_similarity`. Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster value should be deleted prior to the analysis or a different raster be used.
 
 ```{r warning=FALSE, message=FALSE}
 # environmental clustering
@@ -241,7 +241,73 @@ ecv <- cv_cluster(x = pa_data,
 
 When `r` is supplied, all the input rasters are first centred and scaled to avoid one raster variable dominate the clusters using `scale = TRUE` option.
 
-By default, the clustering will be done based only on the values of the predictors at the sample points. In this case, and the number of the folds will be the same as `k`. If `raster_cluster = TRUE`, the clustering is done in the raster space. In this approach, the clusters will be consistent throughout the region and across species (in the same region). However, this may result in cluster(s) that cover none of the species records especially when species data is not dispersed throughout the region (or environmental ranges) or the number of clusters (`k` or folds) is high. 
+By default, the clustering will be done based only on the values of the predictors at the sample points. In this case, and the number of the folds will be the same as `k`. If `raster_cluster = TRUE`, the clustering is done in the raster space. In this approach, the clusters will be consistent throughout the region and across species (in the same region). However, this may result in cluster(s) that cover none of the species records especially when species data is not dispersed throughout the region (or environmental ranges) or the number of clusters (`k` or folds) is high.
+
+Purely environmental clusters can be scattered across the study area, since points with similar covariate values may be far apart in space. The `spatial_weight` argument (a number in `[0, 1]`) adds a soft spatial-compactness pressure by blending the coordinates into the environmental clustering: `spatial_weight = 0` (the default) is pure environmental clustering, larger values pull the clusters to be more geographically compact, and `spatial_weight = 1` clusters on the coordinates alone. A moderate value such as `0.4` keeps the folds environmentally coherent while making them more spatially separated.
+
+```{r warning=FALSE, message=FALSE}
+# spatially constrained environmental clustering
+set.seed(6)
+secv <- cv_cluster(x = pa_data,
+                   column = "occ",
+                   r = rasters,
+                   k = 5,
+                   scale = TRUE,
+                   spatial_weight = 0.4) # blend geography into the environmental clusters
+
+```
+
+```{r warning=FALSE, message=FALSE, fig.height=4, fig.width=8}
+ecv_plot <- cv_plot(ecv, pa_data, combine_folds = TRUE) +
+    ggplot2::labs(title = "Environmental clustering")
+
+secv_plot <- cv_plot(secv, pa_data, combine_folds = TRUE) +
+    ggplot2::labs(title = "Spatially constrained (spatial_weight = 0.4)")
+
+cowplot::plot_grid(ecv_plot, secv_plot, nrow = 1)
+
+```
+
+
+### Leave-group-out cross-validation
+
+The function `cv_group` creates folds from an existing grouping column, such as a site, plot, sampling campaign, or individual identifier. Records that share a group are always kept together, so the same group never appears in both the training and testing set of a fold.
+
+The package example data do not include a site identifier, so the next chunk creates an illustrative grouping column. In your own data, use the real grouping variable that defines the dependence structure you want to hold out.
+
+```{r}
+set.seed(6)
+coords <- sf::st_coordinates(pa_data)
+pa_data$site <- paste0("site_", stats::kmeans(coords, centers = 10)$cluster)
+```
+
+With `k = NULL` (the default), `cv_group()` performs leave-group-out cross-validation: each group is left out once.
+
+```{r}
+site_lgo <- cv_group(x = pa_data,
+                     group_col = "site",
+                     column = "occ",
+                     report = TRUE)
+```
+
+If there are many groups, you can merge them into fewer folds by setting `k`. With `balance = TRUE`, the function searches for a group-to-fold assignment with more even record or class counts, while still keeping whole groups together.
+
+```{r}
+site_cv <- cv_group(x = pa_data,
+                    group_col = "site",
+                    column = "occ",
+                    k = 5,
+                    balance = TRUE,
+                    iteration = 50,
+                    seed = 6,
+                    report = TRUE)
+```
+
+```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=6}
+cv_plot(site_cv, pa_data, combine_folds = TRUE) +
+    ggplot2::labs(title = "Grouped folds")
+
+```
 
 
 ### Buffering LOO (also known as Spatial LOO)
@@ -336,7 +402,7 @@ cv_plot(cv = scv, x = pa_data)
 
 ```
 
-Optionally, all folds can be plotted in a single panel, with colours indicating different folds. This option is only available for k-fold cross-validation methods: `cv_spatial`, `cv_cluster`, and `cv_knndm.`
+Optionally, all folds can be plotted in a single panel, with colours indicating different folds. This option is available for k-fold cross-validation methods: `cv_spatial`, `cv_cluster`, `cv_group`, and `cv_knndm`.
 
 ```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=6}
 cv_plot(cv = scv, x = pa_data, combine_folds = TRUE) +
@@ -369,174 +435,12 @@ cv_plot(cv = sb1,
 ```
 
 
-## Fold quality diagnostics
+## Next steps
 
-### Environmental similarity diagnostics
-
-The `cv_similarity` function evaluates environmental similarity between training and testing folds, helping to detect potential extrapolation in the testing data. It supports MESS and L1/L2 distance-based similarity scores. Negative values indicate potential environmental novelty. Each fold is annotated with the percentage of its testing points that are novel (shown in red when a fold extrapolates), and a per-fold summary table is attached to the returned plot as `attr(p, "extrapolation")`.
-
-
-```{r fig.height=4, fig.width=6}
-sim <- cv_similarity(cv = ecv, # the environmental clustering
-                     x = pa_data,
-                     r = rasters,
-                     method = "MESS",
-                     progress = FALSE)
-sim
-
-# the per-fold extrapolation summary (number of test points, % novel,
-# min/median similarity, and the most limiting variable for MESS)
-attr(sim, "extrapolation")
-```
-
-Setting `type = "map"` shows *where* the extrapolation happens: the sample points are drawn in geographical space and each testing point is coloured by its similarity value, so novel (negative) areas stand out.
-
-```{r fig.height=4.5, fig.width=6}
-cv_similarity(cv = ecv,
-              x = pa_data,
-              r = rasters,
-              method = "MESS",
-              type = "map",
-              progress = FALSE)
-```
-
-### Nearest-neighbour distance diagnostics
-
-The `cv_distance` function checks how closely a generated CV design matches the nearest-neighbour distance distribution that will be encountered when predicting across the target area. It can be run on any `blockCV` object after the folds have been created. The CV curve is compared against the prediction-to-sample distance curve, a leave-one-out reference, and, for k-fold objects, a random k-fold baseline. Lower Wasserstein-1 distances in the subtitle indicate a closer match to the prediction domain.
-
-Set `plot = FALSE` to save the returned `ggplot` objects and compare multiple CV strategies in one figure:
-
-```{r warning=FALSE, message=FALSE, fig.height=8, fig.width=9}
-library(ggplot2)
-
-distance_theme <- ggplot2::theme(
-  legend.position = "bottom",
-  plot.subtitle = ggplot2::element_text(size = 7)
-)
-
-dist_sb <- cv_distance(cv = sb1,
-                       x = pa_data,
-                       r = rasters,
-                       num_sample = 3000,
-                       num_random = 5,
-                       seed = 6,
-                       plot = FALSE) +
-  ggplot2::labs(title = "Spatial blocks") +
-  distance_theme
-
-dist_scv <- cv_distance(cv = bscv,
-                        x = pa_data,
-                        r = rasters,
-                        num_sample = 3000,
-                        num_random = 5,
-                        seed = 6,
-                        plot = FALSE) +
-  ggplot2::labs(title = "Spatial clustering (balanced)") +
-  distance_theme
-
-dist_bloo <- cv_distance(cv = bloo,
-                         x = pa_data,
-                         r = rasters,
-                         num_sample = 3000,
-                         seed = 6,
-                         plot = FALSE) +
-  ggplot2::labs(title = "Buffering LOO") +
-  distance_theme
-
-dist_knn <- cv_distance(cv = knn_blocks,
-                        x = pa_data,
-                        r = rasters,
-                        num_sample = 3000,
-                        num_random = 5,
-                        seed = 6,
-                        plot = FALSE) +
-  ggplot2::labs(title = "kNNDM blocks") +
-  distance_theme
-
-cowplot::plot_grid(dist_sb, dist_scv, dist_bloo, dist_knn, ncol = 2)
-
-```
-
-## Estimating size: the effective range of spatial autocorrelation
-
-To support a first choice of block size, prior to any model fitting, package `blockCV` includes the option for the user to look at the existing autocorrelation in the response or predictors (as an indication of landscape spatial structure). This tool does not suggest any absolute solution to the problem, but serves as a guide to the user. It provides information about *the effective range of spatial autocorrelation* which is the range over which observations are independent.
-
-Roberts et al. (2017) recommend choosing spatial blocks with reference to the autocorrelation range of model residuals. The response and predictor variograms shown below are useful exploratory guides before a model has been fitted, but they are not residual autocorrelation ranges and can under- or over-estimate the block size needed for that residual-based guidance. To estimate residual autocorrelation with `cv_spatial_autocor`, fit the model first, add the residuals as a column in the sample points object, and pass that column name to `column`.
-
-When only `r` is supplied, the `cv_spatial_autocor` function works by automatically fitting variograms to each continuous raster and finding the effective range of spatial autocorrelation. Variogram is a fundamental geostatistical tool for measuring spatial autocorrelation (O’Sullivan and Unwin, 2010).
-
-```{r, results='hide', fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
-sac1 <- cv_spatial_autocor(r = rasters, num_sample = 5000)
-
-```
-
-The plotted block size is based on the *median* of the spatial autocorrelation ranges. This could be as the **minimum block size** for creating spatially separated folds. Variograms are computed taking a number of random points (`5000` as default) from each input raster file. The variogram fitting procedure is done using [**automap**](https://CRAN.R-project.org/package=automap) package (Hiemstra et al., 2009), using the isotropic variogram and assuming the data meets the geostatistical criteria e.g. stationarity.
-
-The output object of this function is an `cv_spatial_autocor` object, an object of class S3.
-
-```{r}
-# class of the output result
-class(sac1)
-```
-
-To see the details of the fitted variograms:
-
-```{r}
-# summary statistics of the output
-summary(sac1)
-```
-
-Alternatively, only use the point data with `x` and `column`. This could be a binary or continuous response, or a column of residuals from a fitted model that you added to the sample points `sf` object.
-
-```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
-sac2 <- cv_spatial_autocor(x = pa_data, column =  "occ")
-
-```
-
-To visualise them (this needs the `automap` package to be loaded): 
-
-```{r, eval=TRUE, fig.height=4, fig.width=7}
-library(automap)
-
-plot(sac2$variograms[[1]])
-
-```
-
-
-Package `blockCV` also provides a visualisation tool for assisting in block size selection. This tool is developed as local web applications using R package `shiny`. With `cv_block_size`, the user can choose among block sizes in a specified range, visualise the resulting blocks interactively, viewing the impact of block size on number and arrangement of blocks in the landscape (and optionally on the distribution of sample points in those blocks). 
-
-Using only raster data:
-
-```{r, eval=FALSE}
-cv_block_size(r = rasters)
-
-```
-
-
-Or use only spatial sample data:
-```{r, eval=FALSE}
-cv_block_size(x = pa_data, column = "occ") # optionally add the response
-
-```
-
-Or add both raster and samples (also define a min/max size):
-
-```{r, eval=FALSE}
-cv_block_size(x = pa_data,
-              column = "occ",
-              r = rasters,
-              min_size = 2e5,
-              max_size = 9e5)
-
-```
-
-Note that the interactive plots cannot be shown here, as they require opening an external window or web browser. When using `cv_block_size`, slide to the selected block size, and click **Apply Changes** to change the block size.
+After creating folds, use [Tutorial 2](tutorial_2.html) to check fold size balance, environmental novelty, nearest-neighbour distance matching, and candidate spatial block sizes.
 
 
 ## References:
-- Hiemstra, P. H., Pebesma, E. J., Twenhöfel, C. J., & Heuvelink, G. B. (2009) Real-time automatic interpolation of ambient gamma dose rates from the Dutch radioactivity monitoring network. Computers & Geosciences, 35(8), 1711–1721.
-
-- O’Sullivan, D., & Unwin, D. J. (2010) Geographic Information Analysis (2nd ed.). John Wiley & Sons.
 
 - Linnenbrink, J., Milà, C., Ludwig, M., & Meyer, H. (2024) kNNDM CV: k-fold nearest neighbour distance matching cross-validation for map accuracy estimation. Geoscientific Model Development, 17(15), 5897–5912. [doi: 10.5194/gmd-17-5897-2024](https://doi.org/10.5194/gmd-17-5897-2024)
 

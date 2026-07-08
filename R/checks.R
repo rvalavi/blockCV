@@ -98,10 +98,10 @@
         stop("'column' must be provided for presence-background data.")
     }
     vals <- x[, column, drop = TRUE]
-    unqsp <- unique(vals)
-    if(!is.numeric(unqsp) || any(unqsp < 0) || any(unqsp > 1)){
+    if(!is.numeric(vals) || anyNA(vals) || !all(vals %in% c(0, 1))){
         stop("Presence-background option is only for species data with 0s (backgrounds/pseudo-absences) and 1s (presences).\n",
-             "The data should be numeric.\n")
+             "The data should be numeric and contain only 0s and 1s, with no missing values.\n",
+             call. = FALSE)
     }
     which(vals == 1)
 }
@@ -161,18 +161,37 @@
     return(r)
 }
 
-# check for required packages
-.check_pkgs <- function(pkg){
-    pkgna <- names(which(sapply(sapply(pkg, find.package, quiet = TRUE), length) == 0))
-    if(length(pkgna) > 0){
-        nm <- paste(pkgna, collapse = ", ")
-        message("This function requires these packages: ", nm, "\nWould you like to install them now?\n1: yes\n2: no")
-        user <- readline(prompt = paste0("Selection: "))
-        if(tolower(user) %in% c("1", "yes", "y")){
-            utils::install.packages(pkgna)
-        } else{
-            stop("Please install these packages for function to work: ", nm)
-        }
+# environmental clustering uses k-means (Euclidean distance), which is only
+# meaningful for numeric covariates. Stop early on declared categorical (factor)
+# layers rather than silently clustering their integer codes as if continuous.
+.check_r_numeric <- function(r){
+    is_cat <- terra::is.factor(r)
+    if(any(is_cat)){
+        nm <- paste(names(r)[is_cat], collapse = ", ")
+        stop(
+            "Environmental clustering uses k-means (Euclidean distance) and supports only numeric covariates.\n",
+            "Categorical (factor) raster layer(s) detected: ", nm, ".\n",
+            "Remove or numerically encode these layer(s) before clustering.",
+            call. = FALSE
+        )
     }
+    invisible(TRUE)
+}
+
+# check for required (Suggests) packages, erroring clearly if any are missing.
+# Uses requireNamespace() rather than an interactive install prompt so the
+# function behaves the same in scripts, R CMD check, and interactive sessions.
+.check_pkgs <- function(pkg){
+    missing <- pkg[!vapply(pkg, requireNamespace, logical(1), quietly = TRUE)]
+    if(length(missing)){
+        stop(
+            "This function requires the following package(s): ",
+            paste(missing, collapse = ", "), ".\n",
+            "Please install with install.packages(c(",
+            paste(sprintf('"%s"', missing), collapse = ", "), ")).",
+            call. = FALSE
+        )
+    }
+    invisible(TRUE)
 }
 

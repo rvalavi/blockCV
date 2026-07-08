@@ -164,3 +164,110 @@ test_that("test environmental cluster with no raster data", {
     ))
 
 })
+
+
+test_that("categorical (factor) raster layers are rejected", {
+    r_cat <- aus[[1]]
+    terra::values(r_cat) <- sample(1:3, terra::ncell(r_cat), replace = TRUE)
+    levels(r_cat) <- data.frame(id = 1:3, cover = c("a", "b", "c"))
+    names(r_cat) <- "landcover"
+
+    expect_error(
+        cv_cluster(x = pa_data, r = c(aus, r_cat), k = 3),
+        "numeric covariates"
+    )
+})
+
+
+test_that("spatial_weight blends geography into environmental clustering", {
+    set.seed(42)
+    ec <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5,
+                     scale = TRUE, biomod2 = FALSE, spatial_weight = 0.4)
+
+    expect_s3_class(ec, "cv_cluster")
+    expect_equal(ec$type, "Environmental Cluster")
+    expect_equal(length(ec$folds_list), 5)
+
+    # spatial_weight = 0 reproduces the default (pure environmental) folds exactly
+    set.seed(42)
+    w0  <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5,
+                      scale = TRUE, biomod2 = FALSE, spatial_weight = 0)
+    set.seed(42)
+    def <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5,
+                      scale = TRUE, biomod2 = FALSE)
+    expect_identical(w0$folds_ids, def$folds_ids)
+
+    # spatial_weight = 1 runs and clusters purely on the (standardised) coordinates
+    set.seed(42)
+    w1 <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5,
+                     scale = TRUE, biomod2 = FALSE, spatial_weight = 1)
+    expect_equal(length(w1$folds_list), 5)
+
+    # higher spatial_weight yields more spatially compact folds (0 > 0.4 >= 1)
+    xy <- scale(sf::st_coordinates(pa_data))
+    spread <- function(cv){
+        mean(sapply(split(as.data.frame(xy), cv$folds_ids), function(d)
+            if (nrow(d) < 2) 0 else mean(dist(as.matrix(d)))))
+    }
+    expect_lt(spread(ec), spread(w0))
+    expect_lte(spread(w1), spread(ec))
+})
+
+
+test_that("spatial_weight works with raster_cluster = TRUE", {
+    set.seed(42)
+    w0 <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5, scale = TRUE,
+                     raster_cluster = TRUE, biomod2 = FALSE, spatial_weight = 0)
+    set.seed(42)
+    def <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5, scale = TRUE,
+                      raster_cluster = TRUE, biomod2 = FALSE)
+    # spatial_weight = 0 preserves the original raster_cluster path exactly
+    expect_identical(w0$folds_ids, def$folds_ids)
+
+    set.seed(42)
+    ec <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5, scale = TRUE,
+                     raster_cluster = TRUE, biomod2 = FALSE, spatial_weight = 0.5)
+    expect_s3_class(ec, "cv_cluster")
+    expect_equal(length(ec$folds_list), 5)
+    expect_equal(length(ec$folds_ids), nrow(pa_data))
+})
+
+
+test_that("spatial_weight with scale = FALSE does not scale the covariates", {
+    # scale = FALSE must keep covariates on native units; only coordinates are scaled
+    set.seed(42)
+    ec <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5,
+                     scale = FALSE, biomod2 = FALSE, spatial_weight = 0.4)
+    expect_s3_class(ec, "cv_cluster")
+    expect_equal(length(ec$folds_list), 5)
+})
+
+
+test_that("spatial_weight is validated only when r is supplied, else ignored", {
+    # values outside [0, 1] error when a raster is provided (both ends of the range)
+    expect_error(
+        cv_cluster(x = pa_data, r = aus, k = 3, spatial_weight = 1.5),
+        "between 0 and 1"
+    )
+    expect_error(
+        cv_cluster(x = pa_data, r = aus, k = 3, spatial_weight = -0.5),
+        "between 0 and 1"
+    )
+    # non-scalar / non-numeric weights are also rejected
+    expect_error(
+        cv_cluster(x = pa_data, r = aus, k = 3, spatial_weight = c(0.2, 0.5)),
+        "between 0 and 1"
+    )
+    # without a raster the weight is ignored (not validated) but warns when non-zero
+    expect_warning(
+        cv_cluster(x = pa_data, k = 5, biomod2 = FALSE, spatial_weight = 0.4),
+        "only used for environmental clustering"
+    )
+    # an out-of-range weight is not validated (so does not error) when r is absent
+    set.seed(42)
+    expect_warning(
+        eb <- cv_cluster(x = pa_data, k = 5, biomod2 = FALSE, spatial_weight = 1.5),
+        "only used for environmental clustering"
+    )
+    expect_equal(length(eb$folds_list), 5)
+})

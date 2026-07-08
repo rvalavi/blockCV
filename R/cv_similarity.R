@@ -53,6 +53,11 @@
 #' @param points_alpha numeric; the opacity of points
 #' @param points_colors character; a character vector of colours for the diverging value scale.
 #' Defaults to a red-grey-blue ramp (red = novel/negative, blue = similar/positive) centred at zero.
+#' @param progress logical; whether to show a progress bar while computing fold similarities.
+#' Defaults to \code{interactive()}.
+#' @param plot logical; whether to draw the plot (default \code{TRUE}). The plot object is always built and
+#' returned in \code{$plot} either way (so it can be customised or arranged); \code{plot = FALSE} only
+#' suppresses drawing it now.
 #' @inheritParams cv_spatial
 #'
 #' @seealso \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}};
@@ -60,11 +65,18 @@
 #'
 #' @references Elith, J., Kearney, M., & Phillips, S. (2010). The art of modelling range-shifting species: The art of modelling range-shifting species. Methods in Ecology and Evolution, 1(4), 330–342.
 #'
-#' @return a ggplot object. A per-fold extrapolation summary is attached as
-#' \code{attr(p, "extrapolation")}: a data.frame with the number of test points, the percentage
-#' flagged as novel (similarity value below zero), the minimum and median similarity, and -- for
-#' \code{method = "MESS"} -- the most limiting variable (the covariate most often driving the
-#' novelty). The overall novelty rate is also shown in the plot subtitle.
+#' @return an object of class \code{cv_similarity}: a list with
+#' \itemize{
+#'   \item{\code{extrapolation} - a per-fold data.frame with the number of test points, the percentage
+#'   flagged as novel (similarity value below zero), the minimum and median similarity, and -- for
+#'   \code{method = "MESS"} -- the most limiting variable (the covariate most often driving the novelty).}
+#'   \item{\code{overall} - the overall novelty rate (percentage of test points below zero) across the
+#'   plotted folds.}
+#'   \item{\code{plot} - the \code{ggplot} (a per-fold distribution, or a spatial map for \code{type =
+#'   "map"}), always built whether or not it is drawn.}
+#' }
+#' The plot is drawn when \code{plot = TRUE} (default). Printing the object shows a compact text summary
+#' rather than redrawing the plot; call \code{plot()} on the returned object to redraw it.
 #' @export
 #'
 #' @examples
@@ -105,26 +117,65 @@ cv_similarity <- function(
         points_size = 2,
         points_alpha = 0.7,
         points_colors = NULL,
-        progress = TRUE
+        progress = interactive(),
+        plot = TRUE
 ){
-
     # check required packages
-    pkg <- c("ggplot2")
-    .check_pkgs(pkg)
+    .check_pkgs("ggplot2")
+    # validate 'type' up front so a typo fails before the raster computation
+    type <- match.arg(tolower(type), choices = c("distribution", "map"))
+
+    # per-fold novelty diagnostics (the pure-data core, also reused by cv_summary())
+    d <- .cv_similarity_data(
+        cv = cv, x = x, r = r, method = method, num_plots = num_plots,
+        num_sample = num_sample, seed = seed, progress = progress
+    )
+
+    # the plot object is always built (so it can be customised/arranged even when
+    # not drawn); 'plot' controls only whether it is drawn now
+    p <- .cv_similarity_plot(
+        d, type = type, jitter_width = jitter_width, points_size = points_size,
+        points_alpha = points_alpha, points_colors = points_colors
+    )
+    if(isTRUE(plot)) plot(p)
+
+    out <- list(
+        extrapolation = d$extrapolation,
+        overall = d$overall,
+        plot = p
+    )
+    class(out) <- "cv_similarity"
+    invisible(out)
+}
+
+
+# ---- pure-data core --------------------------------------------------------
+# The per-fold extrapolation/novelty computation behind cv_similarity(), with no
+# ggplot2 dependency. Returns the per-fold summary and overall novelty rate, plus
+# the per-point values the plots are built from. Shared by cv_similarity() (to
+# draw the plot) and cv_summary() (data only).
+.cv_similarity_data <- function(
+        cv, x, r,
+        method = "MESS",
+        num_plots = seq_along(cv$folds_list),
+        num_sample = 10000L,
+        seed = NULL,
+        progress = interactive()
+){
     # check x is an sf object
     x <- .check_x(x)
     # change the r to terra object
     r <- .check_r(r)
     # check points fall within the raster extent
     .check_within(x, r)
-
     # check cv obj
     .check_cv(cv)
+    # the fold indices in 'cv' must line up with the supplied sample points
+    .check_x_matches_cv(x, cv)
 
     method <- match.arg(tolower(method), choices = c("mess", "l1", "l2"))
     MESS <- method == "mess"
     L1 <- method == "l1"
-    type <- match.arg(tolower(type), choices = c("distribution", "map"))
 
     # The iteration must be a natural number
     tryCatch(
@@ -224,7 +275,7 @@ cv_similarity <- function(
         if (MESS) {
             mes <- sapply(seq_len(m), function(j) .messi3(points[test, j], points[train, j]))
             if(.is_loo(cv)){
-                mmes <- min(mes)
+                mmes <- min(mes, na.rm = TRUE)
             } else{
                 # a single test point collapses 'mes' to a vector; keep it a 1-row matrix
                 if(is.null(dim(mes))) mes <- matrix(mes, nrow = length(test))
@@ -269,6 +320,39 @@ cv_similarity <- function(
     # overall extrapolation rate across the plotted folds
     overall_pct <- if(total_n > 0) 100 * total_novel / total_n else NA_real_
 
+    list(
+        extrapolation = extr,
+        overall = overall_pct,
+        # per-point values for the plots
+        df = df,
+        map_vals = map_vals,
+        method = method,
+        pbg = pbg,
+        is_loo = .is_loo(cv),
+        num_plots = num_plots,
+        x = x
+    )
+}
+
+
+# ---- plot builder ----------------------------------------------------------
+# Build the similarity ggplot (per-fold distribution, or a spatial map) from the
+# output of .cv_similarity_data(). Does not draw; the caller decides when to plot().
+.cv_similarity_plot <- function(
+        d, type = "distribution",
+        jitter_width = 0.1, points_size = 2, points_alpha = 0.7, points_colors = NULL
+){
+    type <- match.arg(tolower(type), choices = c("distribution", "map"))
+    method <- d$method
+    MESS <- method == "mess"
+    df <- d$df
+    map_vals <- d$map_vals
+    num_plots <- d$num_plots
+    pbg <- d$pbg
+    is_loo <- d$is_loo
+    overall_pct <- d$overall
+    extr <- d$extrapolation
+
     # ---- labels/colours shared by both plot types ----
     col_name <- switch(method, mess = "MESS", l1 = "L1 similarity score", l2 = "L2 similarity score")
     novel_label <- if(MESS) "novel (MESS < 0)" else "beyond the baseline (score < 0)"
@@ -280,7 +364,7 @@ cv_similarity <- function(
 
     # ---- spatial map: colour each test point by its similarity to show *where* extrapolation occurs ----
     if(type == "map"){
-        map_sf <- x
+        map_sf <- d$x
         map_sf$.sim <- NA_real_
         map_sf$.sim[map_vals$idx] <- map_vals$value
         map_sf <- map_sf[is.finite(map_sf$.sim), ]
@@ -294,7 +378,6 @@ cv_similarity <- function(
                                            na.value = "#BEBEBE") +
             ggplot2::labs(colour = col_name, subtitle = sub_txt, caption = pbg_caption) +
             ggplot2::theme_bw()
-        attr(p1, "extrapolation") <- extr
         return(p1)
     }
 
@@ -312,12 +395,9 @@ cv_similarity <- function(
 
     # remove NAs
     mes_reshp <- mes_reshp[stats::complete.cases(mes_reshp), ]
-    if(.is_loo(cv)) mes_reshp$folds <- as.numeric(substr(mes_reshp$folds, 5, 25))
+    if(is_loo) mes_reshp$folds <- as.numeric(substr(mes_reshp$folds, 5, 25))
     # get the max value for color legend
     maxabs <- max(abs(mes_reshp$value))
-    # define point colors
-    cols <- c("#B2182B", "#D6604D", "#F4A582", "#F7F7F7", "#92C5DE", "#4393C3", "#2166AC")
-    points_colors <- if(is.null(points_colors)) cols else points_colors
 
     # provide alternatives for class(cv)
     geom_buffer <- ggplot2::geom_point(size = points_size, alpha = points_alpha)
@@ -328,15 +408,9 @@ cv_similarity <- function(
         fill = NA
     )
     # which geom to choose
-    geom_extra <- if(.is_loo(cv)) geom_buffer else geom_other
+    geom_extra <- if(is_loo) geom_buffer else geom_other
     mes_reshp$folds <- factor(mes_reshp$folds)
 
-    col_name <- switch(
-        method,
-        mess = "MESS",
-        l1 = "L1 similarity score",
-        l2 = "L2 similarity score"
-    )
     y_name <- switch(
         method,
         mess = "MESS Values",
@@ -344,17 +418,12 @@ cv_similarity <- function(
         l2 = "Similarity score (baseline - distance)"
     )
 
-    # headline extrapolation rate for the subtitle
-    novel_label <- if(MESS) "novel (MESS < 0)" else "beyond the baseline (score < 0)"
-    sub_txt <- if(is.na(overall_pct)) NULL else
-        sprintf("Extrapolating test points %s: %.1f%% overall", novel_label, overall_pct)
-
     # shade the novel region (value < 0)
     novel_shade <- ggplot2::annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 0,
                                      fill = "#D53E4F", alpha = 0.06)
     # per-fold "% novel" labels (only meaningful for k-fold designs, not leave-one-out)
     geom_pct <- NULL
-    if(!.is_loo(cv) && nrow(extr)){
+    if(!is_loo && nrow(extr)){
         pct_lab <- data.frame(
             folds = factor(paste0("Fold", extr$fold), levels = levels(mes_reshp$folds)),
             pct = extr$pct_novel
@@ -381,19 +450,38 @@ cv_similarity <- function(
         novel_shade +
         ggplot2::geom_hline(yintercept = 0, color = "grey50", linetype = 2) +
         geom_extra +
-        switch(!.is_loo(cv), geom_vio) +
+        switch(!is_loo, geom_vio) +
         geom_pct +
         ggplot2::scale_color_gradientn(colours = points_colors,
                                        limits = c(-maxabs, maxabs),
                                        na.value = "#BEBEBE03") +
         ggplot2::labs(x = "Folds", y = y_name, col = col_name, subtitle = sub_txt,
-                      caption = if(pbg) "Presence-background object: similarity computed on presences only" else NULL) +
+                      caption = pbg_caption) +
         ggplot2::theme_bw()
 
-    # per-fold extrapolation summary table
-    attr(p1, "extrapolation") <- extr
+    p1
+}
 
-    return(p1)
+
+#' @export
+#' @method print cv_similarity
+print.cv_similarity <- function(x, ...){
+    cat("blockCV cv_similarity diagnostic\n")
+    if(!is.na(x$overall)){
+        cat(sprintf("\nOverall novel (extrapolating) test points: %.1f%%\n", x$overall))
+    }
+    if(!is.null(x$extrapolation) && nrow(x$extrapolation)){
+        cat("\nPer-fold extrapolation summary:\n")
+        print(x$extrapolation, row.names = FALSE)
+    }
+    invisible(x)
+}
+
+#' @export
+#' @method plot cv_similarity
+plot.cv_similarity <- function(x, y, ...){
+    plot(x$plot)
+    invisible(x$plot)
 }
 
 
@@ -402,9 +490,14 @@ cv_similarity <- function(
 .messi3 <- function(p, v) {
     # seems 2-3 times faster than messi2
     v <- stats::na.omit(v)
-    f <- 100*findInterval(p, sort(v)) / length(v)
+    # an empty reference set cannot inform novelty; drop this variable (NA)
+    if(length(v) == 0) return(rep(NA_real_, length(p)))
     minv <- min(v)
     maxv <- max(v)
+    # a constant reference variable (zero range) has no scale, so the MESS
+    # formula divides by zero; return NA so it drops out of the per-point min
+    if(minv == maxv) return(rep(NA_real_, length(p)))
+    f <- 100*findInterval(p, sort(v)) / length(v)
     res <- 2*f
     f[is.na(f)] <- -99
     i <- f>50 & f<100

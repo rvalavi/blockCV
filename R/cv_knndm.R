@@ -420,6 +420,13 @@ cv_knndm <- function(
         train <- base::scale(train)
         ctr <- attr(train, "scaled:center")
         scl <- attr(train, "scaled:scale")
+        # guard constant predictors (sd == 0): scaling divides by zero -> NaN.
+        # Centre them to 0 in 'train' and use a unit scale so 'pred' stays finite.
+        zero_var <- which(scl == 0 | is.na(scl))
+        if(length(zero_var)){
+            train[, zero_var] <- 0
+            scl[zero_var] <- 1
+        }
         pred <- sweep(sweep(pred, 2, ctr, "-"), 2, scl, "/")
         attr(train, "scaled:center") <- NULL
         attr(train, "scaled:scale") <- NULL

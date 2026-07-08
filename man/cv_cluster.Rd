@@ -12,6 +12,7 @@ cv_cluster(
   scale = TRUE,
   raster_cluster = FALSE,
   num_sample = 10000L,
+  spatial_weight = 0,
   balance = FALSE,
   presence_bg = FALSE,
   k_multiplier = 5L,
@@ -33,7 +34,8 @@ response i.e. 0s and 1s) is stored. It is used to report whether all the folds c
 Continuous numeric responses are binned into quantiles using \code{num_bins} before records are counted.}
 
 \item{r}{a terra SpatRaster object of covariates to identify environmental groups. If provided, clustering will be done
-in environmental space rather than spatial coordinates of sample points.}
+in environmental space rather than spatial coordinates of sample points. Only numeric (quantitative) covariates are
+supported; categorical (factor) layers are rejected because k-means relies on Euclidean distance.}
 
 \item{k}{integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.}
 
@@ -43,6 +45,11 @@ in environmental space rather than spatial coordinates of sample points.}
 otherwise it will be over the extracted raster values of the sample points. See details for more information.}
 
 \item{num_sample}{integer; the number of samples from raster layers to build the clusters (when \code{raster_cluster = FALSE}).}
+
+\item{spatial_weight}{numeric in \code{[0, 1]}; only used (and only validated) for environmental clustering (when \code{r} is
+provided). It adds a soft spatial compactness pressure by blending the geographic coordinates into the environmental clustering.
+\code{0} (the default) does pure environmental clustering; larger values (e.g. \code{0.3}--\code{0.5}) give environmentally
+coherent folds that are also geographically separated; \code{1} clusters on the coordinates alone. See \sQuote{Details}.}
 
 \item{balance}{logical. If \code{TRUE}, the sample points are first grouped into \code{k * k_multiplier} clusters (see \code{k_multiplier})
 and these small clusters are then assigned to \code{k} folds over \code{iteration} random attempts to balance the training/testing
@@ -99,6 +106,8 @@ these groups or clusters are assigned to a fold. Clustering is done
 using \code{\link[stats]{kmeans}} for both approaches. The only requirement is \code{x} that leads to
 a clustering of the coordinates of sample data. Otherwise, by providing \code{r}, environmental
 clustering is done.
+Environmental clustering can also be spatially restricted with \code{spatial_weight},
+and fold sizes or classes can be balanced with \code{balance = TRUE}; see Details.
 }
 \details{
 As k-means algorithms use Euclidean distance to estimate clusters, the input raster covariates should be quantitative variables.
@@ -121,6 +130,17 @@ grouped into a larger number of clusters (\code{k * k_multiplier}) that are then
 random attempts, keeping the split that best balances the training/testing records (or the classes/bins of \code{column} when
 it is provided). This mirrors the balancing used by \code{\link{cv_spatial}} with \code{selection = "random"}, and \code{k_multiplier}
 controls the trade-off between fold balance (higher values) and fold compactness (lower values).
+
+For environmental clustering (when \code{r} is provided), \code{spatial_weight} adds a soft spatial compactness
+pressure by blending the coordinates into the covariates before clustering, so the k-means Euclidean distance
+becomes \eqn{(1 - w) d^2_{env} + w \, d^2_{geo}}: \code{spatial_weight = 0} (default) is pure environmental
+clustering, larger values pull the environmental clusters to be more geographically compact, and
+\code{spatial_weight = 1} clusters on the coordinates alone. This is a soft pressure -- it favours, but does not
+guarantee, spatially contiguous folds. The coordinates are always standardised (so a
+\code{spatial_weight = 1} clustering is \emph{not} identical to the coordinate-only clustering obtained with
+\code{r = NULL}, which uses the raw coordinates), while the covariates are standardised only when
+\code{scale = TRUE}; \code{spatial_weight} is best calibrated with the default \code{scale = TRUE}. Coordinates
+should be projected (a warning is issued for lon/lat data).
 
 
 For presence-background data (\code{presence_bg = TRUE}), \code{column} holds \code{1} for presences and
@@ -155,6 +175,15 @@ ec <- cv_cluster(r = covars, # if provided will be used for environmental cluste
                  column = "occ", # optional; name of the column with response
                  k = 5,
                  scale = TRUE)
+
+# spatially constrained environmental clustering
+set.seed(6)
+sec <- cv_cluster(r = covars,
+                  x = pa_data,
+                  column = "occ",
+                  k = 5,
+                  scale = TRUE,
+                  spatial_weight = 0.4) # blend geography into the environmental clusters
 
 # spatial clustering with balanced folds
 set.seed(6)

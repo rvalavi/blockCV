@@ -7,6 +7,8 @@
 #' using \code{\link[stats]{kmeans}} for both approaches. The only requirement is \code{x} that leads to
 #' a clustering of the coordinates of sample data. Otherwise, by providing \code{r}, environmental
 #' clustering is done.
+#' Environmental clustering can also be spatially restricted with \code{spatial_weight},
+#' and fold sizes or classes can be balanced with \code{balance = TRUE}; see Details.
 #'
 #' As k-means algorithms use Euclidean distance to estimate clusters, the input raster covariates should be quantitative variables.
 #' Since variables with wider ranges of values might dominate the clusters and bias the environmental clustering (Hastie et al., 2009),
@@ -29,6 +31,17 @@
 #' it is provided). This mirrors the balancing used by \code{\link{cv_spatial}} with \code{selection = "random"}, and \code{k_multiplier}
 #' controls the trade-off between fold balance (higher values) and fold compactness (lower values).
 #'
+#' For environmental clustering (when \code{r} is provided), \code{spatial_weight} adds a soft spatial compactness
+#' pressure by blending the coordinates into the covariates before clustering, so the k-means Euclidean distance
+#' becomes \eqn{(1 - w) d^2_{env} + w \, d^2_{geo}}: \code{spatial_weight = 0} (default) is pure environmental
+#' clustering, larger values pull the environmental clusters to be more geographically compact, and
+#' \code{spatial_weight = 1} clusters on the coordinates alone. This is a soft pressure -- it favours, but does not
+#' guarantee, spatially contiguous folds. The coordinates are always standardised (so a
+#' \code{spatial_weight = 1} clustering is \emph{not} identical to the coordinate-only clustering obtained with
+#' \code{r = NULL}, which uses the raw coordinates), while the covariates are standardised only when
+#' \code{scale = TRUE}; \code{spatial_weight} is best calibrated with the default \code{scale = TRUE}. Coordinates
+#' should be projected (a warning is issued for lon/lat data).
+#'
 #' @details
 #' For presence-background data (\code{presence_bg = TRUE}), \code{column} holds \code{1} for presences and
 #' \code{0} for \emph{background} points -- locations sampled across the study area to represent the available
@@ -41,11 +54,16 @@
 #'  \code{balance = TRUE}, to balance those classes across the folds.
 #'  Continuous numeric responses are binned into quantiles using \code{num_bins} before records are counted.
 #' @param r a terra SpatRaster object of covariates to identify environmental groups. If provided, clustering will be done
-#' in environmental space rather than spatial coordinates of sample points.
+#' in environmental space rather than spatial coordinates of sample points. Only numeric (quantitative) covariates are
+#' supported; categorical (factor) layers are rejected because k-means relies on Euclidean distance.
 #' @param scale logical; whether to scale the input rasters (recommended) for clustering.
 #' @param raster_cluster logical; if \code{TRUE}, the clustering is done over the entire raster layer,
 #' otherwise it will be over the extracted raster values of the sample points. See details for more information.
 #' @param num_sample integer; the number of samples from raster layers to build the clusters (when \code{raster_cluster = FALSE}).
+#' @param spatial_weight numeric in \code{[0, 1]}; only used (and only validated) for environmental clustering (when \code{r} is
+#' provided). It adds a soft spatial compactness pressure by blending the geographic coordinates into the environmental clustering.
+#' \code{0} (the default) does pure environmental clustering; larger values (e.g. \code{0.3}--\code{0.5}) give environmentally
+#' coherent folds that are also geographically separated; \code{1} clusters on the coordinates alone. See \sQuote{Details}.
 #' @param balance logical. If \code{TRUE}, the sample points are first grouped into \code{k * k_multiplier} clusters (see \code{k_multiplier})
 #' and these small clusters are then assigned to \code{k} folds over \code{iteration} random attempts to balance the training/testing
 #' records (or the classes/bins of \code{column} when it is provided). If \code{FALSE} (default), the points are clustered directly
@@ -107,6 +125,15 @@
 #'                  k = 5,
 #'                  scale = TRUE)
 #'
+#' # spatially constrained environmental clustering
+#' set.seed(6)
+#' sec <- cv_cluster(r = covars,
+#'                   x = pa_data,
+#'                   column = "occ",
+#'                   k = 5,
+#'                   scale = TRUE,
+#'                   spatial_weight = 0.4) # blend geography into the environmental clusters
+#'
 #' # spatial clustering with balanced folds
 #' set.seed(6)
 #' bc <- cv_cluster(x = pa_data,
@@ -136,6 +163,7 @@ cv_cluster <- function(
         scale = TRUE,
         raster_cluster = FALSE,
         num_sample = 10000L,
+        spatial_weight = 0,
         balance = FALSE,
         presence_bg = FALSE,
         k_multiplier = 5L,
@@ -157,8 +185,17 @@ cv_cluster <- function(
     # k_multiplier and iteration must be natural numbers
     k_multiplier <- max(1L, abs(as.integer(k_multiplier)))
     iteration <- max(1L, abs(as.integer(iteration)))
+    # spatial_weight only affects environmental clustering; warn if it is set without a raster
+    if(is.null(r) && !isTRUE(spatial_weight == 0)){
+        warning("'spatial_weight' is only used for environmental clustering (when 'r' is provided); ignored.")
+    }
 
     if(!is.null(r)){
+        # spatial_weight blends geography into environmental clustering; must be in [0, 1]
+        if(length(spatial_weight) != 1 || !is.numeric(spatial_weight) ||
+           is.na(spatial_weight) || spatial_weight < 0 || spatial_weight > 1){
+            stop("'spatial_weight' must be a single number between 0 and 1.")
+        }
         # check for required packages
         pkg <- c("terra")
         .check_pkgs(pkg)
@@ -170,6 +207,8 @@ cv_cluster <- function(
         if(terra::nlyr(r) < 1){
             stop("'r' is not a valid raster.")
         }
+        # k-means needs numeric covariates; reject categorical (factor) layers
+        .check_r_numeric(r)
         # scale?
         if (scale){
             tryCatch(
@@ -193,7 +232,11 @@ cv_cluster <- function(
     }
 
     if (is.null(r)){
-        # spatial cluster on xy
+        # spatial cluster on xy; k-means uses Euclidean distance on the coordinates,
+        # which is only approximate for geographic (lon/lat) data
+        if(isTRUE(sf::st_is_longlat(x))){
+            warning("k-means clustering uses Euclidean distance on coordinates; geographic (lon/lat) coordinates are approximate -- consider projecting 'x'.")
+        }
         xy <- sf::st_coordinates(x)
         kms <- stats::kmeans(xy, centers = n_centers, iter.max = 500, nstart = 25, ...)
         cluster_ids <- as.integer(kms$cluster)
@@ -203,6 +246,10 @@ cv_cluster <- function(
         x_vals <- terra::extract(r, x, ID = FALSE)
         if (anyNA(x_vals)){
             stop("The input raster layer does not cover all the column points.")
+        }
+        # blending geography (spatial_weight > 0) uses Euclidean distance on coordinates
+        if(spatial_weight > 0 && isTRUE(sf::st_is_longlat(x))){
+            warning("'spatial_weight' uses Euclidean distance on coordinates; geographic (lon/lat) coordinates are approximate -- consider projecting 'x'.")
         }
 
         if(raster_cluster){
@@ -214,13 +261,29 @@ cv_cluster <- function(
                     message("The num_sample reduced to ", num_sample, "; the total number of available cells.\n")
                 }
             }
-            sampr <- terra::spatSample(r, size = num_sample, method = "random", na.rm = TRUE)
-            sampr <- sampr[stats::complete.cases(sampr), ]
-            sampr <- rbind(x_vals, sampr)
-            kms <- stats::kmeans(sampr, centers = n_centers, iter.max = 500, nstart = 25, ...)
+            if(spatial_weight > 0){
+                # sample cells with their coordinates (xy = TRUE prepends x, y) so the
+                # sampled cells and the sample points share both covariates and geography
+                sampr <- terra::spatSample(r, size = num_sample, method = "random", na.rm = TRUE, xy = TRUE)
+                sampr <- sampr[stats::complete.cases(sampr[, -(1:2), drop = FALSE]), , drop = FALSE]
+                env <- rbind(x_vals, sampr[, -(1:2), drop = FALSE])
+                xy  <- rbind(sf::st_coordinates(x), as.matrix(sampr[, 1:2]))
+                feat <- .augment_geo(env, xy, spatial_weight, scale_env = scale)
+            } else{
+                # original path (unchanged) for exact backward compatibility
+                sampr <- terra::spatSample(r, size = num_sample, method = "random", na.rm = TRUE)
+                sampr <- sampr[stats::complete.cases(sampr), ]
+                feat <- rbind(x_vals, sampr)
+            }
+            kms <- stats::kmeans(feat, centers = n_centers, iter.max = 500, nstart = 25, ...)
             cluster_ids <- kms$cluster[seq_len(nrow(x))]
         } else{
-            kms <- stats::kmeans(x_vals, centers = n_centers, iter.max = 500, nstart = 25, ...)
+            if(spatial_weight > 0){
+                feat <- .augment_geo(x_vals, sf::st_coordinates(x), spatial_weight, scale_env = scale)
+            } else{
+                feat <- x_vals # original path (unchanged) for exact backward compatibility
+            }
+            kms <- stats::kmeans(feat, centers = n_centers, iter.max = 500, nstart = 25, ...)
             cluster_ids <- kms$cluster
         }
 
