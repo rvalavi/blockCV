@@ -626,6 +626,6 @@ plot.cv_knndm <- function(x, y, data = NULL, ...){
 #' @export
 #' @method summary cv_knndm
 summary.cv_knndm <- function(object, ...){
-    cat("Number of recoreds in each training and testing fold:\n")
+    cat("Number of records in each training and testing fold:\n")
     print(object$records)
 }

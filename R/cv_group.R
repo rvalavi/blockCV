@@ -217,7 +217,7 @@ cv_group <- function(
     final_objs <- list(
         folds_list = fold_list,
         folds_ids = fold_ids,
-        biomod_table = switch(biomod2, as.matrix(biomod_table)),
+        biomod_table = if(biomod2) as.matrix(biomod_table) else NULL,
         k = k,
         column = column,
         presence_bg = FALSE,
@@ -259,6 +259,6 @@ plot.cv_group <- function(x, y, data = NULL, ...){
 #' @export
 #' @method summary cv_group
 summary.cv_group <- function(object, ...){
-    cat("Number of recoreds in each training and testing fold:\n")
+    cat("Number of records in each training and testing fold:\n")
     print(object$records)
 }

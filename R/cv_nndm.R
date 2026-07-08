@@ -18,7 +18,7 @@
 #' the number of presence points in the dataset.
 #'
 #' For all other types of data (including presence-absence, count, continuous, and multi-class)
-#' set \code{presence_bg = FALE}, and the function behaves similar to the methods
+#' set \code{presence_bg = FALSE}, and the function behaves similar to the methods
 #' explained by Milà and colleagues (2022).
 #'
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species
@@ -41,8 +41,6 @@
 #' When  \code{sampling = "regular"}, the actual number of samples might be less than \code{num_sample}
 #' for non-rectangular rasters (points falling on no-value areas are removed).
 #' @param min_train numeric; between 0 and 1. A constraint on the minimum proportion of train points in each fold.
-#' @inheritParams cv_buffer
-#' @inheritParams cv_buffer
 #' @param plot logical; whether to plot the G functions. Defaults to \code{interactive()}.
 #' @param report logical; whether to print summary of records in each fold.
 #' Defaults to \code{interactive()}.
@@ -57,7 +55,7 @@
 #'     \itemize{
 #'     \item{folds_list - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
 #'     \item{k - number of the folds}
-#'     \item{size - the distance band to separated trainig and testing folds)}
+#'     \item{size - the distance band to separate training and testing folds)}
 #'     \item{column - the name of the column if provided}
 #'     \item{presence_bg - whether this was treated as presence-background data}
 #'     \item{records - a table with the number of points in each category of training and testing}
@@ -199,17 +197,17 @@ cv_nndm <- function(
     pp_cdf <- stats::ecdf(Gij)
     # NNDM CDF
     fp_cdf <- stats::ecdf(msize)
-    # plotting datta
+    # plotting data
     plot_data <- data.frame(pr = pp_cdf(r_range),
                             lo = tp_cdf(r_range),
                             nn = fp_cdf(r_range),
                             r = r_range)
 
     plt <- ggplot2::ggplot(plot_data, ggplot2::aes(x = get("r"))) +
-        ggplot2::geom_step(alpha = 0.7, linewidth = 1.2, ggplot2::aes(y = get("pr"), color = "Prediciton")) +
+        ggplot2::geom_step(alpha = 0.7, linewidth = 1.2, ggplot2::aes(y = get("pr"), color = "Prediction")) +
         ggplot2::geom_step(alpha = 0.7, linewidth = 0.6, ggplot2::aes(y = get("lo"), color = "LOO")) +
         ggplot2::geom_step(alpha = 0.7, linewidth = 1.2, ggplot2::aes(y = get("nn"), color = "NNDM")) +
-        ggplot2::scale_color_manual(values = c("Prediciton" = "#000000",
+        ggplot2::scale_color_manual(values = c("Prediction" = "#000000",
                                                "LOO" = "#56B4E9",
                                                "NNDM" = "#E69F00")) +
         ggplot2::labs(color = "", x = "r", y = expression(G[r])) +
@@ -260,7 +258,7 @@ plot.cv_nndm <- function(x, y, data = NULL, ...){
 #' @export
 #' @method summary cv_nndm
 summary.cv_nndm <- function(object, ...){
-    cat("Summary of number of recoreds in each training and testing fold:\n")
+    cat("Summary of number of records in each training and testing fold:\n")
     if(!is.null(object$records)){
         print(summary(object$records)[c(1,4,6), ])
     }

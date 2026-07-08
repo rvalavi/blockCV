@@ -65,7 +65,7 @@ cv_block_size <- function(
     yrange <- (bbox[4] - bbox[2])
 
     if(is.na(sf::st_crs(x_obj))){
-        stop("'r' and/or 'x' must have defined coordinate refernce systems.")
+        stop("'r' and/or 'x' must have defined coordinate reference systems.")
     }
 
     size_short <- min(xrange, yrange)
@@ -116,7 +116,7 @@ cv_block_size <- function(
         )
     }
 
-    # create UI for shniy app
+    # create UI for shiny app
     ui <- shiny::fluidPage(
         shiny::wellPanel(
             shiny::fluidRow(

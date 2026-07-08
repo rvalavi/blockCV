@@ -212,7 +212,7 @@ bscv <- cv_cluster(x = pa_data,
                    report = TRUE)
 ```
 
-```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=10}
+```{r warning=FALSE, message=FALSE, fig.height=4, fig.width=8}
 scv_plot <- cv_plot(scv, pa_data, combine_folds = TRUE) +
     ggplot2::labs(title = "Default clustering")
 

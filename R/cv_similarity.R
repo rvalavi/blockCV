@@ -320,7 +320,7 @@ cv_similarity <- function(
     points_colors <- if(is.null(points_colors)) cols else points_colors
 
     # provide alternatives for class(cv)
-    goem_buffer <- ggplot2::geom_point(size = points_size, alpha = points_alpha)
+    geom_buffer <- ggplot2::geom_point(size = points_size, alpha = points_alpha)
     geom_other <- ggplot2::geom_jitter(width = jitter_width, size = points_size, alpha = points_alpha)
     geom_vio <- ggplot2::geom_violin(
         ggplot2::aes(x = get("folds"), y = get("value"), group = get("folds")),
@@ -328,7 +328,7 @@ cv_similarity <- function(
         fill = NA
     )
     # which geom to choose
-    geom_exta <- if(.is_loo(cv)) goem_buffer else geom_other
+    geom_extra <- if(.is_loo(cv)) geom_buffer else geom_other
     mes_reshp$folds <- factor(mes_reshp$folds)
 
     col_name <- switch(
@@ -380,7 +380,7 @@ cv_similarity <- function(
         ggplot2::aes(x = get("folds"), y = get("value"), colour = get("value"))) +
         novel_shade +
         ggplot2::geom_hline(yintercept = 0, color = "grey50", linetype = 2) +
-        geom_exta +
+        geom_extra +
         switch(!.is_loo(cv), geom_vio) +
         geom_pct +
         ggplot2::scale_color_gradientn(colours = points_colors,

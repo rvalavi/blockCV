@@ -97,7 +97,7 @@ conditions based on the input covariates, or cluster of spatial coordinates of t
 Sample data (i.e. species data) corresponding to any of
 these groups or clusters are assigned to a fold. Clustering is done
 using \code{\link[stats]{kmeans}} for both approaches. The only requirement is \code{x} that leads to
-a clustering of the confidantes of sample data. Otherwise, by providing \code{r}, environmental
+a clustering of the coordinates of sample data. Otherwise, by providing \code{r}, environmental
 clustering is done.
 }
 \details{

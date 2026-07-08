@@ -307,10 +307,15 @@ summary.cv_spatial_autocor <- function(object, ...){
         names(points) <- c("target", "geometry")
     }
 
-    fit_vario <- automap::autofitVariogram(
-        formula = target ~ 1,
-        input_data = .as_sp(points)
-    )
+    # automap derives the variogram cutoff from a planar bbox diagonal for sf
+    # inputs, which is wrong for longlat data (degrees, not metres). Supply a
+    # great-circle cutoff (km) so the range matches the metric distances gstat
+    # computes internally. Projected data keeps automap's default cutoff.
+    vario_args <- list(formula = target ~ 1, input_data = points)
+    if(sf::st_is_longlat(points)){
+        vario_args$cutoff <- .gc_cutoff(points)
+    }
+    fit_vario <- do.call(automap::autofitVariogram, vario_args)
 
     if(progress) utils::setTxtProgressBar(pb, i)
 
@@ -318,25 +323,18 @@ summary.cv_spatial_autocor <- function(object, ...){
 }
 
 
-# Annoying step to import sp so there'll be no CRAN errors
-# Sp is only require because automap produces different output with latlong sf objects
-# Don't use sf::as_Spatial because this depends on sp and requires sp dependency anyway
-.as_sp <- function(x) {
-    out <- if (sf::st_is_longlat(x)) {
-        coords <- sf::st_coordinates(x)
-        attrs <- sf::st_drop_geometry(x)
-        crs_info <- sf::st_crs(x)$proj4string
-
-        sp::SpatialPointsDataFrame(
-            coords = coords,
-            data = attrs,
-            proj4string = sp::CRS(crs_info)
-        )
-    } else {
-        x
-    }
-
-    return(out)
+# Great-circle cutoff (km) for autofitVariogram on longlat data. automap uses
+# 0.35 * cutoff as the variogram diagonal; matching the great-circle diagonal it
+# computes for Spatial objects lets us feed sf directly and drop the sp dependency
+# (requires automap >= 1.1-20, which added the cutoff argument).
+.gc_cutoff <- function(x) {
+    bb <- sf::st_bbox(x)
+    corners <- sf::st_sfc(
+        sf::st_point(c(bb$xmin, bb$ymin)),
+        sf::st_point(c(bb$xmax, bb$ymax)),
+        crs = sf::st_crs(x)
+    )
+    as.numeric(sf::st_distance(corners)[1, 2]) / 1000 * 0.35
 }
 
 

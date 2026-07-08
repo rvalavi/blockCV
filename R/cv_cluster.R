@@ -5,7 +5,7 @@
 #' Sample data (i.e. species data) corresponding to any of
 #' these groups or clusters are assigned to a fold. Clustering is done
 #' using \code{\link[stats]{kmeans}} for both approaches. The only requirement is \code{x} that leads to
-#' a clustering of the confidantes of sample data. Otherwise, by providing \code{r}, environmental
+#' a clustering of the coordinates of sample data. Otherwise, by providing \code{r}, environmental
 #' clustering is done.
 #'
 #' As k-means algorithms use Euclidean distance to estimate clusters, the input raster covariates should be quantitative variables.
@@ -286,7 +286,7 @@ cv_cluster <- function(
     final_objs <- list(
         folds_list = fold_list,
         folds_ids = fold_ids,
-        biomod_table = switch(biomod2, as.matrix(biomod_table)),
+        biomod_table = if(biomod2) as.matrix(biomod_table) else NULL,
         k = k,
         column = column,
         presence_bg = presence_bg,
@@ -326,6 +326,6 @@ plot.cv_cluster <- function(x, y, data = NULL, ...){
 #' @export
 #' @method summary cv_cluster
 summary.cv_cluster <- function(object, ...){
-    cat("Number of recoreds in each training and testing fold:\n")
+    cat("Number of records in each training and testing fold:\n")
     print(object$records)
 }

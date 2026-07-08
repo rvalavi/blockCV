@@ -480,7 +480,7 @@ plot.cv_spatial <- function(x, y, ...){
 #' @export
 #' @method summary cv_spatial
 summary.cv_spatial <- function(object, ...){
-    cat("Number of recoreds in each training and testing fold:\n")
+    cat("Number of records in each training and testing fold:\n")
     print(object$records)
 }
 

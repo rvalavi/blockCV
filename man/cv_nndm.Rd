@@ -74,7 +74,7 @@ An object of class S3. A list of objects including:
     \itemize{
     \item{folds_list - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
     \item{k - number of the folds}
-    \item{size - the distance band to separated trainig and testing folds)}
+    \item{size - the distance band to separate training and testing folds)}
     \item{column - the name of the column if provided}
     \item{presence_bg - whether this was treated as presence-background data}
     \item{records - a table with the number of points in each category of training and testing}
@@ -100,7 +100,7 @@ The methods cycles through all the presence data, so the number of folds is equa
 the number of presence points in the dataset.
 
 For all other types of data (including presence-absence, count, continuous, and multi-class)
-set \code{presence_bg = FALE}, and the function behaves similar to the methods
+set \code{presence_bg = FALSE}, and the function behaves similar to the methods
 explained by Milà and colleagues (2022).
 }
 \examples{
