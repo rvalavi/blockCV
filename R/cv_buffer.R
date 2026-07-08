@@ -121,7 +121,10 @@ cv_buffer <- function(
     # add background only if both true
     add_bg <- (presence_bg && add_bg)
 
-    if(progress) pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
+    if(progress){
+        pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
+        on.exit(if(progress) close(pb), add = TRUE)
+    }
     fold_list <- lapply(x_1s, function(i, pbag = add_bg) {
         if(pbag){
             test_ids <- which(dmatrix[i, ] <= size)
@@ -135,6 +138,10 @@ cv_buffer <- function(
 
         list(as.numeric(which(dmatrix[i, ] > size)), as.numeric(test_set))
     })
+    if(progress){
+        close(pb)
+        progress <- FALSE
+    }
 
     # calculate train test table summary
     train_test_table <- .table_summary(fold_list, x, column, n, num_bins = num_bins)

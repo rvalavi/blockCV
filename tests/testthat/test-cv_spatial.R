@@ -8,12 +8,15 @@ expect_names <- c("folds_list",
                   "blocks",
                   "records")
 
-aus <- system.file("extdata/au/", package = "blockCV") |>
-    list.files(full.names = TRUE) |>
-    terra::rast()
+aus <- terra::rast(
+    list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+)
 
-pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
-    sf::st_as_sf(coords = c("x", "y"), crs = 7845)
+pa_data <- sf::st_as_sf(
+    read.csv(system.file("extdata/", "species.csv", package = "blockCV")),
+    coords = c("x", "y"),
+    crs = 7845
+)
 pa_data <- pa_data[1:200, ]
 
 test_that("test cv_spatial function with random assingment and raster file", {

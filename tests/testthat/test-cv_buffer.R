@@ -8,8 +8,11 @@ expect_names <- c(
 )
 
 
-pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
-    sf::st_as_sf(coords = c("x", "y"), crs = 7845)
+pa_data <- sf::st_as_sf(
+    read.csv(system.file("extdata/", "species.csv", package = "blockCV")),
+    coords = c("x", "y"),
+    crs = 7845
+)
 pa_data <- pa_data[1:200, ]
 
 test_that("test that cv_buffer function works properly with presence-absence data",

@@ -173,7 +173,10 @@ cv_spatial_autocor <- function(
     }
 
     if(nlayer < 2) progress <- FALSE
-    if(progress) pb <- utils::txtProgressBar(min = 0, max = nlayer, style = 3)
+    if(progress){
+        pb <- utils::txtProgressBar(min = 0, max = nlayer, style = 3)
+        on.exit(if(progress) close(pb), add = TRUE)
+    }
 
     # fitting wariogram models
     vario_list <- lapply(
@@ -186,6 +189,10 @@ cv_spatial_autocor <- function(
         progress = progress,
         pb = if(progress) pb else NULL
     )
+    if(progress){
+        close(pb)
+        progress <- FALSE
+    }
 
     # make a dataframe from variograms data
     vario_data <- data.frame(layers = seq_len(nlayer), range = 1, sill = 1)

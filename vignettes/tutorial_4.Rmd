@@ -40,9 +40,9 @@ points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
 # load raster covariates
-covars <- system.file("extdata/au/", package = "blockCV") |>
-  list.files(full.names = TRUE) |>
-  terra::rast()
+covars <- terra::rast(
+  list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+)
 ```
 
 Extract the raster covariate values at the species records. This is the

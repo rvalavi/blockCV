@@ -295,9 +295,8 @@ cv_plot <- function(
     )
     # length of the folds
     k <- length(folds_list)
-    if(max(num_plots) > k){
-        num_plots <- num_plots[num_plots <= k]
-    }
+    # keep only requested folds that exist; error clearly if none do
+    num_plots <- .check_num_plots(num_plots, k)
     # number of original sample points (folds index into these)
     len <- .cv_n_points(cv)
     if(len != nrow(x)){

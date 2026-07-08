@@ -192,9 +192,8 @@ cv_similarity <- function(
     folds_list <- cv$folds_list
     # length of the folds
     k <- length(folds_list)
-    if(max(num_plots) > k){
-        num_plots <- num_plots[num_plots <= k]
-    }
+    # keep only requested folds that exist; error clearly if none do
+    num_plots <- .check_num_plots(num_plots, k)
     # presence-background: assess similarity on the presences only (mirror cv_distance),
     # i.e. drop the background points from every fold's train/test sets
     pbg <- isTRUE(cv$presence_bg) && !is.null(cv$column) && cv$column %in% colnames(x)
@@ -210,7 +209,10 @@ cv_similarity <- function(
     m <- ncol(points)
     df <- data.frame(id = seq_len(n))
     # add progress bar
-    if(progress) pb <- utils::txtProgressBar(min = 0, max = length(num_plots), style = 3)
+    if(progress){
+        pb <- utils::txtProgressBar(min = 0, max = length(num_plots), style = 3)
+        on.exit(close(pb), add = TRUE)
+    }
 
     if (!MESS) {
         # scale a dataset based on params of another scaled dataset

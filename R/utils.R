@@ -235,6 +235,7 @@
 
     if(progress){
         pb <- utils::txtProgressBar(min = 0, max = iteration, style = 3)
+        on.exit(close(pb), add = TRUE)
     }
 
     if(!is.null(seed)){

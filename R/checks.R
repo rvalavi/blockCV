@@ -1,7 +1,7 @@
 # Author: Roozbeh Valavi
 # contact: valavi.r@gmail.com
-# Date : May 2023
-# Version 0.3
+# Date : July 2026
+# Version 0.4
 
 # check the object is a blockCV object
 .check_cv <- function(x) {
@@ -32,6 +32,22 @@
 }
 
 
+# folds are numbered 1..k; keep only the requested fold indices that exist and
+# fail clearly when none remain, rather than letting an empty selection surface
+# downstream as a confusing "undefined columns selected" error.
+.check_num_plots <- function(num_plots, k){
+    valid <- num_plots[num_plots >= 1 & num_plots <= k]
+    if(length(valid) == 0){
+        stop(
+            sprintf("None of the requested 'num_plots' folds are available; 'cv' has %d fold(s).\n", k),
+            sprintf("Choose 'num_plots' value(s) in 1:%d.", k),
+            call. = FALSE
+        )
+    }
+    valid
+}
+
+
 # check points fall within the raster layer
 .check_within <- function(x, r) {
     bbox <- sf::st_bbox(x)
@@ -49,13 +65,13 @@
 # check for x
 .check_x <- function(x, name = "x"){
     if(!methods::is(x, "sf")){
-        tryCatch(
-            {
-                x <- sf::st_as_sf(x)
-            },
+        x <- tryCatch(
+            sf::st_as_sf(x),
             error = function(cond) {
-                message(sprintf("'%s' is not convertible to an sf object!", name))
-                message(sprintf("'%s' must be an sf or spatial* object.", name))
+                stop(
+                    sprintf("'%s' must be an sf or spatial* object; it is not convertible to an sf object.", name),
+                    call. = FALSE
+                )
             }
         )
     }
@@ -172,6 +188,21 @@
             "Environmental clustering uses k-means (Euclidean distance) and supports only numeric covariates.\n",
             "Categorical (factor) raster layer(s) detected: ", nm, ".\n",
             "Remove or numerically encode these layer(s) before clustering.",
+            call. = FALSE
+        )
+    }
+    invisible(TRUE)
+}
+
+# k-means cannot place more centres than there are data rows to cluster (sample
+# points or sampled raster cells); stats::kmeans() otherwise aborts with the
+# cryptic "more cluster centers than distinct data points". Fail early with a
+# clearer, actionable message.
+.check_kmeans_k <- function(centers, n, what = "sample points"){
+    if(centers > n){
+        stop(
+            sprintf("Cannot create %d clusters from only %d %s.\n", centers, n, what),
+            sprintf("Reduce 'k' to at most %d, or supply more data.", n),
             call. = FALSE
         )
     }

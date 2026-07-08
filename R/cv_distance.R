@@ -315,7 +315,7 @@ cv_distance <- function(
         plt <- plt +
             ggplot2::geom_ribbon(ggplot2::aes(ymin = get("Random_lo"), ymax = get("Random_hi")),
                                  fill = "#009E73", alpha = 0.2) +
-            ggplot2::geom_step(alpha = 0.7, linewidth = 0.8, linetype = "dashed",
+            ggplot2::geom_step(alpha = 0.7, linewidth = 0.8,
                                ggplot2::aes(y = get("Random"), color = "Random"))
     }
     plt <- plt +

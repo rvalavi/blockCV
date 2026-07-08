@@ -18,12 +18,15 @@ expect_names <- c(
 )
 
 
-aus <- system.file("extdata/au/", package = "blockCV") |>
-    list.files(full.names = TRUE) |>
-    terra::rast()
+aus <- terra::rast(
+    list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+)
 
-pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
-    sf::st_as_sf(coords = c("x", "y"), crs = 7845)
+pa_data <- sf::st_as_sf(
+    read.csv(system.file("extdata/", "species.csv", package = "blockCV")),
+    coords = c("x", "y"),
+    crs = 7845
+)
 pa_data_all <- pa_data
 pa_data <- pa_data[1:100, ]
 
@@ -200,7 +203,7 @@ test_that("test that cv_knndm is reproducible with a seed", {
 
 test_that("test cv_knndm errors with invalid arguments", {
     # invalid x
-    expect_error(cv_knndm(x = "pa_data", r = aus, k = 5))
+    expect_error(cv_knndm(x = "pa_data", r = aus, k = 5), "sf or spatial")
     # k too small
     expect_error(cv_knndm(x = pa_data, r = aus, k = 1, num_sample = 2000))
     # maxp outside (1/k, 1)

@@ -238,6 +238,7 @@ cv_cluster <- function(
             warning("k-means clustering uses Euclidean distance on coordinates; geographic (lon/lat) coordinates are approximate -- consider projecting 'x'.")
         }
         xy <- sf::st_coordinates(x)
+        .check_kmeans_k(n_centers, nrow(xy), what = "sample points")
         kms <- stats::kmeans(xy, centers = n_centers, iter.max = 500, nstart = 25, ...)
         cluster_ids <- as.integer(kms$cluster)
 
@@ -275,6 +276,7 @@ cv_cluster <- function(
                 sampr <- sampr[stats::complete.cases(sampr), ]
                 feat <- rbind(x_vals, sampr)
             }
+            .check_kmeans_k(n_centers, nrow(feat), what = "sample points and raster cells")
             kms <- stats::kmeans(feat, centers = n_centers, iter.max = 500, nstart = 25, ...)
             cluster_ids <- kms$cluster[seq_len(nrow(x))]
         } else{
@@ -283,6 +285,7 @@ cv_cluster <- function(
             } else{
                 feat <- x_vals # original path (unchanged) for exact backward compatibility
             }
+            .check_kmeans_k(n_centers, nrow(feat), what = "sample points")
             kms <- stats::kmeans(feat, centers = n_centers, iter.max = 500, nstart = 25, ...)
             cluster_ids <- kms$cluster
         }

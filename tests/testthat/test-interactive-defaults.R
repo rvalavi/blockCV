@@ -1,12 +1,15 @@
 test_that("cv functions are silent by default in non-interactive sessions", {
     skip_if(interactive())
 
-    pts <- data.frame(
-        x = rep(seq_len(6), each = 6),
-        y = rep(seq_len(6), times = 6),
-        occ = rep(0:1, length.out = 36)
-    ) |>
-        sf::st_as_sf(coords = c("x", "y"), crs = 3857)
+    pts <- sf::st_as_sf(
+        data.frame(
+            x = rep(seq_len(6), each = 6),
+            y = rep(seq_len(6), times = 6),
+            occ = rep(0:1, length.out = 36)
+        ),
+        coords = c("x", "y"),
+        crs = 3857
+    )
 
     r <- terra::rast(
         xmin = 0,
@@ -40,12 +43,15 @@ test_that("cv functions are silent by default in non-interactive sessions", {
 
 
 test_that("report and plot flags suppress output without dropping records", {
-    pts <- data.frame(
-        x = rep(seq_len(6), each = 6),
-        y = rep(seq_len(6), times = 6),
-        occ = rep(0:1, length.out = 36)
-    ) |>
-        sf::st_as_sf(coords = c("x", "y"), crs = 3857)
+    pts <- sf::st_as_sf(
+        data.frame(
+            x = rep(seq_len(6), each = 6),
+            y = rep(seq_len(6), times = 6),
+            occ = rep(0:1, length.out = 36)
+        ),
+        coords = c("x", "y"),
+        crs = 3857
+    )
 
     r <- terra::rast(
         xmin = 0,

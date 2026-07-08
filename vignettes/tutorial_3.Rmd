@@ -42,10 +42,9 @@ library(terra) # working with spatial raster data
 library(tmap) # plotting maps
 
 # load raster data
-# the pipe operator |> is available for R version 4.1 or higher
-rasters <- system.file("extdata/au/", package = "blockCV") |>
-  list.files(full.names = TRUE) |>
-  terra::rast()
+rasters <- terra::rast(
+  list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+)
 
 ```
 

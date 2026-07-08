@@ -40,9 +40,9 @@ library(terra)
 points <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 pa_data <- sf::st_as_sf(points, coords = c("x", "y"), crs = 7845)
 
-rasters <- system.file("extdata/au/", package = "blockCV") |>
-  list.files(full.names = TRUE) |>
-  terra::rast()
+rasters <- terra::rast(
+  list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+)
 ```
 
 Create several fold designs to compare. See [Tutorial 1](tutorial_1.html) for a fuller explanation of the fold-creation functions.
