@@ -132,10 +132,10 @@
 }
 
 
-# columns of the records table the balance search should optimise. For
-# presence-background data only the presence (level 1) cells are balanced so the
-# many background records cannot dominate the objective; otherwise all cells are
-# used (returned as NULL).
+# test columns of the records table the balance search should optimise. For
+# presence-background data only the presence (level 1) test cell is balanced so
+# the many background records cannot dominate the objective; otherwise NULL is
+# returned and every test column is used (see .balance_folds).
 .balance_opt_cols <- function(response, presence_bg){
     if(!isTRUE(presence_bg) || is.null(response$values)){
         return(NULL)
@@ -143,17 +143,55 @@
     if(!"1" %in% as.character(response$levels)){
         return(NULL)
     }
-    c("train_1", "test_1")
+    "test_1"
+}
+
+
+# score a candidate fold assignment. The objective is evaluated on the test
+# columns only: a train cell is the complement of its test cell
+# (train = n_c - test), so per class the two have identical fold-to-fold
+# variance -- balancing test balances train -- and dropping train stops the much
+# larger train counts from dominating the objective. Returns a length-2 vector
+# compared lexicographically (lower is better on each element):
+#   [1] empty_cells -- empty test cells for classes with at least k records.
+#       This is count-based; block layout may still prevent full coverage.
+#   [2] imbalance  -- Pearson chi-square of the test counts against an equal
+#       split (expected e_c = n_c / k), summed over classes. Dividing by e_c
+#       normalises each class so an abundant class cannot swamp a rare one, and a
+#       near-empty rare-class cell (large deviation relative to a small e_c) is
+#       penalised hardest -- the failure balancing most needs to avoid.
+.balance_score <- function(train_test_table, test_cols, k){
+    Tt <- as.matrix(train_test_table[, test_cols, drop = FALSE])
+    n_c <- colSums(Tt)
+    fillable <- n_c >= k
+    empty_cells <- if(any(fillable)) sum(Tt[, fillable, drop = FALSE] == 0) else 0
+    keep <- n_c > 0
+    if(any(keep)){
+        e_c <- n_c[keep] / k
+        # column-recycle rather than %*% diag(): diag() of a length-1 vector is
+        # an identity matrix, which would break the single-column (PB) case.
+        dev <- sweep(Tt[, keep, drop = FALSE], 2, e_c)
+        imbalance <- sum(sweep(dev^2, 2, e_c, "/"))
+    } else {
+        imbalance <- 0
+    }
+    c(empty_cells, imbalance)
+}
+
+
+# lexicographic 'is score a strictly better than best b' on (empty cells, imbalance)
+.balance_better <- function(a, b){
+    a[1] < b[1] || (a[1] == b[1] && a[2] < b[2])
 }
 
 
 # assign spatial pieces (blocks or clusters) to k folds using a random search
-# that keeps the most balanced split (highest minimum and lowest standard
-# deviation of the records table). Shared by cv_spatial (random selection) and
-# cv_cluster (balance = TRUE). blocks_df must have a 'records' column (the index
-# of each point) and a 'block_id' column (the piece each point belongs to).
-# 'opt_cols' restricts the objective to a subset of the records-table columns
-# (used for presence-background balancing); NULL uses every cell.
+# that keeps the most balanced split, scored by .balance_score (fewest eligible
+# empty test cells, then lowest per-class test imbalance). Shared by cv_spatial
+# (random selection) and cv_cluster (balance = TRUE). blocks_df must have a
+# 'records' column (the index of each point) and a 'block_id' column (the piece
+# each point belongs to). 'opt_cols' names the test columns to optimise (used
+# for presence-background balancing); NULL uses every test column.
 .balance_folds <- function(blocks_df, blocks_len, k, iteration, response,
                            seed = NULL, biomod2 = TRUE, progress = FALSE,
                            opt_cols = NULL){
@@ -163,9 +201,13 @@
     train_test_table <- .records_table(k, response)
     biomod_table <- data.frame(RUN1 = rep(TRUE, nrow(blocks_df)))
 
-    # for selecting the best iteration
-    min_num <- 0
-    max_sd <- Inf
+    # test columns the objective is scored on, and the best score so far
+    test_cols <- if(is.null(opt_cols)){
+        grep("^test", names(train_test_table), value = TRUE)
+    } else {
+        opt_cols
+    }
+    best <- c(Inf, Inf)
 
     if(progress){
         pb <- utils::txtProgressBar(min = 0, max = iteration, style = 3)
@@ -206,13 +248,11 @@
             }
         }
 
-        # objective cells: presence-only when opt_cols is set, otherwise all cells
-        obj <- if(is.null(opt_cols)) train_test_table else train_test_table[, opt_cols, drop = FALSE]
-        # save the best folds in the iteration
-        if(min(obj) >= min_num && stats::sd(unlist(obj)) < max_sd){
+        # score this assignment and keep it if it beats the best so far
+        score <- .balance_score(train_test_table, test_cols, k)
+        if(.balance_better(score, best)){
+            best <- score
             train_test_table2 <- train_test_table
-            min_num <- min(obj)
-            max_sd <- stats::sd(unlist(obj))
             blocks_df2 <- blocks_df_i
             fold_list2 <- fold_list
             fold_vect2 <- fold_vect

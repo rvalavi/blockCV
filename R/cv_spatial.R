@@ -30,6 +30,9 @@
 #' the spatial autocorrelation range would result in a good estimation of error. This is because of the so-called
 #' edge effect (O'Sullivan & Unwin, 2014), whereby points located on the edges of the blocks of opposite sets are
 #' not separated spatially. Blocking with a buffering strategy overcomes this issue (see \code{\link{cv_buffer}}).
+#' When using \code{\link{cv_spatial_autocor}} to inform \code{size}, note that response or covariate variograms
+#' are exploratory proxies for residual autocorrelation unless model residuals have been added to \code{x} and
+#' supplied through the \code{column} argument.
 #'
 #' @details
 #' For presence-background data (\code{presence_bg = TRUE}), \code{column} holds \code{1} for presences and
@@ -57,7 +60,8 @@
 #' @param flat_top logical. Creating hexagonal blocks with topped flat.
 #' @param size numeric value of the specified range by which blocks are created and training/testing data are separated.
 #' This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}
-#' and \code{\link{cv_block_size}} functions.
+#' and \code{\link{cv_block_size}} functions. For residual-based block-size guidance, add model residuals to
+#' \code{x} and pass that residual column to \code{\link{cv_spatial_autocor}}.
 #' @param rows_cols integer vector. Two integers to define the blocks based on row and
 #' column e.g. \code{c(10, 10)} or \code{c(5, 1)}. Hexagonal blocks uses only the first one. This
 #' option is ignored when \code{size} is provided.

@@ -5,7 +5,7 @@
 
 # check the object is a blockCV object
 .check_cv <- function(x) {
-    is_cv <- inherits(x, c("cv_spatial", "cv_cluster", "cv_buffer", "cv_nndm", "cv_knndm"))
+    is_cv <- inherits(x, c("cv_spatial", "cv_cluster", "cv_group", "cv_buffer", "cv_nndm", "cv_knndm"))
     if (!is_cv) stop("'cv' must be a blockCV cv_* object.")
 }
 
@@ -60,6 +60,20 @@
         )
     }
     return(x)
+}
+
+# check for a required grouping column (must be a single existing column name in x)
+.check_group_col <- function(group_col, x){
+    if(missing(group_col) || is.null(group_col)){
+        stop("'group_col' must be provided (the name of the grouping column in 'x').")
+    }
+    if(length(group_col) != 1 || !is.character(group_col)){
+        stop("'group_col' must be a single column name.")
+    }
+    if(!group_col %in% colnames(x)){
+        stop(sprintf("There is no column named '%s' in 'x'.", group_col))
+    }
+    return(group_col)
 }
 
 # check for column matching colnames(x)

@@ -1,12 +1,13 @@
 #' Compare a cross-validation design to the prediction domain via nearest-neighbour distances
 #'
 #' A diagnostic that works on \emph{any} \code{blockCV} cross-validation object (the output of
-#' \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, \code{\link{cv_nndm}}
-#' or \code{\link{cv_knndm}}). It draws the same nearest-neighbour distance distribution plot produced
-#' internally by \code{\link{cv_nndm}} and \code{\link{cv_knndm}}, but for a fold configuration that has
-#' \emph{already} been generated. This lets you check whether a given fold-generation strategy actually
-#' pushes the test-to-train distances towards the distances the model will face when predicting over the
-#' target area. It does not compute pairwise distances for general use; it is a fold-quality diagnostic.
+#' \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_group}},
+#' \code{\link{cv_buffer}}, \code{\link{cv_nndm}} or \code{\link{cv_knndm}}). It draws the same
+#' nearest-neighbour distance distribution plot produced internally by \code{\link{cv_nndm}} and
+#' \code{\link{cv_knndm}}, but for a fold configuration that has \emph{already} been generated. This lets
+#' you check whether a given fold-generation strategy actually pushes the test-to-train distances towards
+#' the distances the model will face when predicting over the target area. It does not compute pairwise
+#' distances for general use; it is a fold-quality diagnostic.
 #'
 #' Three (optionally four) empirical cumulative distribution functions of nearest-neighbour distances
 #' are compared over a distance \code{r}:
@@ -40,7 +41,8 @@
 #'
 #' @inheritParams cv_knndm
 #' @param cv a \code{blockCV} cross-validation object, i.e. the output of \code{\link{cv_spatial}},
-#' \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, \code{\link{cv_nndm}} or \code{\link{cv_knndm}}.
+#' \code{\link{cv_cluster}}, \code{\link{cv_group}}, \code{\link{cv_buffer}},
+#' \code{\link{cv_nndm}} or \code{\link{cv_knndm}}.
 #' @param x a simple features (sf) object of the spatial sample points used to create the \code{cv} object.
 #' @param r a terra SpatRaster object. It defines the area the model predicts over; when neither
 #' \code{pred_points} nor \code{model_domain} is supplied, prediction points are sampled from it. It is
@@ -54,7 +56,8 @@
 #' @param plot logical; whether to draw the plot. The plot is always returned invisibly.
 #'
 #' @seealso \code{\link{cv_similarity}}, \code{\link{cv_knndm}}, \code{\link{cv_nndm}},
-#' \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_plot}} to visualise the folds
+#' \code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_group}},
+#' \code{\link{cv_buffer}}, and \code{\link{cv_plot}} to visualise the folds
 #'
 #' @references Milà, C., Mateu, J., Pebesma, E., & Meyer, H. (2022). Nearest neighbour distance matching
 #' leave-one-out cross-validation for map validation. Methods in Ecology and Evolution, 13(6), 1304-1316.
@@ -232,4 +235,3 @@ cv_distance <- function(
     if(plot) plot(plt)
     invisible(plt)
 }
-

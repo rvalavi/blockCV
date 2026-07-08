@@ -2,8 +2,8 @@
 #'
 #' This function evaluates environmental similarity between training and testing folds,
 #' helping to detect potential extrapolation in the testing data. It supports three
-#' similarity measures: Multivariate Environmental Similarity Surface (MESS), Manhattan
-#' distance (L1), and Euclidean distance (L2).
+#' similarity outputs: MESS, L1, and L2. The L1 and L2 options are distance-based
+#' similarity scores.
 #'
 #' The MESS is calculated as described in Elith et al. (2010). MESS represents
 #' how similar a point in a testing fold is to a training fold (as a reference
@@ -11,7 +11,7 @@
 #' The negative values are the sites where at least one variable has a value that is outside
 #' the range of environments over the reference set, so these are novel environments.
 #'
-#' When using the L1 (Manhattan) or L2 (Euclidean) distance options (experimental), the
+#' When using the L1 (Manhattan) or L2 (Euclidean) score options (experimental), the
 #' function performs the following steps for each test sample:
 #'
 #' \itemize{
@@ -25,9 +25,9 @@
 #'    the training data, while lower or negative scores indicate novelty.}
 #' }
 #'
-#' This provides a simple, distance-based novelty metric, useful for assessing
-#' extrapolation or dissimilarity in prediction scenarios. Note that this approach is
-#' experimental.
+#' This provides a simple, distance-based similarity score, not a raw distance: values
+#' below zero indicate test samples that are farther from their training data than the
+#' random-background baseline. Note that this approach is experimental.
 #'
 #' When the supplied \code{cv} object was built with \code{presence_bg = TRUE}, the similarity
 #' is computed on the \emph{presences} only: the background points (locations sampled to represent
@@ -40,11 +40,11 @@
 #' the \code{cv} object.
 #' @param r a terra SpatRaster object of environmental predictor that are going to be used for modelling. This
 #' is used to calculate similarity between the training and testing points.
-#' @param method the similarity method including: MESS, L1 and L2. Read the details section.
+#' @param method the similarity method: MESS, L1, or L2. Read the details section.
 #' @param type character; \code{"distribution"} (default) draws the per-fold similarity distributions,
 #' while \code{"map"} plots the sample points in geographical space and colours each test point by its
 #' similarity value, showing \emph{where} extrapolation occurs.
-#' @param num_sample number of random samples from raster to calculate similarity distances (only for L1 and L2).
+#' @param num_sample number of random raster samples used for the L1/L2 baseline.
 #' @param seed integer; an optional random seed. The L1/L2 baseline is built from a random raster
 #' sample (\code{num_sample}); set \code{seed} to make the result reproducible.
 #' @param num_plots a vector of indices of folds for plotting (default uses all).
@@ -270,7 +270,7 @@ cv_similarity <- function(
     overall_pct <- if(total_n > 0) 100 * total_novel / total_n else NA_real_
 
     # ---- labels/colours shared by both plot types ----
-    col_name <- switch(method, mess = "MESS", l1 = "L1 distance", l2 = "L2 distance")
+    col_name <- switch(method, mess = "MESS", l1 = "L1 similarity score", l2 = "L2 similarity score")
     novel_label <- if(MESS) "novel (MESS < 0)" else "beyond the baseline (score < 0)"
     sub_txt <- if(is.na(overall_pct)) NULL else
         sprintf("Extrapolating test points %s: %.1f%% overall", novel_label, overall_pct)
@@ -334,14 +334,14 @@ cv_similarity <- function(
     col_name <- switch(
         method,
         mess = "MESS",
-        l1 = "L1 distance",
-        l2 = "L2 distance"
+        l1 = "L1 similarity score",
+        l2 = "L2 similarity score"
     )
     y_name <- switch(
         method,
         mess = "MESS Values",
-        l1 = "Distance differnce with random samples",
-        l2 = "Distance differnce with random samples"
+        l1 = "Similarity score (baseline - distance)",
+        l2 = "Similarity score (baseline - distance)"
     )
 
     # headline extrapolation rate for the subtitle

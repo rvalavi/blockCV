@@ -111,7 +111,7 @@ scv1 <- cv_spatial(
 ```
 
 
-Now, let's create LOO CV folds with nearest neighbour distance matching (NNDM; Milà et al. 2022) algorithm. To run `cv_nndm`, you need a measure of spatial autocorrelation present in your data. This can be done wither by 1) fitting a model and use it's residual to calculate spatial autocorrelation, or 2) use the autocorrelation of response variable for it (Milà et al, 2022; Roberts et al. 2017). Here, we calculate spatial autocorrelation range in the response using the `cv_spatial_autocor` function.
+Now, let's create LOO CV folds with nearest neighbour distance matching (NNDM; Milà et al. 2022) algorithm. To run `cv_nndm`, you need a measure of spatial autocorrelation present in your data. This can be done by fitting a model, adding its residuals to the sample points object, and using that residual column to calculate spatial autocorrelation. The autocorrelation of the response variable can also be used as an exploratory proxy (Milà et al, 2022; Roberts et al. 2017), but it is not the residual autocorrelation range recommended by Roberts et al. (2017) and may produce a different distance. Here, we calculate spatial autocorrelation range in the response using the `cv_spatial_autocor` function.
 
 ```{r}
 range <- cv_spatial_autocor(

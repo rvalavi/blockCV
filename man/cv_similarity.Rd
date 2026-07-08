@@ -21,8 +21,8 @@ cv_similarity(
 )
 }
 \arguments{
-\item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer},
-\code{cv_nndm}, or \code{cv_knndm}}
+\item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_group},
+\code{cv_buffer}, \code{cv_nndm}, or \code{cv_knndm}}
 
 \item{x}{a simple features (sf) object of the spatial sample points used for creating
 the \code{cv} object.}
@@ -32,13 +32,13 @@ is used to calculate similarity between the training and testing points.}
 
 \item{num_plots}{a vector of indices of folds for plotting (default uses all).}
 
-\item{method}{the similarity method including: MESS, L1 and L2. Read the details section.}
+\item{method}{the similarity method: MESS, L1, or L2. Read the details section.}
 
 \item{type}{character; \code{"distribution"} (default) draws the per-fold similarity distributions,
 while \code{"map"} plots the sample points in geographical space and colours each test point by its
 similarity value, showing \emph{where} extrapolation occurs.}
 
-\item{num_sample}{number of random samples from raster to calculate similarity distances (only for L1 and L2).}
+\item{num_sample}{number of random raster samples used for the L1/L2 baseline.}
 
 \item{seed}{integer; an optional random seed. The L1/L2 baseline is built from a random raster
 sample (\code{num_sample}); set \code{seed} to make the result reproducible.}
@@ -65,8 +65,8 @@ novelty). The overall novelty rate is also shown in the plot subtitle.
 \description{
 This function evaluates environmental similarity between training and testing folds,
 helping to detect potential extrapolation in the testing data. It supports three
-similarity measures: Multivariate Environmental Similarity Surface (MESS), Manhattan
-distance (L1), and Euclidean distance (L2).
+similarity outputs: MESS, L1, and L2. The L1 and L2 options are distance-based
+similarity scores.
 }
 \details{
 The MESS is calculated as described in Elith et al. (2010). MESS represents
@@ -75,7 +75,7 @@ set of points), with respect to a set of predictor variables in \code{r}.
 The negative values are the sites where at least one variable has a value that is outside
 the range of environments over the reference set, so these are novel environments.
 
-When using the L1 (Manhattan) or L2 (Euclidean) distance options (experimental), the
+When using the L1 (Manhattan) or L2 (Euclidean) score options (experimental), the
 function performs the following steps for each test sample:
 
 \itemize{
@@ -89,9 +89,9 @@ function performs the following steps for each test sample:
    the training data, while lower or negative scores indicate novelty.}
 }
 
-This provides a simple, distance-based novelty metric, useful for assessing
-extrapolation or dissimilarity in prediction scenarios. Note that this approach is
-experimental.
+This provides a simple, distance-based similarity score, not a raw distance: values
+below zero indicate test samples that are farther from their training data than the
+random-background baseline. Note that this approach is experimental.
 
 When the supplied \code{cv} object was built with \code{presence_bg = TRUE}, the similarity
 is computed on the \emph{presences} only: the background points (locations sampled to represent

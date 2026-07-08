@@ -198,6 +198,12 @@ cv_spatial_autocor(
 )
 ```
 
+For the residual-based block-size guidance in Roberts et al. (2017), fit
+the model first, add its residuals to the sample points, and pass that
+residual column to `cv_spatial_autocor(x = ..., column = ...)`. Ranges
+estimated from the raw response or raster covariates are exploratory
+proxies and may mis-size blocks for residual autocorrelation.
+
 Alternatively, you can manually choose the size of spatial blocks in an
 interactive session using a Shiny app.
 

@@ -13,11 +13,11 @@
 #' the background points are drawn faded so the presences stand out. This point-level \dQuote{background} is
 #' unrelated to the raster \code{r} used as a map backdrop.
 #'
-#' @param cv a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer},
-#' \code{cv_nndm}, or \code{cv_knndm}
+#' @param cv a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_group},
+#' \code{cv_buffer}, \code{cv_nndm}, or \code{cv_knndm}
 #' @param x a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
 #' the \code{cv} object. This is required for point-based objects such as \code{cv_cluster},
-#' \code{cv_buffer}, \code{cv_nndm}, and \code{cv_knndm}; it can be omitted for
+#' \code{cv_group}, \code{cv_buffer}, \code{cv_nndm}, and \code{cv_knndm}; it can be omitted for
 #' \code{cv_spatial} objects.
 #' @param r a terra SpatRaster object (optional). If provided, it will be used as background of the plots.
 #' It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.
@@ -37,7 +37,7 @@
 #' @param remove_na logical; whether to remove excluded points in \code{cv_buffer} from the plot
 #' @param combine_folds logical; if \code{TRUE}, all folds are shown in a single map with points
 #' coloured by their fold ID instead of separate train/test facets. Only available for
-#' \code{cv_spatial}, \code{cv_cluster} and \code{cv_knndm} objects.
+#' \code{cv_spatial}, \code{cv_cluster}, \code{cv_group} and \code{cv_knndm} objects.
 #' @param fold_colors character; a vector of colours for the folds when \code{combine_folds = TRUE};
 #' by default a qualitative palette is generated for the number of folds.
 #'

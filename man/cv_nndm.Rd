@@ -34,7 +34,8 @@ nor \code{model_domain} is supplied. One of \code{r}, \code{pred_points}, or \co
 
 \item{size}{numeric value of the range of spatial autocorrelation (the \code{phi} parameter).
 This distance should be in \strong{metres} (or in the coordinate units of \code{x} when its CRS is
-undefined). The range could be explored by \code{\link{cv_spatial_autocor}}.}
+undefined). The range could be explored by \code{\link{cv_spatial_autocor}}. For residual-based guidance,
+add model residuals to \code{x} and pass that residual column to \code{\link{cv_spatial_autocor}}.}
 
 \item{pred_points}{a simple features (sf) object of prediction points (optional). If provided, these are
 used directly as the prediction locations instead of sampling from \code{r} or \code{model_domain}.}

@@ -33,7 +33,8 @@
 #' is not), prediction points are sampled from it.
 #' @param size numeric value of the range of spatial autocorrelation (the \code{phi} parameter).
 #' This distance should be in \strong{metres} (or in the coordinate units of \code{x} when its CRS is
-#' undefined). The range could be explored by \code{\link{cv_spatial_autocor}}.
+#' undefined). The range could be explored by \code{\link{cv_spatial_autocor}}. For residual-based guidance,
+#' add model residuals to \code{x} and pass that residual column to \code{\link{cv_spatial_autocor}}.
 #' @param num_sample integer; the number of sample points from predictor (\code{r}) to be used for calculating
 #' the G function of prediction points.
 #' @param sampling either \code{"random"} or \code{"regular"} for sampling prediction points.
@@ -178,9 +179,9 @@ cv_nndm <- function(
             test_ids <- which(full_distmat[x_1s[i], ] <= msize[i])
             inside <- x[test_ids, column, drop = TRUE]
             test_set <- test_ids[which(inside == 0)]
-            test_set <- c(i, test_set)
+            test_set <- c(x_1s[i], test_set)
         } else{
-            test_set <- i
+            test_set <- x_1s[i]
         }
         list(as.numeric(which(full_distmat[x_1s[i], ] > msize[i])),
              as.numeric(test_set))

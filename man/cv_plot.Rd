@@ -23,12 +23,12 @@ cv_plot(
 )
 }
 \arguments{
-\item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer},
-\code{cv_nndm}, or \code{cv_knndm}}
+\item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_group},
+\code{cv_buffer}, \code{cv_nndm}, or \code{cv_knndm}}
 
 \item{x}{a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
 the \code{cv} object. This is required for point-based objects such as \code{cv_cluster},
-\code{cv_buffer}, \code{cv_nndm}, and \code{cv_knndm}; it can be omitted for
+\code{cv_group}, \code{cv_buffer}, \code{cv_nndm}, and \code{cv_knndm}; it can be omitted for
 \code{cv_spatial} objects.}
 
 \item{r}{a terra SpatRaster object (optional). If provided, it will be used as background of the plots.
@@ -60,7 +60,7 @@ effect for objects that are not presence-background. The default is \code{0.1}.}
 
 \item{combine_folds}{logical; if \code{TRUE}, all folds are shown in a single map with points
 coloured by their fold ID instead of separate train/test facets. Only available for
-\code{cv_spatial}, \code{cv_cluster} and \code{cv_knndm} objects.}
+\code{cv_spatial}, \code{cv_cluster}, \code{cv_group} and \code{cv_knndm} objects.}
 
 \item{fold_colors}{character; a vector of colours for the folds when \code{combine_folds = TRUE};
 by default a qualitative palette is generated for the number of folds.}

@@ -22,7 +22,8 @@ cv_distance(
 }
 \arguments{
 \item{cv}{a \code{blockCV} cross-validation object, i.e. the output of \code{\link{cv_spatial}},
-\code{\link{cv_cluster}}, \code{\link{cv_buffer}}, \code{\link{cv_nndm}} or \code{\link{cv_knndm}}.}
+\code{\link{cv_cluster}}, \code{\link{cv_group}}, \code{\link{cv_buffer}},
+\code{\link{cv_nndm}} or \code{\link{cv_knndm}}.}
 
 \item{x}{a simple features (sf) object of the spatial sample points used to create the \code{cv} object.}
 
@@ -64,12 +65,13 @@ as \code{attr(p, "W")} (a named numeric vector; lower means a closer match to th
 }
 \description{
 A diagnostic that works on \emph{any} \code{blockCV} cross-validation object (the output of
-\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, \code{\link{cv_nndm}}
-or \code{\link{cv_knndm}}). It draws the same nearest-neighbour distance distribution plot produced
-internally by \code{\link{cv_nndm}} and \code{\link{cv_knndm}}, but for a fold configuration that has
-\emph{already} been generated. This lets you check whether a given fold-generation strategy actually
-pushes the test-to-train distances towards the distances the model will face when predicting over the
-target area. It does not compute pairwise distances for general use; it is a fold-quality diagnostic.
+\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_group}},
+\code{\link{cv_buffer}}, \code{\link{cv_nndm}} or \code{\link{cv_knndm}}). It draws the same
+nearest-neighbour distance distribution plot produced internally by \code{\link{cv_nndm}} and
+\code{\link{cv_knndm}}, but for a fold configuration that has \emph{already} been generated. This lets
+you check whether a given fold-generation strategy actually pushes the test-to-train distances towards
+the distances the model will face when predicting over the target area. It does not compute pairwise
+distances for general use; it is a fold-quality diagnostic.
 }
 \details{
 Three (optionally four) empirical cumulative distribution functions of nearest-neighbour distances
@@ -131,5 +133,6 @@ matching cross-validation for map accuracy estimation. Geoscientific Model Devel
 }
 \seealso{
 \code{\link{cv_similarity}}, \code{\link{cv_knndm}}, \code{\link{cv_nndm}},
-\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_plot}} to visualise the folds
+\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_group}},
+\code{\link{cv_buffer}}, and \code{\link{cv_plot}} to visualise the folds
 }

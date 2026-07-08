@@ -39,9 +39,11 @@ test_that("test cv_spatial_autocor function works", {
     expect_true(sac$range >= 0)
     expect_true(!is.null(sac$variograms))
     expect_true(all(names(aus) %in% sac$range_table$layers))
+    expect_named(sac$plots, c("barchart", "map_plot"))
 
     expect_equal(print(sac), "cv_spatial_autocor")
-    expect_silent(plot(sac))
+    expect_silent(sac_plot <- plot(sac))
+    expect_true(ggplot2::is_ggplot(sac_plot))
     expect_output(summary(sac))
 
 })
@@ -61,6 +63,9 @@ test_that("test cv_spatial_autocor function with x", {
     expect_type(sac$range, "double")
     expect_true(sac$range >= 0)
     expect_true(!is.null(sac$variograms))
+    expect_true(ggplot2::is_ggplot(sac$plots))
+    expect_silent(sac_plot <- plot(sac))
+    expect_true(ggplot2::is_ggplot(sac_plot))
 
 })
 

@@ -4,12 +4,15 @@
 - Renamed the `num_plot` argument of `cv_similarity` to `num_plots`, for consistency with `cv_plot` (a breaking change for existing code that set `num_plot`).
 - Added `cv_knndm`, a k-fold Nearest Neighbour Distance Matching method with `"blocks"`, `"hierarchical"`, and `"kmeans"` clustering options. It supports geographical and feature-space matching via `space`, and accepts prediction points via `r`, `pred_points`, or `model_domain`; issue [#63](https://github.com/rvalavi/blockCV/issues/63).
 - Added `cv_distance`, a diagnostic for comparing an existing `blockCV` fold design with the nearest-neighbour distance distribution expected in the prediction domain.
+- Added `cv_group`, a leave-group-out cross-validation using an existing grouping column (e.g. site, plot, campaign, or individual) so records that share a group are never split across train and test. `k = NULL` gives one fold per group; a smaller `k` merges the groups into `k` folds, optionally balanced (`balance = TRUE`).
 - Added `balance` to make fold balancing explicit in `cv_spatial`, `cv_cluster`, and `cv_knndm`. `cv_cluster(balance = FALSE)` keeps the previous single k-means behaviour; `balance = TRUE` uses the new `k_multiplier` argument to create candidate clusters for more even folds; issue [#34](https://github.com/rvalavi/blockCV/issues/34).
 - Added presence-background balancing support so `cv_spatial`, `cv_cluster`, and `cv_knndm` can base fold balancing or matching on presences, preventing background points from dominating the split.
+- Reworked the fold-balancing search behind `cv_spatial` (random selection) and now `cv_cluster(balance = TRUE)`. The objective is now scored on the test folds only and normalised per class (a Pearson chi-square against an equal split), and it minimises empty test cells for classes with at least `k` records before minimising imbalance. This replaces the previous rule (raise the smallest cell, then lower the standard deviation of all train and test cells at once), which could keep a split that leaves a class missing from a test fold and let an abundant class dominate the score. Because a different candidate assignment now wins, folds for a given `seed` may differ from earlier versions.
 - Added support for continuous or count `column` values in `cv_spatial`, `cv_cluster`, `cv_buffer`, `cv_nndm`, and `cv_knndm`. Numeric columns are binned with `num_bins` (default `4`) for fold balancing and records reports; `num_bins = NULL` restores per-value handling.
 - `cv_nndm` no longer requires `r` when `pred_points` or `model_domain` are supplied, and now falls back to Euclidean distances with a warning when `x` has no CRS; issue [#58](https://github.com/rvalavi/blockCV/issues/58).
+- Fixed a train/test leakage bug in `cv_nndm(presence_bg = TRUE)` where the test fold used the presence's position instead of its row index, holding out the wrong point and leaving it in both train and test.
 - `cv_similarity` now reports extrapolation with a per-fold summary attached as `attr(p, "extrapolation")`, the overall novelty rate in the subtitle, and shading for the novel region. A new `type = "map"` plots the sample points in space, colouring each test point by its similarity to show where extrapolation occurs.
-- `cv_similarity` now computes presence-background similarity from presences only, matching `cv_distance`, and adds `seed` for reproducible random baselines. L1/L2 methods now handle single-layer rasters, single-point folds, missing covariates, and constant predictors more robustly.
+- `cv_similarity` now computes presence-background similarity from presences only, matching `cv_distance`, and adds `seed` for reproducible random baselines. L1/L2 distance-based scores now handle single-layer rasters, single-point folds, missing covariates, and constant predictors more robustly.
 - Reports, plots, and progress bars now run by default only in interactive sessions for `cv_spatial`, `cv_buffer`, `cv_cluster`, and `cv_nndm`; issue [#57](https://github.com/rvalavi/blockCV/issues/57).
 - `cv_spatial` avoids duplicate block-to-point intersection work when subsetting and assigning blocks; issue [#40](https://github.com/rvalavi/blockCV/issues/40).
 - Added `combine_folds` and `fold_colors` to `cv_plot` for single-map fold plots in `cv_spatial`, `cv_cluster`, and `cv_knndm`.
@@ -20,7 +23,7 @@
 
 # version 3.2.0
 
-- Added two new methods, L1 and L2 distances, to the `cv_similarity` function
+- Added two new distance-based similarity scores, L1 and L2, to the `cv_similarity` function
 - Fixed a warning in `cv_similarity` for colour aesthetics with ggplot
 - Fixed the summary method and plotting for `cv_spatial_autocor`
 

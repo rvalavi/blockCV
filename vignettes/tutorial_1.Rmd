@@ -373,7 +373,7 @@ cv_plot(cv = sb1,
 
 ### Environmental similarity diagnostics
 
-The `cv_similarity` function evaluates environmental similarity between training and testing folds, helping to detect potential extrapolation in the testing data. It supports three similarity measures: Multivariate Environmental Similarity Surface (MESS), Manhattan distance (L1), and Euclidean distance (L2). Negative values indicate potential environmental novelty. Each fold is annotated with the percentage of its testing points that are novel (shown in red when a fold extrapolates), and a per-fold summary table is attached to the returned plot as `attr(p, "extrapolation")`.
+The `cv_similarity` function evaluates environmental similarity between training and testing folds, helping to detect potential extrapolation in the testing data. It supports MESS and L1/L2 distance-based similarity scores. Negative values indicate potential environmental novelty. Each fold is annotated with the percentage of its testing points that are novel (shown in red when a fold extrapolates), and a per-fold summary table is attached to the returned plot as `attr(p, "extrapolation")`.
 
 
 ```{r fig.height=4, fig.width=6}
@@ -461,6 +461,8 @@ cowplot::plot_grid(dist_sb, dist_scv, dist_bloo, dist_knn, ncol = 2)
 
 To support a first choice of block size, prior to any model fitting, package `blockCV` includes the option for the user to look at the existing autocorrelation in the response or predictors (as an indication of landscape spatial structure). This tool does not suggest any absolute solution to the problem, but serves as a guide to the user. It provides information about *the effective range of spatial autocorrelation* which is the range over which observations are independent.
 
+Roberts et al. (2017) recommend choosing spatial blocks with reference to the autocorrelation range of model residuals. The response and predictor variograms shown below are useful exploratory guides before a model has been fitted, but they are not residual autocorrelation ranges and can under- or over-estimate the block size needed for that residual-based guidance. To estimate residual autocorrelation with `cv_spatial_autocor`, fit the model first, add the residuals as a column in the sample points object, and pass that column name to `column`.
+
 When only `r` is supplied, the `cv_spatial_autocor` function works by automatically fitting variograms to each continuous raster and finding the effective range of spatial autocorrelation. Variogram is a fundamental geostatistical tool for measuring spatial autocorrelation (O’Sullivan and Unwin, 2010).
 
 ```{r, results='hide', fig.keep='all', warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
@@ -484,7 +486,7 @@ To see the details of the fitted variograms:
 summary(sac1)
 ```
 
-Alternatively, only use the response data using `x` and `column`. This could be a binary or continuous variable provided in as a column in the sample points `sf` object. This could be the response or the residuals of a fitted model.
+Alternatively, only use the point data with `x` and `column`. This could be a binary or continuous response, or a column of residuals from a fitted model that you added to the sample points `sf` object.
 
 ```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=7.2}
 sac2 <- cv_spatial_autocor(x = pa_data, column =  "occ")
