@@ -30,15 +30,29 @@
 #' the spatial autocorrelation range would result in a good estimation of error. This is because of the so-called
 #' edge effect (O'Sullivan & Unwin, 2014), whereby points located on the edges of the blocks of opposite sets are
 #' not separated spatially. Blocking with a buffering strategy overcomes this issue (see \code{\link{cv_buffer}}).
+#' When using \code{\link{cv_spatial_autocor}} to inform \code{size}, note that response or covariate variograms
+#' are exploratory proxies for residual autocorrelation unless model residuals have been added to \code{x} and
+#' supplied through the \code{column} argument.
+#'
+#' @details
+#' For presence-background data (\code{presence_bg = TRUE}), \code{column} holds \code{1} for presences and
+#' \code{0} for \emph{background} points -- locations sampled across the study area to represent the available
+#' conditions rather than confirmed absences. The fold balancing then targets only the presence records (the
+#' blocks still contain all points), so the abundant background cannot dominate the split.
 #'
 #'
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species data or ground truth sample for image classification).
 #' @param column character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
-#' response i.e. 0s and 1s) is stored to find balanced records in cross-validation folds. If \code{column = NULL}
-#' the response variable classes will be treated the same and only training and testing records will be counted.
+#' response i.e. 0s and 1s) is stored. It is used to report the number of records of each class/bin in every fold and,
+#' when \code{balance = TRUE}, to balance those classes across the folds. If \code{column = NULL}
+#' the response variable classes will be treated the same and only training and testing records will be counted (and balanced).
 #' This is used for binary (e.g. presence-absence/background) or multi-class responses (e.g. land cover classes for
-#' remote sensing image classification), and \emph{you can ignore it when the response variable is
-#' continuous or count data}.
+#' remote sensing image classification). Continuous numeric responses are binned into quantiles using \code{num_bins}
+#' before balancing.
+#' @param num_bins integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+#' The default is \code{4}. Set \code{num_bins = NULL} to disable binning and treat every unique value as a
+#' separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
+#' The raw response values are not modified; bins are only used for fold balancing and record summaries.
 #' @param r a terra SpatRaster object (optional). If provided, its extent will be used to specify the blocks.
 #' It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.
 #' @param k integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.
@@ -46,7 +60,8 @@
 #' @param flat_top logical. Creating hexagonal blocks with topped flat.
 #' @param size numeric value of the specified range by which blocks are created and training/testing data are separated.
 #' This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}
-#' and \code{\link{cv_block_size}} functions.
+#' and \code{\link{cv_block_size}} functions. For residual-based block-size guidance, add model residuals to
+#' \code{x} and pass that residual column to \code{\link{cv_spatial_autocor}}.
 #' @param rows_cols integer vector. Two integers to define the blocks based on row and
 #' column e.g. \code{c(10, 10)} or \code{c(5, 1)}. Hexagonal blocks uses only the first one. This
 #' option is ignored when \code{size} is provided.
@@ -54,6 +69,15 @@
 #' The checkerboard does not work with hexagonal and user-defined spatial blocks. If the \code{selection = 'predefined'}, user-defined
 #' blocks and \code{folds_column} must be supplied.
 #' @param iteration integer value. The number of attempts to create folds with balanced records. Only works when \code{selection = "random"}.
+#' @param balance logical. When \code{TRUE} (default) and \code{selection = "random"}, the folds are chosen from \code{iteration}
+#' random block assignments to balance the training/testing records (or the classes/bins of \code{column} when it is provided).
+#' If \code{FALSE}, a single random assignment is returned without balancing (equivalent to \code{iteration = 1}). This argument
+#' has no effect on the other selection methods.
+#' @param presence_bg logical; whether to treat \code{column} as species presence-background data (0s for
+#' background points and 1s for presences; see \sQuote{Details}). When \code{TRUE} (with \code{selection = "random"} and
+#' \code{balance = TRUE}), the balancing search equalises only the presence (1s) records across folds so the many
+#' background points cannot dominate the objective; the blocks still contain all points but the background is
+#' ignored when scoring the balance. Requires a binary numeric \code{column}. The default is \code{FALSE}.
 #' @param user_blocks an sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
 #' the species (response) points. If \code{selection = 'predefined'}, this argument and \strong{folds_column} must be supplied.
 #' @param folds_column character. Indicating the name of the column (in \code{user_blocks}) in which the associated folds are stored.
@@ -68,14 +92,18 @@
 #' within a block. The value should be a numeric between 0 and 5.
 #' @param seed integer; a random seed for reproducibility (although an external seed
 #' should also work).
-#' @param progress logical; whether to shows a progress bar for random fold selection.
-#' @param report logical; whether to print the report of the records per fold.
 #' @param plot logical; whether to plot the final blocks with fold numbers in ggplot.
+#' Defaults to \code{interactive()}.
 #' You can re-create this with \code{\link{cv_plot}}.
+#' @param report logical; whether to print the report of the records per fold.
+#' Defaults to \code{interactive()}.
+#' @param progress logical; whether to shows a progress bar for random fold selection.
+#' Defaults to \code{interactive()}.
 #' @param ... additional option for \code{\link{cv_plot}}.
 #'
 #'
-#' @seealso \code{\link{cv_buffer}} and \code{\link{cv_cluster}}; \code{\link{cv_spatial_autocor}} and \code{\link{cv_block_size}} for selecting block size
+#' @seealso \code{\link{cv_buffer}} and \code{\link{cv_cluster}}; \code{\link{cv_spatial_autocor}} and \code{\link{cv_block_size}} for selecting block size;
+#' \code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate, the folds
 #' @seealso For \emph{CV.user.table} see \code{\link[biomod2]{BIOMOD_Modeling}} in \pkg{biomod2} package
 #'
 #' @references Bahn, V., & McGill, B. J. (2012). Testing the predictive performance of distribution models. Oikos, 122(3), 321-331.
@@ -95,6 +123,8 @@
 #'     \item{biomod_table - a matrix with the folds to be used in \pkg{biomod2} package}
 #'     \item{k - number of the folds}
 #'     \item{size - input size, if not null}
+#'     \item{block_shape - the block geometry used: \code{"hexagon"}, \code{"square"}, or \code{"user-defined"}}
+#'     \item{selection - how blocks were assigned to folds: \code{"random"}, \code{"systematic"}, \code{"checkerboard"}, or \code{"predefined"}}
 #'     \item{column - the name of the column if provided}
 #'     \item{blocks - spatial polygon of the blocks}
 #'     \item{records - a table with the number of points in each category of training and testing}
@@ -138,6 +168,8 @@ cv_spatial <- function(
         rows_cols = c(10, 10),
         selection = "random",
         iteration = 100L,
+        balance = TRUE,
+        presence_bg = FALSE,
         user_blocks = NULL,
         folds_column = NULL,
         deg_to_metre = 111325,
@@ -145,9 +177,10 @@ cv_spatial <- function(
         offset = c(0, 0),
         extend = 0,
         seed = NULL,
-        progress = TRUE,
-        report = TRUE,
-        plot = TRUE,
+        num_bins = 4L,
+        plot = interactive(),
+        report = interactive(),
+        progress = interactive(),
         ... # other arguments for cv_plot
 ){
 
@@ -161,6 +194,8 @@ cv_spatial <- function(
     x <- .check_x(x)
     # is column in x?
     column <- .check_column(column, x)
+    # validate presence-background data (0/1 column) when requested
+    invisible(.presence_index(x, column, presence_bg))
 
     # check for user_blocks format
     if(!is.null(user_blocks)){
@@ -223,13 +258,18 @@ cv_spatial <- function(
         }
     )
 
+    # balance only applies to the random selection search
+    if(selection == "random"){
+        if(!balance){
+            iteration <- 1L
+        } else if(iteration == 1L){
+            warning("'balance = TRUE' has no effect when 'iteration = 1'; increase 'iteration' to search for balanced folds.")
+        }
+    }
+
     # turn off progress if...
     if(selection != "random") progress <- FALSE
     if(iteration < 3) progress <- FALSE
-
-    if(progress){
-        pb <- utils::txtProgressBar(min = 0, max = iteration, style = 3)
-    }
 
     # creating blocks ---------------------------------------------------------
 
@@ -252,8 +292,10 @@ cv_spatial <- function(
         blocks <- if(methods::is(user_blocks, "sfc")) sf::st_sf(user_blocks) else user_blocks
     }
 
-    ## subset the blocks by x
-    sub_blocks <- blocks[x, ]
+    ## subset the blocks by x and keep the intersection result for records
+    blocks_intersect <- sf::st_intersects(sf::st_geometry(blocks), sf::st_geometry(x))
+    blocks_has_records <- lengths(blocks_intersect) != 0
+    sub_blocks <- blocks[blocks_has_records, ]
     blocks_len <- nrow(sub_blocks)
 
     # k must be a natural number
@@ -274,11 +316,15 @@ cv_spatial <- function(
 
     # x and block intersection ------------------------------------------------
 
-    ## do the intersection once and outside of the loop
-    blocks_df <- as.data.frame(
-        sf::st_intersects(sf::st_geometry(x), sf::st_geometry(sub_blocks))
+    ## use the block-to-point intersection computed above
+    sub_blocks_intersect <- blocks_intersect[blocks_has_records]
+    records_per_block <- lengths(sub_blocks_intersect)
+    blocks_df <- data.frame(
+        records = unlist(sub_blocks_intersect, use.names = FALSE),
+        block_id = rep.int(seq_len(blocks_len), records_per_block)
     )
-    names(blocks_df) <- c("records", "block_id")
+    blocks_df <- blocks_df[order(blocks_df$records, blocks_df$block_id), ]
+    row.names(blocks_df) <- NULL
     # randomly remove the repeated records occurred on the edges of blocks
     if(nrow(blocks_df) > nrow(x)){
         if(!is.null(seed)){
@@ -292,45 +338,41 @@ cv_spatial <- function(
         message("Consider using the 'extend' parameter to ensure points are covered by blocks e.g. extend = 0.5.")
     }
 
-    # iteration for creating folds --------------------------------------------
+    # creating folds ----------------------------------------------------------
     # create records table
-    if(is.null(column)){
-        train_test_table <- data.frame(train = rep(0, k), test = 0)
+    response <- .column_response(x, column, num_bins = num_bins)
+
+    if(selection == "random"){
+        # search random block-to-fold assignments for the most balanced split
+        res <- .balance_folds(
+            blocks_df = blocks_df,
+            blocks_len = blocks_len,
+            k = k,
+            iteration = iteration,
+            response = response,
+            seed = seed,
+            biomod2 = biomod2,
+            progress = progress,
+            opt_cols = .balance_opt_cols(response, presence_bg)
+        )
+        blocks_df <- res$blocks_df
+        train_test_table <- res$records
+        fold_list <- res$folds_list
+        fold_vect <- res$folds_ids
+        biomod_table <- res$biomod_table
+
+        # map the best folds back to the blocks
+        sub_blocks$block_id <- seq_len(nrow(sub_blocks))
+        blocks_df_filter <- blocks_df[, c("block_id", "folds")]
+        blocks_df_filter <- blocks_df_filter[!duplicated(blocks_df_filter), ]
+        sub_blocks <- merge(x = sub_blocks, y = blocks_df_filter, by = "block_id", all.x = TRUE)
+
     } else{
-        cl <- sort(unique(x[, column, drop = TRUE]))
-        clen <- length(cl)
-        .check_classes(clen, column) # column should be binary or categorical
-        train_test_table <- as.data.frame(matrix(0, nrow = k, ncol = clen * 2))
-        names(train_test_table) <- c(paste("train", cl, sep = "_"), paste("test", cl, sep = "_"))
-    }
-    # create a table for biomod
-    biomod_table <- data.frame(RUN1 = rep(TRUE, nrow(blocks_df)))
+        # systematic, checkerboard and predefined selections need only one round
+        train_test_table <- .records_table(k, response)
+        biomod_table <- data.frame(RUN1 = rep(TRUE, nrow(blocks_df)))
 
-    # for selecting best iteration
-    min_num <- 0
-    max_sd <- Inf
-
-    if(!is.null(seed)){
-        set.seed(seed)
-    }
-    # iteration if random selection, otherwise only 1 round
-    for(i in seq_len(iteration)){
-
-        if(selection=="random"){
-            blocks_df <- blocks_df[, c("records", "block_id")] # avoid repetition
-            fold_df <- data.frame(block_id = seq_len(blocks_len), folds = 0)
-
-            # create random folds with equal proportion
-            num <- floor(blocks_len / k)
-            fold_df$folds[seq_len(num * k)] <- sample(rep(seq_len(k), num), num * k)
-
-            if(blocks_len %% k != 0){
-                rest <- blocks_len %% k
-                unfold <- which(fold_df$folds == 0)
-                fold_df$folds[unfold] <- sample(seq_len(k), rest, replace = FALSE)
-            }
-
-        } else if(selection=="systematic"){
+        if(selection == "systematic"){
             if(hexagon){
                 sub_blocks <- .fold_assign(sf::st_geometry(sub_blocks), n = k)
             } else{
@@ -339,20 +381,18 @@ cv_spatial <- function(
             }
             fold_df <- sf::st_drop_geometry(sub_blocks)
 
-        } else if(selection=="checkerboard"){
+        } else if(selection == "checkerboard"){
             sub_blocks$folds <- sub_blocks$id
             sub_blocks$block_id <- seq_len(blocks_len)
             fold_df <- sf::st_drop_geometry(sub_blocks)
 
-        } else if(selection=="predefined"){
+        } else if(selection == "predefined"){
             fold_df <- data.frame(block_id = seq_len(blocks_len), folds = sub_blocks[, folds_column, drop = TRUE])
         }
 
         # merge block-df once after the selection
         blocks_df <- merge(x = blocks_df, y = fold_df, by = "block_id", all.x = TRUE)
 
-        # reset the table to 0s for each iteration
-        train_test_table[] <- 0
         # count the number of points in each fold
         fold_list <- list()
         fold_vect <- rep(NA, nrow(blocks_df))
@@ -361,65 +401,28 @@ cv_spatial <- function(
             test_set <- blocks_df$records[which(blocks_df$folds == p)]
             fold_vect[test_set] <- p
             fold_list[[p]] <- assign(paste0("fold", p), list(train_set, test_set))
-            if(is.null(column)){
-                train_test_table$train[p] <- length(train_set)
-                train_test_table$test[p] <- length(test_set)
-            } else{
-                countrain <- table(x[train_set, column, drop = TRUE])
-                countest <- table(x[test_set, column, drop = TRUE])
-                train_test_table[p, which(cl %in% names(countrain))] <- countrain
-                train_test_table[p, clen + which(cl %in% names(countest))] <- countest
-            }
+            train_test_table <- .records_table_row(train_test_table, p, train_set, test_set, response)
             if(biomod2){ # creating a biomod2 CV.user.table for validation
                 colm <- paste0("RUN", p)
                 biomod_table[, colm] <- FALSE
                 biomod_table[train_set, colm] <- TRUE
             }
         }
-
-        # save the best folds in the iteration
-        if(selection == "random"){
-            if(min(train_test_table) >= min_num && stats::sd(unlist(train_test_table)) < max_sd){
-                train_test_table2 <- train_test_table
-                min_num <- min(train_test_table2)
-                max_sd <- stats::sd(unlist(train_test_table))
-                blocks_df2 <- blocks_df
-                fold_list2 <- fold_list
-                fold_vect2 <- fold_vect
-                biomod_table2 <- biomod_table
-            }
-            if(progress){ # if iteration is higher than 5?
-                utils::setTxtProgressBar(pb, i)
-            }
-        } else{
-            break
-        }
-
-    }
-
-    if(selection == "random"){ # return the best blocks, table etc.
-        # sub_blocks <- sf::st_sf(sub_blocks)
-        sub_blocks$block_id <- seq_len(nrow(sub_blocks))
-        blocks_df_filter <- blocks_df2[, c("block_id","folds")]
-        blocks_df_filter <- blocks_df_filter[!duplicated(blocks_df_filter), ]
-        sub_blocks <- merge(x = sub_blocks, y = blocks_df_filter, by = "block_id", all.x = TRUE)
-        blocks_df <- blocks_df2
-        train_test_table <- train_test_table2
-        fold_list <- fold_list2
-        fold_vect <- fold_vect2
-        biomod_table <- biomod_table2
     }
     if(report){
         cat("\n")
+        .print_column_bins(response)
         print(train_test_table)
     }
     # throw a warning if there are folds with zero cases
     if(any(train_test_table < 1)){
         zerofolds <- which(apply(train_test_table, 1, function(x) any(x < 1)))
+        zero_text <- "class(es)"
+        if(!is.null(response$bins)) zero_text <- "class/bin(es)"
         if(length(zerofolds) > 1){
-            warning("Folds ", paste(zerofolds, collapse = ", "), " have class(es) with zero records")
+            warning("Folds ", paste(zerofolds, collapse = ", "), " have ", zero_text, " with zero records")
         } else{
-            warning("Fold ", zerofolds, " has class(es) with zero records")
+            warning("Fold ", zerofolds, " has ", zero_text, " with zero records")
         }
     }
     # remove the NA blocks; not for user-blocks
@@ -434,7 +437,10 @@ cv_spatial <- function(
         biomod_table = if (biomod2) as.matrix(biomod_table) else NULL,
         k = k,
         size = size,
+        block_shape = if(!is.null(user_blocks)) "user-defined" else if(hexagon) "hexagon" else "square",
+        selection = selection,
         column = column,
+        presence_bg = presence_bg,
         blocks = sub_blocks,
         records = train_test_table
     )
@@ -459,7 +465,17 @@ cv_spatial <- function(
 #' @export
 #' @method print cv_spatial
 print.cv_spatial <- function(x, ...){
-    print(class(x))
+    desc <- if(!is.null(x$block_shape)){
+        sprintf("spatial blocking (%s blocks)", x$block_shape)
+    } else {
+        "spatial blocking"
+    }
+    details <- list("Folds" = x$k)
+    if(!is.null(x$size)) details[["Block size (m)"]] <- round(x$size)
+    if(!is.null(x$selection)) details[["Fold selection"]] <- x$selection
+    if(!is.null(x$column)) details[["Balancing column"]] <- x$column
+    details[["Presence-background"]] <- if(isTRUE(x$presence_bg)) "yes" else "no"
+    .print_cv_folds(x, desc, details)
 }
 
 
@@ -478,7 +494,7 @@ plot.cv_spatial <- function(x, y, ...){
 #' @export
 #' @method summary cv_spatial
 summary.cv_spatial <- function(object, ...){
-    cat("Number of recoreds in each training and testing fold:\n")
+    cat("Number of records in each training and testing fold:\n")
     print(object$records)
 }
 

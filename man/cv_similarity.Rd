@@ -8,31 +8,41 @@ cv_similarity(
   cv,
   x,
   r,
-  num_plot = seq_along(cv$folds_list),
+  num_plots = seq_along(cv$folds_list),
   method = "MESS",
+  type = "distribution",
   num_sample = 10000L,
+  seed = NULL,
   jitter_width = 0.1,
   points_size = 2,
   points_alpha = 0.7,
   points_colors = NULL,
-  progress = TRUE
+  progress = interactive(),
+  plot = TRUE
 )
 }
 \arguments{
-\item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_buffer}
-or \code{cv_nndm}}
+\item{cv}{a blockCV cv_* object; a \code{cv_spatial}, \code{cv_cluster}, \code{cv_group},
+\code{cv_buffer}, \code{cv_nndm}, or \code{cv_knndm}}
 
-\item{x}{a simple features (sf) or SpatialPoints object of the spatial sample data used for creating
+\item{x}{a simple features (sf) object of the spatial sample points used for creating
 the \code{cv} object.}
 
 \item{r}{a terra SpatRaster object of environmental predictor that are going to be used for modelling. This
 is used to calculate similarity between the training and testing points.}
 
-\item{num_plot}{a vector of indices of folds.}
+\item{num_plots}{a vector of indices of folds for plotting (default uses all).}
 
-\item{method}{the similarity method including: MESS, L1 and L2. Read the details section.}
+\item{method}{the similarity method: MESS, L1, or L2. Read the details section.}
 
-\item{num_sample}{number of random samples from raster to calculate similarity distances (only for L1 and L2).}
+\item{type}{character; \code{"distribution"} (default) draws the per-fold similarity distributions,
+while \code{"map"} plots the sample points in geographical space and colours each test point by its
+similarity value, showing \emph{where} extrapolation occurs.}
+
+\item{num_sample}{number of random raster samples used for the L1/L2 baseline.}
+
+\item{seed}{integer; an optional random seed. The L1/L2 baseline is built from a random raster
+sample (\code{num_sample}); set \code{seed} to make the result reproducible.}
 
 \item{jitter_width}{numeric; the width of jitter points.}
 
@@ -40,18 +50,35 @@ is used to calculate similarity between the training and testing points.}
 
 \item{points_alpha}{numeric; the opacity of points}
 
-\item{points_colors}{character; a character vector of colours for points}
+\item{points_colors}{character; a character vector of colours for the diverging value scale.
+Defaults to a red-grey-blue ramp (red = novel/negative, blue = similar/positive) centred at zero.}
 
-\item{progress}{logical; whether to shows a progress bar for random fold selection.}
+\item{progress}{logical; whether to show a progress bar while computing fold similarities.
+Defaults to \code{interactive()}.}
+
+\item{plot}{logical; whether to draw the plot (default \code{TRUE}). The plot object is always built and
+returned in \code{$plot} either way (so it can be customised or arranged); \code{plot = FALSE} only
+suppresses drawing it now.}
 }
 \value{
-a ggplot object
+an object of class \code{cv_similarity}: a list with
+\itemize{
+  \item{\code{extrapolation} - a per-fold data.frame with the number of test points, the percentage
+  flagged as novel (similarity value below zero), the minimum and median similarity, and -- for
+  \code{method = "MESS"} -- the most limiting variable (the covariate most often driving the novelty).}
+  \item{\code{overall} - the overall novelty rate (percentage of test points below zero) across the
+  plotted folds.}
+  \item{\code{plot} - the \code{ggplot} (a per-fold distribution, or a spatial map for \code{type =
+  "map"}), always built whether or not it is drawn.}
+}
+The plot is drawn when \code{plot = TRUE} (default). Printing the object shows a compact text summary
+rather than redrawing the plot; call \code{plot()} on the returned object to redraw it.
 }
 \description{
 This function evaluates environmental similarity between training and testing folds,
 helping to detect potential extrapolation in the testing data. It supports three
-similarity measures: Multivariate Environmental Similarity Surface (MESS), Manhattan
-distance (L1), and Euclidean distance (L2).
+similarity outputs: MESS, L1, and L2. The L1 and L2 options are distance-based
+similarity scores.
 }
 \details{
 The MESS is calculated as described in Elith et al. (2010). MESS represents
@@ -60,7 +87,7 @@ set of points), with respect to a set of predictor variables in \code{r}.
 The negative values are the sites where at least one variable has a value that is outside
 the range of environments over the reference set, so these are novel environments.
 
-When using the L1 (Manhattan) or L2 (Euclidean) distance options (experimental), the
+When using the L1 (Manhattan) or L2 (Euclidean) score options (experimental), the
 function performs the following steps for each test sample:
 
 \itemize{
@@ -74,9 +101,15 @@ function performs the following steps for each test sample:
    the training data, while lower or negative scores indicate novelty.}
 }
 
-This provides a simple, distance-based novelty metric, useful for assessing
-extrapolation or dissimilarity in prediction scenarios. Note that this approach is
-experimental.
+This provides a simple, distance-based similarity score, not a raw distance: values
+below zero indicate test samples that are farther from their training data than the
+random-background baseline. Note that this approach is experimental.
+
+When the supplied \code{cv} object was built with \code{presence_bg = TRUE}, the similarity
+is computed on the \emph{presences} only: the background points (locations sampled to represent
+the available conditions rather than confirmed absences) are excluded from both the training and
+testing sets of every fold, matching the framing used in \code{\link{cv_distance}}. This is read
+automatically from \code{cv}.
 }
 \examples{
 \donttest{
@@ -100,7 +133,7 @@ sb <- cv_spatial(x = pa_data,
                  iteration = 1)
 
 # compute extrapolation
-cv_similarity(cv = sb, r = covars, x = pa_data)
+cv_similarity(cv = sb, r = covars, x = pa_data, method = "MESS")
 
 }
 }
@@ -108,5 +141,6 @@ cv_similarity(cv = sb, r = covars, x = pa_data)
 Elith, J., Kearney, M., & Phillips, S. (2010). The art of modelling range-shifting species: The art of modelling range-shifting species. Methods in Ecology and Evolution, 1(4), 330–342.
 }
 \seealso{
-\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}}
+\code{\link{cv_spatial}}, \code{\link{cv_cluster}}, \code{\link{cv_buffer}}, and \code{\link{cv_nndm}};
+\code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} to evaluate, the folds
 }

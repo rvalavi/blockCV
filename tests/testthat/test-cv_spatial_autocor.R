@@ -1,10 +1,13 @@
-aus <- system.file("extdata/au/", package = "blockCV") |>
-    list.files(full.names = TRUE) |>
-    terra::rast()
+aus <- terra::rast(
+    list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+)
 nl <- terra::nlyr(aus)
 
-pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
-    sf::st_as_sf(coords = c("x", "y"), crs = 7845)
+pa_data <- sf::st_as_sf(
+    read.csv(system.file("extdata/", "species.csv", package = "blockCV")),
+    coords = c("x", "y"),
+    crs = 7845
+)
 
 
 expect_names <- c(
@@ -39,9 +42,11 @@ test_that("test cv_spatial_autocor function works", {
     expect_true(sac$range >= 0)
     expect_true(!is.null(sac$variograms))
     expect_true(all(names(aus) %in% sac$range_table$layers))
+    expect_named(sac$plots, c("barchart", "map_plot"))
 
-    expect_equal(print(sac), "cv_spatial_autocor")
-    expect_silent(plot(sac))
+    expect_output(print(sac), "blockCV cv_spatial_autocor")
+    expect_silent(sac_plot <- plot(sac))
+    expect_true(ggplot2::is_ggplot(sac_plot))
     expect_output(summary(sac))
 
 })
@@ -61,6 +66,9 @@ test_that("test cv_spatial_autocor function with x", {
     expect_type(sac$range, "double")
     expect_true(sac$range >= 0)
     expect_true(!is.null(sac$variograms))
+    expect_true(ggplot2::is_ggplot(sac$plots))
+    expect_silent(sac_plot <- plot(sac))
+    expect_true(ggplot2::is_ggplot(sac_plot))
 
 })
 
@@ -88,7 +96,7 @@ test_that("test cv_spatial_autocor function works with wgs crs", {
     expect_true(!is.null(sac$variograms))
     expect_true(all(names(aus) %in% sac$range_table$layers))
 
-    expect_equal(print(sac), "cv_spatial_autocor")
+    expect_output(print(sac), "blockCV cv_spatial_autocor")
     expect_silent(plot(sac))
     expect_output(summary(sac))
 

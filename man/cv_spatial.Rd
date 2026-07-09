@@ -15,6 +15,8 @@ cv_spatial(
   rows_cols = c(10, 10),
   selection = "random",
   iteration = 100L,
+  balance = TRUE,
+  presence_bg = FALSE,
   user_blocks = NULL,
   folds_column = NULL,
   deg_to_metre = 111325,
@@ -22,9 +24,10 @@ cv_spatial(
   offset = c(0, 0),
   extend = 0,
   seed = NULL,
-  progress = TRUE,
-  report = TRUE,
-  plot = TRUE,
+  num_bins = 4L,
+  plot = interactive(),
+  report = interactive(),
+  progress = interactive(),
   ...
 )
 }
@@ -32,11 +35,12 @@ cv_spatial(
 \item{x}{a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species data or ground truth sample for image classification).}
 
 \item{column}{character (optional). Indicating the name of the column in which response variable (e.g. species data as a binary
-response i.e. 0s and 1s) is stored to find balanced records in cross-validation folds. If \code{column = NULL}
-the response variable classes will be treated the same and only training and testing records will be counted.
+response i.e. 0s and 1s) is stored. It is used to report the number of records of each class/bin in every fold and,
+when \code{balance = TRUE}, to balance those classes across the folds. If \code{column = NULL}
+the response variable classes will be treated the same and only training and testing records will be counted (and balanced).
 This is used for binary (e.g. presence-absence/background) or multi-class responses (e.g. land cover classes for
-remote sensing image classification), and \emph{you can ignore it when the response variable is
-continuous or count data}.}
+remote sensing image classification). Continuous numeric responses are binned into quantiles using \code{num_bins}
+before balancing.}
 
 \item{r}{a terra SpatRaster object (optional). If provided, its extent will be used to specify the blocks.
 It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.}
@@ -49,7 +53,8 @@ It also supports \emph{stars}, \emph{raster}, or path to a raster file on disk.}
 
 \item{size}{numeric value of the specified range by which blocks are created and training/testing data are separated.
 This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}
-and \code{\link{cv_block_size}} functions.}
+and \code{\link{cv_block_size}} functions. For residual-based block-size guidance, add model residuals to
+\code{x} and pass that residual column to \code{\link{cv_spatial_autocor}}.}
 
 \item{rows_cols}{integer vector. Two integers to define the blocks based on row and
 column e.g. \code{c(10, 10)} or \code{c(5, 1)}. Hexagonal blocks uses only the first one. This
@@ -60,6 +65,17 @@ The checkerboard does not work with hexagonal and user-defined spatial blocks. I
 blocks and \code{folds_column} must be supplied.}
 
 \item{iteration}{integer value. The number of attempts to create folds with balanced records. Only works when \code{selection = "random"}.}
+
+\item{balance}{logical. When \code{TRUE} (default) and \code{selection = "random"}, the folds are chosen from \code{iteration}
+random block assignments to balance the training/testing records (or the classes/bins of \code{column} when it is provided).
+If \code{FALSE}, a single random assignment is returned without balancing (equivalent to \code{iteration = 1}). This argument
+has no effect on the other selection methods.}
+
+\item{presence_bg}{logical; whether to treat \code{column} as species presence-background data (0s for
+background points and 1s for presences; see \sQuote{Details}). When \code{TRUE} (with \code{selection = "random"} and
+\code{balance = TRUE}), the balancing search equalises only the presence (1s) records across folds so the many
+background points cannot dominate the objective; the blocks still contain all points but the background is
+ignored when scoring the balance. Requires a binary numeric \code{column}. The default is \code{FALSE}.}
 
 \item{user_blocks}{an sf or SpatialPolygons object to be used as the blocks (optional). This can be a user defined polygon and it must cover all
 the species (response) points. If \code{selection = 'predefined'}, this argument and \strong{folds_column} must be supplied.}
@@ -82,12 +98,20 @@ within a block. The value should be a numeric between 0 and 5.}
 \item{seed}{integer; a random seed for reproducibility (although an external seed
 should also work).}
 
-\item{progress}{logical; whether to shows a progress bar for random fold selection.}
-
-\item{report}{logical; whether to print the report of the records per fold.}
+\item{num_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+The default is \code{4}. Set \code{num_bins = NULL} to disable binning and treat every unique value as a
+separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
+The raw response values are not modified; bins are only used for fold balancing and record summaries.}
 
 \item{plot}{logical; whether to plot the final blocks with fold numbers in ggplot.
+Defaults to \code{interactive()}.
 You can re-create this with \code{\link{cv_plot}}.}
+
+\item{report}{logical; whether to print the report of the records per fold.
+Defaults to \code{interactive()}.}
+
+\item{progress}{logical; whether to shows a progress bar for random fold selection.
+Defaults to \code{interactive()}.}
 
 \item{...}{additional option for \code{\link{cv_plot}}.}
 }
@@ -99,6 +123,8 @@ An object of class S3. A list of objects including:
     \item{biomod_table - a matrix with the folds to be used in \pkg{biomod2} package}
     \item{k - number of the folds}
     \item{size - input size, if not null}
+    \item{block_shape - the block geometry used: \code{"hexagon"}, \code{"square"}, or \code{"user-defined"}}
+    \item{selection - how blocks were assigned to folds: \code{"random"}, \code{"systematic"}, \code{"checkerboard"}, or \code{"predefined"}}
     \item{column - the name of the column if provided}
     \item{blocks - spatial polygon of the blocks}
     \item{records - a table with the number of points in each category of training and testing}
@@ -136,6 +162,15 @@ autocorrelation (in model residual) to obtain realistic error estimates, while a
 the spatial autocorrelation range would result in a good estimation of error. This is because of the so-called
 edge effect (O'Sullivan & Unwin, 2014), whereby points located on the edges of the blocks of opposite sets are
 not separated spatially. Blocking with a buffering strategy overcomes this issue (see \code{\link{cv_buffer}}).
+When using \code{\link{cv_spatial_autocor}} to inform \code{size}, note that response or covariate variograms
+are exploratory proxies for residual autocorrelation unless model residuals have been added to \code{x} and
+supplied through the \code{column} argument.
+
+
+For presence-background data (\code{presence_bg = TRUE}), \code{column} holds \code{1} for presences and
+\code{0} for \emph{background} points -- locations sampled across the study area to represent the available
+conditions rather than confirmed absences. The fold balancing then targets only the presence records (the
+blocks still contain all points), so the abundant background cannot dominate the split.
 }
 \examples{
 \donttest{
@@ -176,7 +211,8 @@ Wenger, S.J., Olden, J.D., (2012). Assessing transferability of ecological model
 validation. Methods Ecol. Evol. 3, 260-267.
 }
 \seealso{
-\code{\link{cv_buffer}} and \code{\link{cv_cluster}}; \code{\link{cv_spatial_autocor}} and \code{\link{cv_block_size}} for selecting block size
+\code{\link{cv_buffer}} and \code{\link{cv_cluster}}; \code{\link{cv_spatial_autocor}} and \code{\link{cv_block_size}} for selecting block size;
+\code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate, the folds
 
 For \emph{CV.user.table} see \code{\link[biomod2]{BIOMOD_Modeling}} in \pkg{biomod2} package
 }

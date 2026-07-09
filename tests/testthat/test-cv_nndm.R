@@ -9,12 +9,15 @@ expect_names <- c(
 )
 
 
-aus <- system.file("extdata/au/", package = "blockCV") |>
-    list.files(full.names = TRUE) |>
-    terra::rast()
+aus <- terra::rast(
+    list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+)
 
-pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
-    sf::st_as_sf(coords = c("x", "y"), crs = 7845)
+pa_data <- sf::st_as_sf(
+    read.csv(system.file("extdata/", "species.csv", package = "blockCV")),
+    coords = c("x", "y"),
+    crs = 7845
+)
 pa_data <- pa_data[1:100, ]
 
 
@@ -31,8 +34,8 @@ test_that("test that cv_nndm function works properly with presence-absence data"
     expect_true(exists("bloo"))
     expect_s3_class(bloo, "cv_nndm")
     expect_equal(names(bloo), expect_names)
-    expect_equal(length(bloo$folds), nrow(pa_data))
-    expect_type(bloo$folds, "list")
+    expect_equal(length(bloo$folds_list), nrow(pa_data))
+    expect_type(bloo$folds_list, "list")
     expect_type(bloo$k, "integer")
     expect_type(bloo$column, "character")
     expect_type(bloo$size, "double")
@@ -56,8 +59,8 @@ test_that("test that cv_nndm function works properly with presence-background da
     expect_true(exists("bloo"))
     expect_s3_class(bloo, "cv_nndm")
     expect_equal(names(bloo), expect_names)
-    expect_equal(length(bloo$folds), sum(pa_data$occ))
-    expect_type(bloo$folds, "list")
+    expect_equal(length(bloo$folds_list), sum(pa_data$occ))
+    expect_type(bloo$folds_list, "list")
     expect_type(bloo$k, "integer")
     expect_type(bloo$column, "character")
     expect_type(bloo$size, "double")
@@ -80,8 +83,8 @@ test_that("test that cv_nndm function works properly with no species specified",
     expect_true(exists("bloo"))
     expect_s3_class(bloo, "cv_nndm")
     expect_equal(names(bloo), expect_names)
-    expect_equal(length(bloo$folds), nrow(pa_data))
-    expect_type(bloo$folds, "list")
+    expect_equal(length(bloo$folds_list), nrow(pa_data))
+    expect_type(bloo$folds_list, "list")
     expect_type(bloo$k, "integer")
     expect_null(bloo$species)
     expect_type(bloo$size, "double")
@@ -89,7 +92,7 @@ test_that("test that cv_nndm function works properly with no species specified",
     expect_equal(dim(bloo$records), c(nrow(pa_data), 2))
     expect_true(!all(bloo$records == 0))
 
-    expect_equal(print(bloo), "cv_nndm")
+    expect_output(print(bloo), "blockCV cv_nndm")
     expect_output(summary(bloo))
 
 })
@@ -125,15 +128,41 @@ test_that("test cv_nndm function with no spatial column data", {
 
 })
 
-test_that("test cv_nndm function to have sptial points with no CRS", {
-    sf::st_crs(pa_data) <- NA
+test_that("cv_nndm falls back to Euclidean distance when x has no CRS", {
+    nocrs <- pa_data
+    sf::st_crs(nocrs) <- NA
+    dom <- sf::st_as_sfc(sf::st_bbox(nocrs))
+
+    expect_warning(
+        bloo <- cv_nndm(
+            x = nocrs,
+            column = "occ",
+            model_domain = dom,
+            size = 250000,
+            num_sample = 500,
+            plot = FALSE,
+            report = FALSE
+        ),
+        "CRS undefined"
+    )
+
+    expect_s3_class(bloo, "cv_nndm")
+    expect_equal(length(bloo$folds_list), nrow(nocrs))
+
+})
+
+test_that("cv_nndm errors when x and r have mismatched CRS", {
+    nocrs <- pa_data
+    sf::st_crs(nocrs) <- NA
 
     expect_error(
-        cv_nndm(
-            x = pa_data,
-            column = "occ",
-            r = aus,
-            size = 250000
+        suppressWarnings(
+            cv_nndm(
+                x = nocrs,
+                column = "occ",
+                r = aus,
+                size = 250000
+            )
         )
     )
 

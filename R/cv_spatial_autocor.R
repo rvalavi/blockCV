@@ -2,9 +2,10 @@
 #'
 #' This function provides a quantitative basis for choosing block size. The spatial autocorrelation in either the
 #' spatial sample points or all continuous predictor variables available as raster layers is assessed and reported.
-#' The response (as defined be \code{column}) in spatial sample points can be binary such as species distribution data,
-#' or continuous response like soil organic carbon. The function estimates spatial autocorrelation \emph{ranges} of all input
-#' raster layers or the response data. This is the range over which observations are independent and is determined by
+#' The variable defined by \code{column} in spatial sample points can be a binary response such as species
+#' distribution data, a continuous response such as soil organic carbon, or model residuals that have been
+#' added to \code{x}. The function estimates spatial autocorrelation \emph{ranges} of all input
+#' raster layers or the supplied point-data column. This is the range over which observations are independent and is determined by
 #' constructing the empirical variogram, a fundamental geostatistical tool for measuring spatial autocorrelation.
 #' The empirical variogram models the structure of spatial autocorrelation by measuring variability between all possible
 #' pairs of points (O'Sullivan and Unwin, 2010). Results are plotted. See the details section for further information.
@@ -22,10 +23,17 @@
 #' See \code{\link[automap]{autofitVariogram}} from \pkg{automap} and \code{\link[gstat]{variogram}} from \pkg{gstat} packages
 #' for further information.
 #'
+#' Roberts et al. (2017) recommend choosing spatial blocks with reference to the autocorrelation range of
+#' model residuals. To follow that guidance, fit the model first, add its residuals to \code{x}, and pass that
+#' residual column name to \code{column}. Ranges estimated from the raw response or raster covariates are useful
+#' exploratory guides before model fitting, but they are not residual autocorrelation ranges and may under- or
+#' over-estimate the block size needed for residual-based guidance.
+#'
 #' @param r a terra SpatRaster object. If provided (and \code{x} is missing), it will be used for to calculate range.
 #' @param x a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species binary or continuous date).
-#' @param column character; indicating the name of the column in which response variable (e.g. species data as a binary
-#'  response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range. This supports multiple column names.
+#' @param column character; indicating the name of the column in which the response variable (e.g. species data as a
+#'  binary response i.e. 0s and 1s) or model residuals are stored for calculating spatial autocorrelation range.
+#'  This supports multiple column names.
 #' @param num_sample integer; the number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 #' however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).
 #' @param deg_to_metre integer. The conversion rate of degrees to metres.
@@ -33,7 +41,7 @@
 #' @param progress logical; whether to shows a progress bar.
 #' @param ... additional option for \code{\link{cv_plot}}
 #'
-#' @seealso \code{\link{cv_block_size}}
+#' @seealso \code{\link{cv_block_size}}; \code{\link{cv_plot}}, \code{\link{cv_distance}} and \code{\link{cv_similarity}} to visualise and evaluate folds
 #'
 #' @references O'Sullivan, D., Unwin, D.J., (2010). Geographic Information Analysis, 2nd ed. John Wiley & Sons.
 #'
@@ -68,6 +76,9 @@
 #' sac1 <- cv_spatial_autocor(x = pa_data,
 #'                            column = "occ", # binary or continuous data
 #'                            plot = TRUE)
+#'
+#' # if model residuals were added to pa_data, use that column instead
+#' # sac_resid <- cv_spatial_autocor(x = pa_data, column = "model_residual")
 #'
 #'
 #' # spatial autocorrelation of continuous raster files
@@ -162,7 +173,10 @@ cv_spatial_autocor <- function(
     }
 
     if(nlayer < 2) progress <- FALSE
-    if(progress) pb <- utils::txtProgressBar(min = 0, max = nlayer, style = 3)
+    if(progress){
+        pb <- utils::txtProgressBar(min = 0, max = nlayer, style = 3)
+        on.exit(if(progress) close(pb), add = TRUE)
+    }
 
     # fitting wariogram models
     vario_list <- lapply(
@@ -175,6 +189,10 @@ cv_spatial_autocor <- function(
         progress = progress,
         pb = if(progress) pb else NULL
     )
+    if(progress){
+        close(pb)
+        progress <- FALSE
+    }
 
     # make a dataframe from variograms data
     vario_data <- data.frame(layers = seq_len(nlayer), range = 1, sill = 1)
@@ -245,18 +263,31 @@ cv_spatial_autocor <- function(
 #' @export
 #' @method print cv_spatial_autocor
 print.cv_spatial_autocor <- function(x, ...){
-    print(class(x))
+    nlayer <- if(!is.null(x$range_table)) nrow(x$range_table) else NA_integer_
+    cat("blockCV cv_spatial_autocor: spatial autocorrelation range\n")
+    if(!is.null(x$range)){
+        cat(sprintf("  Effective range (median of %d layer(s)): %s\n",
+                    nlayer, format(round(x$range), scientific = FALSE)))
+    }
+    if(!is.null(x$range_table)){
+        cat("\nAutocorrelation range of each layer:\n")
+        print(x$range_table[, 1:2], row.names = FALSE)
+    }
+    invisible(x)
 }
 
 
 #' @export
 #' @method plot cv_spatial_autocor
 plot.cv_spatial_autocor <- function(x, y, ...){
-    if(length(x$plots) == 2){
-        plot(cowplot::plot_grid(x$plots$barchart, x$plots$mapplot))
+    if(is.list(x$plots) && all(c("barchart", "map_plot") %in% names(x$plots))){
+        plt <- cowplot::plot_grid(x$plots$barchart, x$plots$map_plot)
     } else{
-        plot(x$plots$mapplot)
+        plt <- x$plots
     }
+
+    plot(plt)
+    invisible(plt)
 }
 
 #' @export
@@ -293,10 +324,15 @@ summary.cv_spatial_autocor <- function(object, ...){
         names(points) <- c("target", "geometry")
     }
 
-    fit_vario <- automap::autofitVariogram(
-        formula = target ~ 1,
-        input_data = .as_sp(points)
-    )
+    # automap derives the variogram cutoff from a planar bbox diagonal for sf
+    # inputs, which is wrong for longlat data (degrees, not metres). Supply a
+    # great-circle cutoff (km) so the range matches the metric distances gstat
+    # computes internally. Projected data keeps automap's default cutoff.
+    vario_args <- list(formula = target ~ 1, input_data = points)
+    if(sf::st_is_longlat(points)){
+        vario_args$cutoff <- .gc_cutoff(points)
+    }
+    fit_vario <- do.call(automap::autofitVariogram, vario_args)
 
     if(progress) utils::setTxtProgressBar(pb, i)
 
@@ -304,25 +340,18 @@ summary.cv_spatial_autocor <- function(object, ...){
 }
 
 
-# Annoying step to import sp so there'll be no CRAN errors
-# Sp is only require because automap produces different output with latlong sf objects
-# Don't use sf::as_Spatial because this depends on sp and requires sp dependency anyway
-.as_sp <- function(x) {
-    out <- if (sf::st_is_longlat(x)) {
-        coords <- sf::st_coordinates(x)
-        attrs <- sf::st_drop_geometry(x)
-        crs_info <- sf::st_crs(x)$proj4string
-
-        sp::SpatialPointsDataFrame(
-            coords = coords,
-            data = attrs,
-            proj4string = sp::CRS(crs_info)
-        )
-    } else {
-        x
-    }
-
-    return(out)
+# Great-circle cutoff (km) for autofitVariogram on longlat data. automap uses
+# 0.35 * cutoff as the variogram diagonal; matching the great-circle diagonal it
+# computes for Spatial objects lets us feed sf directly and drop the sp dependency
+# (requires automap >= 1.1-20, which added the cutoff argument).
+.gc_cutoff <- function(x) {
+    bb <- sf::st_bbox(x)
+    corners <- sf::st_sfc(
+        sf::st_point(c(bb$xmin, bb$ymin)),
+        sf::st_point(c(bb$xmax, bb$ymax)),
+        crs = sf::st_crs(x)
+    )
+    as.numeric(sf::st_distance(corners)[1, 2]) / 1000 * 0.35
 }
 
 

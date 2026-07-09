@@ -1,9 +1,12 @@
-aus <- system.file("extdata/au/", package = "blockCV") |>
-    list.files(full.names = TRUE) |>
-    terra::rast()
+aus <- terra::rast(
+    list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+)
 
-pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
-    sf::st_as_sf(coords = c("x", "y"), crs = 7845)
+pa_data <- sf::st_as_sf(
+    read.csv(system.file("extdata/", "species.csv", package = "blockCV")),
+    coords = c("x", "y"),
+    crs = 7845
+)
 pa_data <- pa_data[1:200, ]
 
 scv <- cv_spatial(
@@ -17,35 +20,60 @@ scv <- cv_spatial(
 )
 
 
-test_that("test that cv_similarity function works with cv_spatil and MESS", {
+test_that("cv_similarity returns a cv_similarity object with MESS", {
 
-    plt <- cv_similarity(cv = scv, x = pa_data, r = aus, method = "MESS")
+    res <- cv_similarity(cv = scv, x = pa_data, r = aus, method = "MESS",
+                         plot = FALSE, progress = FALSE)
 
-    expect_true(exists("plt"))
-    expect_true(ggplot2::is_ggplot(plt))
-
+    expect_s3_class(res, "cv_similarity")
+    expect_named(res, c("extrapolation", "overall", "plot"))
+    expect_true(ggplot2::is_ggplot(res$plot))
 })
 
-test_that("test that cv_similarity function works with cv_spatil and L1", {
+test_that("cv_similarity is silent by default in non-interactive sessions", {
+    skip_if(interactive())
 
-    plt <- cv_similarity(cv = scv, x = pa_data, r = aus, method = "L1")
-
-    expect_true(exists("plt"))
-    expect_true(ggplot2::is_ggplot(plt))
-
+    expect_silent(res <- cv_similarity(cv = scv, x = pa_data, r = aus,
+                                       method = "MESS", plot = FALSE))
+    expect_s3_class(res, "cv_similarity")
 })
 
-test_that("test that cv_similarity function works with cv_spatil and L2", {
+test_that("cv_similarity works with L1", {
 
-    plt <- cv_similarity(cv = scv, x = pa_data, r = aus, , method = "L2")
+    res <- cv_similarity(cv = scv, x = pa_data, r = aus, method = "L1",
+                         plot = FALSE, progress = FALSE)
 
-    expect_true(exists("plt"))
-    expect_true(ggplot2::is_ggplot(plt))
+    expect_s3_class(res, "cv_similarity")
+    expect_true(ggplot2::is_ggplot(res$plot))
+})
 
+test_that("cv_similarity works with L2", {
+
+    res <- cv_similarity(cv = scv, x = pa_data, r = aus, method = "L2",
+                         plot = FALSE, progress = FALSE)
+
+    expect_s3_class(res, "cv_similarity")
+    expect_true(ggplot2::is_ggplot(res$plot))
+})
+
+test_that("cv_similarity returns an extrapolation table and a spatial map", {
+
+    res <- cv_similarity(cv = scv, x = pa_data, r = aus, method = "MESS",
+                         plot = FALSE, progress = FALSE)
+    extr <- res$extrapolation
+    expect_s3_class(extr, "data.frame")
+    expect_true(all(c("fold", "n_test", "pct_novel", "limiting_var") %in% names(extr)))
+    expect_true(is.numeric(res$overall))
+
+    mp <- cv_similarity(cv = scv, x = pa_data, r = aus, method = "MESS", type = "map",
+                        plot = FALSE, progress = FALSE)
+    expect_s3_class(mp, "cv_similarity")
+    expect_true(ggplot2::is_ggplot(mp$plot))
+    expect_true(any(vapply(mp$plot$layers, function(l) inherits(l$geom, "GeomSf"), logical(1))))
 })
 
 
-test_that("test that cv_similarity function works with cv_buffer", {
+test_that("cv_similarity works with cv_buffer", {
     bloo <- cv_buffer(
         x = pa_data,
         size = 250000,
@@ -53,10 +81,8 @@ test_that("test that cv_similarity function works with cv_buffer", {
         report = FALSE
     )
 
-    plt <- cv_similarity(cv = bloo, x = pa_data, r = aus)
+    res <- cv_similarity(cv = bloo, x = pa_data, r = aus, plot = FALSE, progress = FALSE)
 
-    expect_true(exists("plt"))
-    expect_true(ggplot2::is_ggplot(plt))
-
+    expect_s3_class(res, "cv_similarity")
+    expect_true(ggplot2::is_ggplot(res$plot))
 })
-

@@ -7,15 +7,18 @@
 cv_nndm(
   x,
   column = NULL,
-  r,
+  r = NULL,
   size,
-  num_sample = 10000,
+  pred_points = NULL,
+  model_domain = NULL,
+  num_sample = 10000L,
   sampling = "random",
   min_train = 0.05,
   presence_bg = FALSE,
   add_bg = FALSE,
-  plot = TRUE,
-  report = TRUE
+  num_bins = 4L,
+  plot = interactive(),
+  report = interactive()
 )
 }
 \arguments{
@@ -25,10 +28,20 @@ data or ground truth sample for image classification).}
 \item{column}{character; indicating the name of the column in which response variable (e.g. species data as a binary
 response i.e. 0s and 1s) is stored. This is required when \code{presence_bg = TRUE}, otherwise optional.}
 
-\item{r}{a terra SpatRaster object of a predictor variable. This defines the area that model is going to predict.}
+\item{r}{a terra SpatRaster object of a predictor variable (optional). This defines the area that
+the model is going to predict; prediction points are sampled from it when neither \code{pred_points}
+nor \code{model_domain} is supplied. One of \code{r}, \code{pred_points}, or \code{model_domain} is required.}
 
 \item{size}{numeric value of the range of spatial autocorrelation (the \code{phi} parameter).
-This distance should be in \strong{metres}. The range could be explored by \code{\link{cv_spatial_autocor}}.}
+This distance should be in \strong{metres} (or in the coordinate units of \code{x} when its CRS is
+undefined). The range could be explored by \code{\link{cv_spatial_autocor}}. For residual-based guidance,
+add model residuals to \code{x} and pass that residual column to \code{\link{cv_spatial_autocor}}.}
+
+\item{pred_points}{a simple features (sf) object of prediction points (optional). If provided, these are
+used directly as the prediction locations instead of sampling from \code{r} or \code{model_domain}.}
+
+\item{model_domain}{an sf polygon of the prediction area (optional). If provided (and \code{pred_points}
+is not), prediction points are sampled from it.}
 
 \item{num_sample}{integer; the number of sample points from predictor (\code{r}) to be used for calculating
 the G function of prediction points.}
@@ -46,17 +59,22 @@ types (presence-absence, continuous, count or multi-class responses), this optio
 recommend this according to Radosavljevic & Anderson (2014). Keep it \code{FALSE}, unless you mean to add
 the background pints to testing points.}
 
-\item{plot}{logical; whether to plot the G functions.}
+\item{num_bins}{integer; the number of quantile bins used to stratify a continuous numeric \code{column}.
+The default is \code{4}. Set \code{num_bins = NULL} to disable binning and treat every unique value as a
+separate class (the behaviour prior to version 3.3). If quantile breaks are tied, fewer bins may be used.
+The raw response values are not modified; bins are only used for fold balancing and record summaries.}
 
-\item{report}{logical; whether to generate print summary of records in each fold; for very big
-datasets, set to \code{FALSE} for slightly faster calculation.}
+\item{plot}{logical; whether to plot the G functions. Defaults to \code{interactive()}.}
+
+\item{report}{logical; whether to print summary of records in each fold.
+Defaults to \code{interactive()}.}
 }
 \value{
 An object of class S3. A list of objects including:
     \itemize{
     \item{folds_list - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
     \item{k - number of the folds}
-    \item{size - the distance band to separated trainig and testing folds)}
+    \item{size - the distance band to separate training and testing folds)}
     \item{column - the name of the column if provided}
     \item{presence_bg - whether this was treated as presence-background data}
     \item{records - a table with the number of points in each category of training and testing}
@@ -69,8 +87,9 @@ nearest neighbour distance distribution function between the test and training d
 distance distribution function between the target prediction and training points (Milà et al., 2022).
 }
 \details{
-When working with presence-background (presence and pseudo-absence) species distribution
-data (should be specified by \code{presence_bg = TRUE} argument), only presence records are used
+When working with presence-background data (presences and \emph{background} points sampled across the study
+area to represent the available conditions rather than confirmed absences, specified by
+\code{presence_bg = TRUE}), only presence records are used
 for specifying the folds (recommended). The testing fold comprises only the target \emph{presence} point (optionally,
 all background points within the distance are also included when \code{add_bg = TRUE}; this is the
 distance that matches the nearest neighbour distance distribution function of training-testing presences and
@@ -81,7 +100,7 @@ The methods cycles through all the presence data, so the number of folds is equa
 the number of presence points in the dataset.
 
 For all other types of data (including presence-absence, count, continuous, and multi-class)
-set \code{presence_bg = FALE}, and the function behaves similar to the methods
+set \code{presence_bg = FALSE}, and the function behaves similar to the methods
 explained by Milà and colleagues (2022).
 }
 \examples{
@@ -112,5 +131,6 @@ C. Milà, J. Mateu, E. Pebesma, and H. Meyer, Nearest Neighbour Distance Matchin
 Leave-One-Out Cross-Validation for map validation, Methods in Ecology and Evolution (2022).
 }
 \seealso{
-\code{\link{cv_buffer}} and \code{\link{cv_spatial_autocor}}
+\code{\link{cv_buffer}}, \code{\link{cv_knndm}} and \code{\link{cv_spatial_autocor}};
+\code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate, the folds
 }

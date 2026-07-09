@@ -13,6 +13,8 @@
 #' @param min_size numeric; the minimum size of the blocks (in metres) to explore.
 #' @param max_size numeric; the maximum size of the blocks (in metres) to explore.
 #'
+#' @seealso \code{\link{cv_spatial}} and \code{\link{cv_spatial_autocor}}; \code{\link{cv_plot}},
+#' \code{\link{cv_distance}} and \code{\link{cv_similarity}} to visualise and evaluate folds
 #' @return an interactive shiny session
 #' @export
 #'
@@ -63,7 +65,7 @@ cv_block_size <- function(
     yrange <- (bbox[4] - bbox[2])
 
     if(is.na(sf::st_crs(x_obj))){
-        stop("'r' and/or 'x' must have defined coordinate refernce systems.")
+        stop("'r' and/or 'x' must have defined coordinate reference systems.")
     }
 
     size_short <- min(xrange, yrange)
@@ -114,7 +116,7 @@ cv_block_size <- function(
         )
     }
 
-    # create UI for shniy app
+    # create UI for shiny app
     ui <- shiny::fluidPage(
         shiny::wellPanel(
             shiny::fluidRow(

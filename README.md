@@ -7,72 +7,81 @@ status](https://github.com/rvalavi/blockCV/workflows/R-CMD-check/badge.svg)](htt
 version](https://www.r-pkg.org/badges/version/blockCV)](https://CRAN.R-project.org/package=blockCV)
 [![total](https://cranlogs.r-pkg.org/badges/grand-total/blockCV)](https://CRAN.R-project.org/package=blockCV)
 [![License](https://img.shields.io/badge/license-GPL%20(%3E=%203)-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
-[![DOI](https://zenodo.org/badge/116337503.svg)](https://zenodo.org/badge/latestdoi/116337503)
 [![Methods in Ecology & Evolution](https://img.shields.io/badge/Methods%20in%20Ecology%20%26%20Evolution-10,%20225--232-blue.svg)](https://doi.org/10.1111/2041-210X.13107)
 
-### Spatial and environmental blocking for k-fold and LOO cross-validation
+### Spatially and environmentally separated folds for cross-validation
 
-The package `blockCV` offers a range of functions for generating train
-and test folds for **k-fold** and **leave-one-out (LOO)**
-cross-validation (CV). It allows for separation of data spatially and
-environmentally, with various options for block construction.
-Additionally, it includes a function for assessing the level of spatial
-autocorrelation in response or raster covariates, to aid in selecting an
-appropriate distance band for data separation. The `blockCV` package is
-suitable for the evaluation of a variety of spatial modelling
-applications, including classification of remote sensing imagery, soil
-mapping, and species distribution modelling (SDM). It also provides
-support for different SDM scenarios, including presence-absence and
-presence-background species data, rare and common species, and raster
-data for predictor variables.
+The `blockCV` package creates spatially or environmentally separated
+training and testing folds for **k-fold**, **leave-group-out**, and
+**leave-one-out (LOO)** cross-validation. These folds support more
+realistic evaluation of models fitted to spatially structured data,
+including remote-sensing classification, soil mapping, and species
+distribution modelling.
+
+Alongside several fold-construction strategies, `blockCV` provides tools
+for checking fold balance, comparing fold separation with the prediction
+domain, and identifying environmental extrapolation. It can also estimate
+spatial autocorrelation ranges in point data or continuous raster
+covariates, providing an initial distance scale to investigate when
+designing spatial folds.
  
 ## Main features
 
--   There are four blocking methods: **spatial**, **clustering**,
-    **buffers**, and **NNDM** (Nearest Neighbour Distance Matching)
-    blocks
--   Several ways to construct spatial blocks
--   The assignment of the spatial blocks to cross-validation folds can
-    be done in three different ways: **random**, **systematic** and
-    **checkerboard pattern**
--   The spatial blocks can be assigned to cross-validation folds to have
-    *evenly distributed records* for *binary* (e.g. species
-    presence-absence/background) or *multi-class* responses (e.g. land
-    cover classes for remote sensing image classification)
--   The buffering and NNDM functions can account for *presence-absence*
-    and *presence-background* data types
--   Using geostatistical techniques to inform the choice of a suitable
-    distance band by which to separate the data sets
+-   Six fold-construction strategies: spatial blocks (`cv_spatial`),
+    spatial or environmental clustering (`cv_cluster`), existing grouping
+    factors (`cv_group`), buffering (`cv_buffer`), leave-one-out nearest
+    neighbour distance matching (`cv_nndm`), and k-fold nearest neighbour
+    distance matching (`cv_knndm`)
+-   Hexagonal (default), rectangular, or user-defined spatial blocks,
+    assigned to folds using random, systematic, checkerboard, or predefined
+    selection. Random assignment can search for balanced folds
+-   Environmental clustering with optional spatial constraints through
+    `spatial_weight`, and optional over-clustering to improve fold balance
+-   Geographical or feature-space kNNDM using prediction locations supplied
+    by a raster (`r`), prediction points (`pred_points`), or a polygon
+    (`model_domain`), with block, hierarchical, or k-means grouping
+-   Response-aware fold summaries and, where supported, balancing for
+    binary, multi-class, continuous, count, and presence-background data.
+    Continuous and count responses can be grouped into quantile bins using
+    `num_bins`
+-   Fold diagnostics through `cv_summary`, `cv_distance`, and
+    `cv_similarity` to assess balance, train-test separation, agreement
+    with prediction-domain distances, and environmental extrapolation
+-   Fold visualisation with `cv_plot`, including faceted train-test maps
+    for every strategy and combined-fold maps for k-fold methods
+-   Spatial autocorrelation and interactive block-size tools
+    (`cv_spatial_autocor` and `cv_block_size`) for exploring an initial
+    separation distance
+-   Raster processing with `terra`, including support for `stars`,
+    `raster`, and raster files on disk
 
-## New updates of the version 3.0
+## What's new in v4.0
 
-The latest major version of `blockCV` (v3.0) features significant updates and changes. All function names have been revised to more general names, beginning with `cv_*`. Although the previous functions (version 2.x) will continue to work, they will be removed in future updates after being available for an extended period. It is highly recommended to update your code with the new functions provided below.
+-   Added `cv_knndm` for k-fold nearest neighbour distance matching, with
+    geographical and feature-space matching and block, hierarchical, or
+    k-means grouping
+-   Added `cv_group` for leave-group-out cross-validation based on an
+    existing site, plot, campaign, individual, or other grouping factor
+-   Added `cv_summary` for one-call fold-quality summaries and warnings,
+    and `cv_distance` for comparing fold separation with nearest-neighbour
+    distances in the prediction domain
+-   Expanded `cv_similarity` with per-fold extrapolation summaries,
+    overall novelty rates, and spatial map visualisation
+-   Made fold balancing explicit in `cv_spatial`, `cv_cluster`, and
+    `cv_knndm`; added presence-background balancing and quantile binning
+    (`num_bins`) for continuous or count responses
+-   Added spatially constrained environmental clustering through
+    `cv_cluster(spatial_weight = ...)`
+-   Added combined-fold maps to `cv_plot` and informative print methods
+    for fold and diagnostic objects
+-   Expanded `cv_nndm` and `cv_knndm` to accept prediction rasters,
+    prediction points, or model-domain polygons
+-   Removed the legacy v2.x function names. Other breaking changes include
+    the new structured return value from `cv_similarity`, the rename of
+    `num_plot` to `num_plots`, and interactive-only defaults for several
+    automatic plots, reports, and progress bars
 
-Some new updates:
-
--   Function names have been changed, with all functions now starting
-    with `cv_`
--   The CV blocking functions are now: `cv_spatial`, `cv_cluster`,
-    `cv_buffer`, and `cv_nndm`
--   Spatial blocks now support **hexagonal** (now, default),
-    rectangular, and user-defined blocks
--   A fast C++ implementation of **Nearest Neighbour Distance Matching
-    (NNDM)** algorithm (Milà et al. 2022) is now added
--   The NNDM algorithm can handle species presence-background data and
-    other types of data
--   The `cv_cluster` function generates blocks based on kmeans
-    clustering. It now works on both environmental rasters and the
-    **spatial coordinates of sample points**
--   The `cv_spatial_autocor` function now calculates the spatial
-    autocorrelation range for both the **response (i.e. binary or
-    continuous data)** and a set of continuous raster covariates
--   The new `cv_plot` function allows for visualization of folds from
-    all blocking strategies using ggplot facets
--   The `terra` package is now used for all raster processing and
-    supports both `stars` and `raster` objects, as well as files on
-    disk.
--   The new `cv_similarity` provides measures on possible extrapolation
-    to testing folds
+See [NEWS.md](NEWS.md) for the full changelog.
 
 ## Installation
 
@@ -94,9 +103,12 @@ To see the practical examples of the package see:
 
 1.  [blockCV introduction: how to create block cross-validation
     folds](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_1.html)
-2.  [Block cross-validation for species distribution
-    modelling](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_2.html)
-3.  Using blockCV with the `caret` and `tidymodels` ([see here](https://github.com/rvalavi/blockCV/issues/48))
+2.  [Choosing and diagnosing spatial
+    folds](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_2.html)
+3.  [Block cross-validation for species distribution
+    modelling](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_3.html)
+4.  [Using blockCV with
+    `caret`](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_4.html)
 
 ## Basic usage
 
@@ -126,13 +138,13 @@ pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 # spatial blocking by specified range and random assignment
 sb <- cv_spatial(
     x = pa_data, # sf or SpatialPoints of sample data (e.g. species data)
-    column = "occ", # the response column (binary or multi-class)
+    column = "occ", # optional response column for fold records/balancing
     r = myrasters, # a raster for background (optional)
     size = 450000, # size of the blocks in metres
     k = 5, # number of folds
-    hexagon = TRUE, # use hexagonal blocks - defualt
+    hexagon = TRUE, # use hexagonal blocks - default
     selection = "random", # random blocks-to-fold
-    iteration = 100, # to find evenly dispersed folds
+    iteration = 100, # search for balanced folds
     biomod2 = TRUE # also create folds for biomod2
 )
 ```
@@ -146,7 +158,7 @@ Or create spatial clusters for k-fold cross-validation:
 set.seed(6)
 sc <- cv_cluster(
     x = pa_data, 
-    column = "occ", # optionally count data in folds (binary or multi-class)
+    column = "occ", # optionally count classes/bins in folds
     k = 5
 )
 ```
@@ -164,6 +176,29 @@ cv_plot(
 
 ![](https://i.ibb.co/dGrF9xp/Rplot02.png)
 
+Create k-fold NNDM folds:
+
+``` r
+# k-fold nearest neighbour distance matching
+knn <- cv_knndm(
+    x = pa_data,
+    column = "occ", # optionally prefer class-complete folds
+    r = myrasters[[1]], # prediction area, or use pred_points/model_domain
+    k = 5,
+    num_sample = 5000
+)
+```
+
+``` r
+# compare an existing fold design with prediction-domain distances
+cv_distance(
+    cv = sb,
+    x = pa_data,
+    r = myrasters[[1]],
+    num_sample = 5000
+)
+```
+
 Investigate spatial autocorrelation in the landscape to choose a
 suitable size for spatial blocks:
 
@@ -175,6 +210,12 @@ cv_spatial_autocor(
     plot = TRUE
 )
 ```
+
+For the residual-based block-size guidance in Roberts et al. (2017), fit
+the model first, add its residuals to the sample points, and pass that
+residual column to `cv_spatial_autocor(x = ..., column = ...)`. Ranges
+estimated from the raw response or raster covariates are exploratory
+proxies and may mis-size blocks for residual autocorrelation.
 
 Alternatively, you can manually choose the size of spatial blocks in an
 interactive session using a Shiny app.

@@ -1,23 +1,23 @@
 ---
-title: "2. Block cross-validation for species distribution modelling"
+title: "3. Block cross-validation for species distribution modelling"
 author: "Roozbeh Valavi, Jane Elith, José Lahoz-Monfort and Gurutzeta Guillera-Arroita"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
     fig_caption: yes
 vignette: >
-  %\VignetteIndexEntry{2. Block cross-validation for species distribution modelling}
+  %\VignetteIndexEntry{3. Block cross-validation for species distribution modelling}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ## Introduction
 
-Species distribution models (SDMs) are widely used tools for predicting the potential distribution of a species based on environmental variables. However, it is crucial to evaluate the performance of these models to ensure their accuracy and reliability. One commonly used method for evaluating the performance of SDMs is **block cross-validation** (read more in *Valavi et al. 2019* and the Tutorial 1). This approach allows for a more robust evaluation of the model as it accounts for spatial autocorrelation and other spatial dependencies (Roberts et al. 2017). This document illustrates how to utilize the `blockCV` package to evaluate the performance of SDMs using block cross-validation.
+Species distribution models (SDMs) are widely used tools for predicting the potential distribution of a species based on environmental variables. However, it is crucial to evaluate the performance of these models to ensure their accuracy and reliability. One commonly used method for evaluating the performance of SDMs is **block cross-validation** (read more in *Valavi et al. 2019* and [Tutorial 1](tutorial_1.html)). This approach allows for a more robust evaluation of the model as it accounts for spatial autocorrelation and other spatial dependencies (Roberts et al. 2017). This document illustrates how to utilize the `blockCV` package to evaluate the performance of SDMs using block cross-validation.
 
 Two examples are provided: modelling using the `randomForest`, and `biomod2` packages.
 
-Check new updates of `blockCV` in the tutorial 1- blockCV introduction: how to create block cross-validation folds.
+See [Tutorial 1](tutorial_1.html) for fold creation options and [Tutorial 2](tutorial_2.html) for fold diagnostics.
 
 Please cite `blockCV` by: *Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods Ecol Evol. 2019; 10:225–232.* [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
 
@@ -42,10 +42,9 @@ library(terra) # working with spatial raster data
 library(tmap) # plotting maps
 
 # load raster data
-# the pipe operator |> is available for R version 4.1 or higher
-rasters <- system.file("extdata/au/", package = "blockCV") |>
-  list.files(full.names = TRUE) |>
-  terra::rast()
+rasters <- terra::rast(
+  list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+)
 
 ```
 
@@ -84,7 +83,7 @@ tm_shape(rasters[[1]]) +
 
 # Generating block CV folds
 
-Here, we generate two CV strategies, one k-fold CV using `cv_spatial` and one LOO CV using `cv_nndm`. See more options and configurations in the *Tutorial 1 - introduction to `blockCV`*.
+Here, we generate two CV strategies, one k-fold CV using `cv_spatial` and one LOO CV using `cv_nndm`. See more options and configurations in [Tutorial 1 - introduction to `blockCV`](tutorial_1.html).
 
 ```{r message=TRUE, warning=TRUE}
 library(blockCV)
@@ -111,7 +110,7 @@ scv1 <- cv_spatial(
 ```
 
 
-Now, let's create LOO CV folds with nearest neighbour distance matching (NNDM; Milà et al. 2022) algorithm. To run `cv_nndm`, you need a measure of spatial autocorrelation present in your data. This can be done wither by 1) fitting a model and use it's residual to calculate spatial autocorrelation, or 2) use the autocorrelation of response variable for it (Milà et al, 2022; Roberts et al. 2017). Here, we calculate spatial autocorrelation range in the response using the `cv_spatial_autocor` function.
+Now, let's create LOO CV folds with nearest neighbour distance matching (NNDM; Milà et al. 2022) algorithm. To run `cv_nndm`, you need a measure of spatial autocorrelation present in your data. This can be done by fitting a model, adding its residuals to the sample points object, and using that residual column to calculate spatial autocorrelation. The autocorrelation of the response variable can also be used as an exploratory proxy (Milà et al, 2022; Roberts et al. 2017), but it is not the residual autocorrelation range recommended by Roberts et al. (2017) and may produce a different distance. Here, we calculate spatial autocorrelation range in the response using the `cv_spatial_autocor` function.
 
 ```{r}
 range <- cv_spatial_autocor(

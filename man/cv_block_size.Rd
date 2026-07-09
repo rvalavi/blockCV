@@ -48,3 +48,7 @@ cv_block_size(x = pa_data,
 }
 
 }
+\seealso{
+\code{\link{cv_spatial}} and \code{\link{cv_spatial_autocor}}; \code{\link{cv_plot}},
+\code{\link{cv_distance}} and \code{\link{cv_similarity}} to visualise and evaluate folds
+}

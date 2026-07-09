@@ -20,8 +20,9 @@ cv_spatial_autocor(
 
 \item{x}{a simple features (sf) or SpatialPoints object of spatial sample data (e.g., species binary or continuous date).}
 
-\item{column}{character; indicating the name of the column in which response variable (e.g. species data as a binary
-response i.e. 0s and 1s) is stored for calculating spatial autocorrelation range. This supports multiple column names.}
+\item{column}{character; indicating the name of the column in which the response variable (e.g. species data as a
+binary response i.e. 0s and 1s) or model residuals are stored for calculating spatial autocorrelation range.
+This supports multiple column names.}
 
 \item{num_sample}{integer; the number of sample points of each raster layer to fit variogram models. It is 5000 by default,
 however it can be increased by user to represent their region well (relevant to the extent and resolution of rasters).}
@@ -47,9 +48,10 @@ An object of class S3. A list object including:
 \description{
 This function provides a quantitative basis for choosing block size. The spatial autocorrelation in either the
 spatial sample points or all continuous predictor variables available as raster layers is assessed and reported.
-The response (as defined be \code{column}) in spatial sample points can be binary such as species distribution data,
-or continuous response like soil organic carbon. The function estimates spatial autocorrelation \emph{ranges} of all input
-raster layers or the response data. This is the range over which observations are independent and is determined by
+The variable defined by \code{column} in spatial sample points can be a binary response such as species
+distribution data, a continuous response such as soil organic carbon, or model residuals that have been
+added to \code{x}. The function estimates spatial autocorrelation \emph{ranges} of all input
+raster layers or the supplied point-data column. This is the range over which observations are independent and is determined by
 constructing the empirical variogram, a fundamental geostatistical tool for measuring spatial autocorrelation.
 The empirical variogram models the structure of spatial autocorrelation by measuring variability between all possible
 pairs of points (O'Sullivan and Unwin, 2010). Results are plotted. See the details section for further information.
@@ -67,6 +69,12 @@ enable more accurate estimate, it is recommended to transform un-projected maps 
 system / latitude-longitude) to a projected metric reference system (e.g. UTM or Lambert) where it is possible.
 See \code{\link[automap]{autofitVariogram}} from \pkg{automap} and \code{\link[gstat]{variogram}} from \pkg{gstat} packages
 for further information.
+
+Roberts et al. (2017) recommend choosing spatial blocks with reference to the autocorrelation range of
+model residuals. To follow that guidance, fit the model first, add its residuals to \code{x}, and pass that
+residual column name to \code{column}. Ranges estimated from the raw response or raster covariates are useful
+exploratory guides before model fitting, but they are not residual autocorrelation ranges and may under- or
+over-estimate the block size needed for residual-based guidance.
 }
 \examples{
 \donttest{
@@ -87,6 +95,9 @@ sac1 <- cv_spatial_autocor(x = pa_data,
                            column = "occ", # binary or continuous data
                            plot = TRUE)
 
+# if model residuals were added to pa_data, use that column instead
+# sac_resid <- cv_spatial_autocor(x = pa_data, column = "model_residual")
+
 
 # spatial autocorrelation of continuous raster files
 sac2 <- cv_spatial_autocor(r = covars,
@@ -104,5 +115,5 @@ Roberts et al., (2017). Cross-validation strategies for data with temporal, spat
 or phylogenetic structure. Ecography. 40: 913-929.
 }
 \seealso{
-\code{\link{cv_block_size}}
+\code{\link{cv_block_size}}; \code{\link{cv_plot}}, \code{\link{cv_distance}} and \code{\link{cv_similarity}} to visualise and evaluate folds
 }

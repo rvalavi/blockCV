@@ -3,16 +3,22 @@ expect_names <- c("folds_list",
                   "biomod_table",
                   "k",
                   "size",
+                  "block_shape",
+                  "selection",
                   "column",
+                  "presence_bg",
                   "blocks",
                   "records")
 
-aus <- system.file("extdata/au/", package = "blockCV") |>
-    list.files(full.names = TRUE) |>
-    terra::rast()
+aus <- terra::rast(
+    list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+)
 
-pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV")) |>
-    sf::st_as_sf(coords = c("x", "y"), crs = 7845)
+pa_data <- sf::st_as_sf(
+    read.csv(system.file("extdata/", "species.csv", package = "blockCV")),
+    coords = c("x", "y"),
+    crs = 7845
+)
 pa_data <- pa_data[1:200, ]
 
 test_that("test cv_spatial function with random assingment and raster file", {
@@ -38,6 +44,10 @@ test_that("test cv_spatial function with random assingment and raster file", {
     expect_equal(length(scv$folds_list), 5)
     expect_type(scv$folds_list, "list")
     expect_type(scv$biomod_table, "logical")
+    expect_equal(scv$block_shape, "hexagon")
+    expect_equal(scv$selection, "random")
+    expect_output(print(scv), "hexagon")
+    expect_output(print(scv), "random")
     expect_equal(dim(scv$biomod_table), c(nrow(pa_data), 5))
     expect_equal(scv$k, 5)
     expect_s3_class(scv$blocks, "sf")
@@ -47,6 +57,91 @@ test_that("test cv_spatial function with random assingment and raster file", {
     expect_true(
         !all(scv$records == 0)
     )
+
+})
+
+test_that("continuous column is balanced with quantile bins", {
+
+    cont_data <- pa_data
+    set.seed(101)
+    cont_data$biomass <- stats::rnorm(nrow(cont_data))
+
+    set.seed(102)
+    scv <- cv_spatial(
+        x = cont_data,
+        column = "biomass",
+        rows_cols = c(20, 20),
+        hexagon = FALSE,
+        k = 4,
+        selection = "random",
+        iteration = 20,
+        biomod2 = FALSE,
+        progress = FALSE,
+        plot = FALSE
+    )
+
+    expect_equal(dim(scv$records), c(4, 8))
+    expect_equal(
+        names(scv$records),
+        c(paste0("train_Q", 1:4), paste0("test_Q", 1:4))
+    )
+    bins <- attr(scv$records, "column_bins")
+    expect_equal(nrow(bins), 4)
+    expect_equal(attr(bins, "requested_bins"), 4L)
+    expect_true(all(bins$lower <= bins$upper))
+
+})
+
+test_that("numeric multi-class column is not quantile-binned", {
+
+    class_data <- pa_data
+    class_data$class5 <- rep(1:5, length.out = nrow(class_data))
+
+    scv <- cv_spatial(
+        x = class_data,
+        column = "class5",
+        rows_cols = c(20, 20),
+        hexagon = FALSE,
+        k = 5,
+        selection = "random",
+        iteration = 5,
+        biomod2 = FALSE,
+        progress = FALSE,
+        plot = FALSE
+    )
+
+    expect_equal(dim(scv$records), c(5, 10))
+    expect_null(attr(scv$records, "column_bins"))
+
+})
+
+test_that("num_bins = NULL disables quantile binning for a continuous column", {
+
+    # deterministic, non-integer, > 15 unique values (would be binned by default)
+    cont_data <- pa_data
+    cont_data$biomass <- rep(seq(0.5, 20.5, by = 1), length.out = nrow(cont_data))
+    n_unique <- length(unique(cont_data$biomass))
+
+    set.seed(104)
+    scv <- suppressWarnings(
+        cv_spatial(
+            x = cont_data,
+            column = "biomass",
+            rows_cols = c(20, 20),
+            hexagon = FALSE,
+            k = 4,
+            selection = "random",
+            iteration = 5,
+            biomod2 = FALSE,
+            num_bins = NULL,
+            progress = FALSE,
+            plot = FALSE
+        )
+    )
+
+    # every unique value becomes its own class, so no quantile bins are stored
+    expect_null(attr(scv$records, "column_bins"))
+    expect_equal(ncol(scv$records), n_unique * 2)
 
 })
 
@@ -77,7 +172,7 @@ test_that("test cv_spatial function with systematic assingment and no raster fil
         !all(scv$records == 0)
     )
 
-    expect_equal(print(scv), "cv_spatial")
+    expect_output(print(scv), "blockCV cv_spatial")
     expect_message(plot(scv))
     expect_output(summary(scv))
 
@@ -111,7 +206,7 @@ test_that("test cv_spatial function with non-numeric iteration", {
         !all(scv$records == 0)
     )
 
-    expect_equal(print(scv), "cv_spatial")
+    expect_output(print(scv), "blockCV cv_spatial")
     expect_message(plot(scv))
     expect_output(summary(scv))
 
@@ -135,6 +230,8 @@ test_that("test cv_spatial with checkerboard assingment and only row blocks", {
     expect_type(scv$folds_list, "list")
     expect_null(scv$biomod_table)
     expect_equal(scv$k, 2)
+    expect_equal(scv$block_shape, "square")
+    expect_equal(scv$selection, "checkerboard")
     expect_s3_class(scv$blocks, "sf")
     expect_null(scv$column)
     expect_null(scv$size)
@@ -143,7 +240,7 @@ test_that("test cv_spatial with checkerboard assingment and only row blocks", {
         !all(scv$records == 0)
     )
 
-    expect_equal(print(scv), "cv_spatial")
+    expect_output(print(scv), "blockCV cv_spatial")
     expect_message(plot(scv))
     expect_output(summary(scv))
 
@@ -180,7 +277,7 @@ test_that("test cv_spatial with user-defined blocks", {
         !all(scv$records == 0)
     )
 
-    expect_equal(print(scv), "cv_spatial")
+    expect_output(print(scv), "blockCV cv_spatial")
     expect_message(plot(scv))
     expect_output(summary(scv))
 
@@ -249,4 +346,26 @@ test_that("test cv_spatial with no speceis column match", {
         !all(scv$records == 0)
     )
 
+})
+
+
+test_that("block_shape and selection are recorded and printed", {
+    # square blocks with systematic selection
+    set.seed(1)
+    sq <- cv_spatial(x = pa_data, k = 5, hexagon = FALSE, size = 450000,
+                     selection = "systematic", biomod2 = FALSE,
+                     progress = FALSE, plot = FALSE)
+    expect_equal(sq$block_shape, "square")
+    expect_equal(sq$selection, "systematic")
+    expect_output(print(sq), "square")
+    expect_output(print(sq), "systematic")
+
+    # user-defined blocks report a "user-defined" shape
+    user_poly <- .make_blocks(x_obj = pa_data, blocksize = 450000)
+    set.seed(1)
+    ub <- cv_spatial(x = pa_data, user_blocks = user_poly, k = 5,
+                     selection = "random", iteration = 5, biomod2 = FALSE,
+                     progress = FALSE, plot = FALSE)
+    expect_equal(ub$block_shape, "user-defined")
+    expect_output(print(ub), "user-defined")
 })

@@ -10,9 +10,9 @@ test_that("test that the data is corrrect", {
   skip_on_cran()
 
   pa <- read.csv(system.file("extdata", "species.csv", package = "blockCV"))
-  r <- system.file("extdata/au/", package = "blockCV") |>
-    list.files(full.names = TRUE) |>
-    terra::rast()
+  r <- terra::rast(
+    list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+  )
 
   expect_true(exists("pa"))
   expect_true(nrow(pa) > 300)
