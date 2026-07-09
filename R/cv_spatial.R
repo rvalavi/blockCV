@@ -465,13 +465,17 @@ cv_spatial <- function(
 #' @export
 #' @method print cv_spatial
 print.cv_spatial <- function(x, ...){
+    desc <- if(!is.null(x$block_shape)){
+        sprintf("spatial blocking (%s blocks)", x$block_shape)
+    } else {
+        "spatial blocking"
+    }
     details <- list("Folds" = x$k)
-    if(!is.null(x$block_shape)) details[["Block shape"]] <- x$block_shape
     if(!is.null(x$size)) details[["Block size (m)"]] <- round(x$size)
     if(!is.null(x$selection)) details[["Fold selection"]] <- x$selection
     if(!is.null(x$column)) details[["Balancing column"]] <- x$column
     details[["Presence-background"]] <- if(isTRUE(x$presence_bg)) "yes" else "no"
-    .print_cv_folds(x, "spatial blocking", details)
+    .print_cv_folds(x, desc, details)
 }
 
 
