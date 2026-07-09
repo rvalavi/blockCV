@@ -92,7 +92,7 @@ test_that("test that cv_nndm function works properly with no species specified",
     expect_equal(dim(bloo$records), c(nrow(pa_data), 2))
     expect_true(!all(bloo$records == 0))
 
-    expect_equal(print(bloo), "cv_nndm")
+    expect_output(print(bloo), "blockCV cv_nndm")
     expect_output(summary(bloo))
 
 })

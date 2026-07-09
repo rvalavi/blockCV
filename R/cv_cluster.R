@@ -93,6 +93,7 @@
 #'     \item{k - number of the folds}
 #'     \item{column - the name of the column if provided}
 #'     \item{type - indicates whether spatial or environmental clustering was done.}
+#'     \item{spatial_weight - the spatial weight used for environmental clustering (\code{NA} for spatial clustering).}
 #'     \item{records - a table with the number of points in each category of training and testing}
 #'     }
 #' @export
@@ -357,6 +358,7 @@ cv_cluster <- function(
         column = column,
         presence_bg = presence_bg,
         type = ifelse(is.null(r), "Spatial Cluster", "Environmental Cluster"),
+        spatial_weight = if(is.null(r)) NA_real_ else spatial_weight,
         records = train_test_table
     )
 
@@ -374,7 +376,19 @@ cv_cluster <- function(
 #' @export
 #' @method print cv_cluster
 print.cv_cluster <- function(x, ...){
-    print(class(x))
+    w <- x$spatial_weight
+    desc <- if(is.null(x$type) || identical(x$type, "Spatial Cluster")){
+        "spatial clustering (geographical coordinates)"
+    } else if(is.null(w) || is.na(w) || w <= 0){
+        "environmental clustering (feature space)"
+    } else {
+        "spatially-constrained environmental clustering (feature space + geography)"
+    }
+    details <- list("Folds" = x$k)
+    if(!is.null(w) && !is.na(w) && w > 0) details[["Spatial weight"]] <- w
+    if(!is.null(x$column)) details[["Balancing column"]] <- x$column
+    details[["Presence-background"]] <- if(isTRUE(x$presence_bg)) "yes" else "no"
+    .print_cv_folds(x, desc, details)
 }
 
 #' @export

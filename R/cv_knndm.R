@@ -608,7 +608,15 @@ cv_knndm <- function(
 #' @export
 #' @method print cv_knndm
 print.cv_knndm <- function(x, ...){
-    print(class(x))
+    details <- list("Folds" = x$k)
+    if(!is.null(x$type)) details[["Method"]] <- x$type
+    if(!is.null(x$space)) details[["Space"]] <- x$space
+    if(!is.null(x$W) && length(x$W) == 1 && is.finite(x$W)){
+        details[["W statistic (lower = better)"]] <- round(x$W, 4)
+    }
+    if(!is.null(x$column)) details[["Balancing column"]] <- x$column
+    details[["Presence-background"]] <- if(isTRUE(x$presence_bg)) "yes" else "no"
+    .print_cv_folds(x, "k-fold Nearest Neighbour Distance Matching (kNNDM)", details)
 }
 
 

@@ -263,7 +263,17 @@ cv_spatial_autocor <- function(
 #' @export
 #' @method print cv_spatial_autocor
 print.cv_spatial_autocor <- function(x, ...){
-    print(class(x))
+    nlayer <- if(!is.null(x$range_table)) nrow(x$range_table) else NA_integer_
+    cat("blockCV cv_spatial_autocor: spatial autocorrelation range\n")
+    if(!is.null(x$range)){
+        cat(sprintf("  Effective range (median of %d layer(s)): %s\n",
+                    nlayer, format(round(x$range), scientific = FALSE)))
+    }
+    if(!is.null(x$range_table)){
+        cat("\nAutocorrelation range of each layer:\n")
+        print(x$range_table[, 1:2], row.names = FALSE)
+    }
+    invisible(x)
 }
 
 

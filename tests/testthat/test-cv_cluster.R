@@ -6,6 +6,7 @@ expect_names <- c(
     "column",
     "presence_bg",
     "type",
+    "spatial_weight",
     "records"
 )
 
@@ -60,7 +61,9 @@ test_that("test that spacial cluster function with no column", {
     expect_equal(dim(eb$records), c(5, 2))
     expect_true(!all(eb$records == 0))
 
-    expect_equal(print(eb), "cv_cluster")
+    expect_true(is.na(eb$spatial_weight))
+    expect_output(print(eb), "spatial clustering")
+    expect_output(print(eb), "blockCV cv_cluster")
     expect_output(summary(eb))
 
 })
@@ -189,6 +192,9 @@ test_that("spatial_weight blends geography into environmental clustering", {
 
     expect_s3_class(ec, "cv_cluster")
     expect_equal(ec$type, "Environmental Cluster")
+    expect_equal(ec$spatial_weight, 0.4)
+    expect_output(print(ec), "spatially-constrained")
+    expect_output(print(ec), "Spatial weight")
     expect_equal(length(ec$folds_list), 5)
 
     # spatial_weight = 0 reproduces the default (pure environmental) folds exactly
@@ -199,6 +205,8 @@ test_that("spatial_weight blends geography into environmental clustering", {
     def <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5,
                       scale = TRUE, biomod2 = FALSE)
     expect_identical(w0$folds_ids, def$folds_ids)
+    expect_equal(def$spatial_weight, 0)
+    expect_output(print(def), "environmental clustering")
 
     # spatial_weight = 1 runs and clusters purely on the (standardised) coordinates
     set.seed(42)

@@ -44,7 +44,7 @@ test_that("test cv_spatial_autocor function works", {
     expect_true(all(names(aus) %in% sac$range_table$layers))
     expect_named(sac$plots, c("barchart", "map_plot"))
 
-    expect_equal(print(sac), "cv_spatial_autocor")
+    expect_output(print(sac), "blockCV cv_spatial_autocor")
     expect_silent(sac_plot <- plot(sac))
     expect_true(ggplot2::is_ggplot(sac_plot))
     expect_output(summary(sac))
@@ -96,7 +96,7 @@ test_that("test cv_spatial_autocor function works with wgs crs", {
     expect_true(!is.null(sac$variograms))
     expect_true(all(names(aus) %in% sac$range_table$layers))
 
-    expect_equal(print(sac), "cv_spatial_autocor")
+    expect_output(print(sac), "blockCV cv_spatial_autocor")
     expect_silent(plot(sac))
     expect_output(summary(sac))
 

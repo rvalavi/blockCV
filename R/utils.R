@@ -142,6 +142,32 @@
 }
 
 
+# shared pretty-printer for the fold-generating cv_* objects. Prints a one-line
+# description, a set of "key: value" detail lines, and the per-fold train/test
+# records table (capped for leave-one-out designs, which have one fold per
+# point). Row names of the records table are the fold numbers, so they are kept.
+# Returns invisible(x) so the object is not echoed a second time after the
+# formatted output.
+.print_cv_folds <- function(x, description, details = NULL, cap = 12L){
+    cat(sprintf("blockCV %s: %s\n", class(x)[1], description))
+    for(nm in names(details)){
+        cat(sprintf("  %s: %s\n", nm, format(details[[nm]], scientific = FALSE)))
+    }
+    recs <- x$records
+    if(!is.null(recs) && nrow(recs)){
+        cat("\nNumber of records in each fold (train/test):\n")
+        if(nrow(recs) > cap){
+            print(utils::head(recs, cap))
+            cat(sprintf("... %d more fold(s); use summary() for a full breakdown.\n",
+                        nrow(recs) - cap))
+        } else {
+            print(recs)
+        }
+    }
+    invisible(x)
+}
+
+
 # count the train and test records
 .table_summary <- function(fold_list, x, column, n, num_bins = NULL){
     response <- .column_response(x, column, num_bins = num_bins)

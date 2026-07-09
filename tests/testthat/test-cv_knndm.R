@@ -133,7 +133,7 @@ test_that("test that cv_knndm works with hierarchical and kmeans clustering", {
     expect_s3_class(km, "cv_knndm")
     expect_equal(sort(unique(km$folds_ids)), 1:4)
 
-    expect_equal(print(kh), "cv_knndm")
+    expect_output(print(kh), "blockCV cv_knndm")
     expect_output(summary(kh))
 })
 

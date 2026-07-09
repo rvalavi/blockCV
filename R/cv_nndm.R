@@ -224,7 +224,12 @@ cv_nndm <- function(
 #' @export
 #' @method print cv_nndm
 print.cv_nndm <- function(x, ...){
-    print(class(x))
+    details <- list("Folds (leave-one-out)" = x$k)
+    if(!is.null(x$size)) details[["Autocorrelation range (phi)"]] <- round(x$size)
+    if(!is.null(x$column)) details[["Column"]] <- x$column
+    details[["Presence-background"]] <- if(isTRUE(x$presence_bg)) "yes" else "no"
+    # leave-one-out has one fold per point, so cap the record table short
+    .print_cv_folds(x, "Nearest Neighbour Distance Matching (NNDM) LOO CV", details, cap = 6L)
 }
 
 

@@ -241,7 +241,11 @@ cv_group <- function(
 #' @export
 #' @method print cv_group
 print.cv_group <- function(x, ...){
-    print(class(x))
+    details <- list("Folds" = x$k,
+                    "Grouping column" = x$group_col,
+                    "Groups" = x$n_groups)
+    if(!is.null(x$column)) details[["Balancing column"]] <- x$column
+    .print_cv_folds(x, tolower(x$type), details)
 }
 
 #' @export

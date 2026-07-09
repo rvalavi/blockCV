@@ -166,7 +166,12 @@ cv_buffer <- function(
 #' @export
 #' @method print cv_buffer
 print.cv_buffer <- function(x, ...){
-    print(class(x))
+    details <- list("Folds (leave-one-out)" = x$k)
+    if(!is.null(x$size)) details[["Buffer size (m)"]] <- round(x$size)
+    if(!is.null(x$column)) details[["Column"]] <- x$column
+    details[["Presence-background"]] <- if(isTRUE(x$presence_bg)) "yes" else "no"
+    # leave-one-out has one fold per point, so cap the record table short
+    .print_cv_folds(x, "buffered leave-one-out (LOO) CV", details, cap = 6L)
 }
 
 #' @export

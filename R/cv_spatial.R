@@ -123,6 +123,8 @@
 #'     \item{biomod_table - a matrix with the folds to be used in \pkg{biomod2} package}
 #'     \item{k - number of the folds}
 #'     \item{size - input size, if not null}
+#'     \item{block_shape - the block geometry used: \code{"hexagon"}, \code{"square"}, or \code{"user-defined"}}
+#'     \item{selection - how blocks were assigned to folds: \code{"random"}, \code{"systematic"}, \code{"checkerboard"}, or \code{"predefined"}}
 #'     \item{column - the name of the column if provided}
 #'     \item{blocks - spatial polygon of the blocks}
 #'     \item{records - a table with the number of points in each category of training and testing}
@@ -435,6 +437,8 @@ cv_spatial <- function(
         biomod_table = if (biomod2) as.matrix(biomod_table) else NULL,
         k = k,
         size = size,
+        block_shape = if(!is.null(user_blocks)) "user-defined" else if(hexagon) "hexagon" else "square",
+        selection = selection,
         column = column,
         presence_bg = presence_bg,
         blocks = sub_blocks,
@@ -461,7 +465,13 @@ cv_spatial <- function(
 #' @export
 #' @method print cv_spatial
 print.cv_spatial <- function(x, ...){
-    print(class(x))
+    details <- list("Folds" = x$k)
+    if(!is.null(x$block_shape)) details[["Block shape"]] <- x$block_shape
+    if(!is.null(x$size)) details[["Block size (m)"]] <- round(x$size)
+    if(!is.null(x$selection)) details[["Fold selection"]] <- x$selection
+    if(!is.null(x$column)) details[["Balancing column"]] <- x$column
+    details[["Presence-background"]] <- if(isTRUE(x$presence_bg)) "yes" else "no"
+    .print_cv_folds(x, "spatial blocking", details)
 }
 
 

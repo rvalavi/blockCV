@@ -123,6 +123,8 @@ An object of class S3. A list of objects including:
     \item{biomod_table - a matrix with the folds to be used in \pkg{biomod2} package}
     \item{k - number of the folds}
     \item{size - input size, if not null}
+    \item{block_shape - the block geometry used: \code{"hexagon"}, \code{"square"}, or \code{"user-defined"}}
+    \item{selection - how blocks were assigned to folds: \code{"random"}, \code{"systematic"}, \code{"checkerboard"}, or \code{"predefined"}}
     \item{column - the name of the column if provided}
     \item{blocks - spatial polygon of the blocks}
     \item{records - a table with the number of points in each category of training and testing}

@@ -95,6 +95,7 @@ An object of class S3. A list of objects including:
     \item{k - number of the folds}
     \item{column - the name of the column if provided}
     \item{type - indicates whether spatial or environmental clustering was done.}
+    \item{spatial_weight - the spatial weight used for environmental clustering (\code{NA} for spatial clustering).}
     \item{records - a table with the number of points in each category of training and testing}
     }
 }

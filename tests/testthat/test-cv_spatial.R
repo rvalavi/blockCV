@@ -3,6 +3,8 @@ expect_names <- c("folds_list",
                   "biomod_table",
                   "k",
                   "size",
+                  "block_shape",
+                  "selection",
                   "column",
                   "presence_bg",
                   "blocks",
@@ -42,6 +44,10 @@ test_that("test cv_spatial function with random assingment and raster file", {
     expect_equal(length(scv$folds_list), 5)
     expect_type(scv$folds_list, "list")
     expect_type(scv$biomod_table, "logical")
+    expect_equal(scv$block_shape, "hexagon")
+    expect_equal(scv$selection, "random")
+    expect_output(print(scv), "hexagon")
+    expect_output(print(scv), "random")
     expect_equal(dim(scv$biomod_table), c(nrow(pa_data), 5))
     expect_equal(scv$k, 5)
     expect_s3_class(scv$blocks, "sf")
@@ -166,7 +172,7 @@ test_that("test cv_spatial function with systematic assingment and no raster fil
         !all(scv$records == 0)
     )
 
-    expect_equal(print(scv), "cv_spatial")
+    expect_output(print(scv), "blockCV cv_spatial")
     expect_message(plot(scv))
     expect_output(summary(scv))
 
@@ -200,7 +206,7 @@ test_that("test cv_spatial function with non-numeric iteration", {
         !all(scv$records == 0)
     )
 
-    expect_equal(print(scv), "cv_spatial")
+    expect_output(print(scv), "blockCV cv_spatial")
     expect_message(plot(scv))
     expect_output(summary(scv))
 
@@ -224,6 +230,8 @@ test_that("test cv_spatial with checkerboard assingment and only row blocks", {
     expect_type(scv$folds_list, "list")
     expect_null(scv$biomod_table)
     expect_equal(scv$k, 2)
+    expect_equal(scv$block_shape, "square")
+    expect_equal(scv$selection, "checkerboard")
     expect_s3_class(scv$blocks, "sf")
     expect_null(scv$column)
     expect_null(scv$size)
@@ -232,7 +240,7 @@ test_that("test cv_spatial with checkerboard assingment and only row blocks", {
         !all(scv$records == 0)
     )
 
-    expect_equal(print(scv), "cv_spatial")
+    expect_output(print(scv), "blockCV cv_spatial")
     expect_message(plot(scv))
     expect_output(summary(scv))
 
@@ -269,7 +277,7 @@ test_that("test cv_spatial with user-defined blocks", {
         !all(scv$records == 0)
     )
 
-    expect_equal(print(scv), "cv_spatial")
+    expect_output(print(scv), "blockCV cv_spatial")
     expect_message(plot(scv))
     expect_output(summary(scv))
 
@@ -338,4 +346,26 @@ test_that("test cv_spatial with no speceis column match", {
         !all(scv$records == 0)
     )
 
+})
+
+
+test_that("block_shape and selection are recorded and printed", {
+    # square blocks with systematic selection
+    set.seed(1)
+    sq <- cv_spatial(x = pa_data, k = 5, hexagon = FALSE, size = 450000,
+                     selection = "systematic", biomod2 = FALSE,
+                     progress = FALSE, plot = FALSE)
+    expect_equal(sq$block_shape, "square")
+    expect_equal(sq$selection, "systematic")
+    expect_output(print(sq), "square")
+    expect_output(print(sq), "systematic")
+
+    # user-defined blocks report a "user-defined" shape
+    user_poly <- .make_blocks(x_obj = pa_data, blocksize = 450000)
+    set.seed(1)
+    ub <- cv_spatial(x = pa_data, user_blocks = user_poly, k = 5,
+                     selection = "random", iteration = 5, biomod2 = FALSE,
+                     progress = FALSE, plot = FALSE)
+    expect_equal(ub$block_shape, "user-defined")
+    expect_output(print(ub), "user-defined")
 })
