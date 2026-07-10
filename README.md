@@ -99,16 +99,22 @@ install.packages("blockCV", dependencies = TRUE)
 
 ## Vignettes
 
-To see the practical examples of the package see:
+The package ships with several tutorials as vignettes:
 
-1.  [blockCV introduction: how to create block cross-validation
-    folds](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_1.html)
-2.  [Choosing and diagnosing spatial
-    folds](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_2.html)
-3.  [Block cross-validation for species distribution
-    modelling](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_3.html)
-4.  [Using blockCV with
-    `caret`](https://htmlpreview.github.io/?https://github.com/rvalavi/blockCV/blob/master/inst/doc/tutorial_4.html)
+1.  blockCV introduction: how to create block cross-validation folds (`tutorial_1`)
+2.  Choosing and diagnosing spatial folds (`tutorial_2`)
+3.  Block cross-validation for species distribution modelling (`tutorial_3`)
+4.  Using blockCV with `caret` (`tutorial_4`)
+
+To read them, install the package with the vignettes built (see [Installation](#installation) and use `build_vignettes = TRUE`), then open them from R:
+
+``` r
+# list all tutorials
+browseVignettes("blockCV")
+
+# or open one directly
+vignette("tutorial_1", package = "blockCV")
+```
 
 ## Basic usage
 

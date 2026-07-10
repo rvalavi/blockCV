@@ -16,7 +16,7 @@ vignette: >
 
 The package `blockCV` offers a range of functions for generating train and test folds for **k-fold** and **leave-one-out (LOO)** cross-validation (CV). It allows for separation of data spatially, environmentally, by nearest-neighbour distance matching, or by user-defined groups. The `blockCV` package is suitable for the evaluation of a variety of spatial modelling applications, including classification of remote sensing imagery, soil mapping, and species distribution modelling (SDM). It also provides support for different SDM scenarios, including presence-absence and presence-background species data, rare and common species, and raster data for predictor variables.
 
-This tutorial demonstrates `cv_spatial`, `cv_cluster`, `cv_group`, `cv_buffer`, `cv_nndm`, and `cv_knndm`, plus tools for plotting folds. See [Tutorial 2](tutorial_2.html) for fold-quality diagnostics and block-size selection.
+This tutorial demonstrates `cv_spatial`, `cv_cluster`, `cv_group`, `cv_buffer`, `cv_nndm`, and `cv_knndm`, plus tools for plotting folds. See Tutorial 2 (open with `vignette("tutorial_2", package = "blockCV")`) for fold-quality diagnostics and block-size selection.
 
 
 Please cite `blockCV` by: *Valavi R, Elith J, Lahoz-Monfort JJ, Guillera-Arroita G. blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods Ecol Evol. 2019; 10:225–232.* [doi: 10.1111/2041-210X.13107](https://doi.org/10.1111/2041-210X.13107)
@@ -224,8 +224,25 @@ cowplot::plot_grid(scv_plot, bscv_plot, nrow = 1)
 
 Increasing `k_multiplier` usually improves the balance of records or classes across folds because there are more small clusters to assign, but it reduces the spatial separation and compactness of the final folds.
 
+For species **presence-background** data (presences and background or pseudo-absence points), supply the response `column` and set `presence_bg = TRUE`. The fold balancing is then driven by the presence points (`1`s) only, so that the usually far more numerous background points do not dominate the split. This applies to the balancing in `cv_spatial`, `cv_cluster`, and `cv_knndm`. The example below uses the presence-background data supplied with the package in `species_pb.csv`.
 
-The clustering can be done in environmental space by supplying `r`. Notice, this could be an extreme case of cross-validation as the testing folds could possibly fall in novel environmental conditions compared with the training points. [Tutorial 2](tutorial_2.html) shows how to check this with `cv_similarity`. Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster value should be deleted prior to the analysis or a different raster be used.
+```{r}
+# load species presence-background data and convert to sf
+points_pb <- read.csv(system.file("extdata/", "species_pb.csv", package = "blockCV"))
+pb_data <- sf::st_as_sf(points_pb, coords = c("x", "y"), crs = 7845)
+
+# balance folds on presences only (presence-background data)
+set.seed(6)
+pbcv <- cv_cluster(x = pb_data,
+                   column = "occ",
+                   k = 5,
+                   balance = TRUE,
+                   presence_bg = TRUE, # balance on presences (1s) only
+                   report = TRUE)
+```
+
+
+The clustering can be done in environmental space by supplying `r`. Notice, this could be an extreme case of cross-validation as the testing folds could possibly fall in novel environmental conditions compared with the training points. Tutorial 2 shows how to check this with `cv_similarity`. Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster value should be deleted prior to the analysis or a different raster be used.
 
 ```{r warning=FALSE, message=FALSE}
 # environmental clustering
@@ -414,6 +431,14 @@ cv_plot(cv = scv, x = pa_data, combine_folds = TRUE) +
 ```
 
 
+When the fold object was built with `presence_bg = TRUE`, `cv_plot()` draws the background points (`0`s) faded so the presences (`1`s) stand out. The background opacity is set with `bg_alpha`; it is capped at `points_alpha` so the background is never more prominent than the presences (set `bg_alpha = points_alpha` to disable the fading).
+
+```{r warning=FALSE, message=FALSE, fig.height=4.5, fig.width=6}
+cv_plot(cv = pbcv, x = pb_data, combine_folds = TRUE, bg_alpha = 0.05) +
+    ggplot2::labs(title = "Presence-background folds (background faded)")
+
+```
+
 When `cv_buffer` is used for plotting, only first 10 folds are shown. You can choose any set of CV folds for plotting. If `remove_na = FALSE` (default is `TRUE`), the `NA` in the legend shows the excluded points.
 
 ```{r warning=FALSE, message=FALSE, fig.height=5, fig.width=8}
@@ -436,7 +461,7 @@ cv_plot(cv = sb1,
 
 ## Next steps
 
-After creating folds, use [Tutorial 2](tutorial_2.html) to check fold size balance, environmental novelty, nearest-neighbour distance matching, and candidate spatial block sizes.
+After creating folds, use Tutorial 2 (open with `vignette("tutorial_2", package = "blockCV")`) to check fold size balance, environmental novelty, nearest-neighbour distance matching, and candidate spatial block sizes.
 
 
 ## References:
