@@ -28,7 +28,7 @@ test_that("cv_distance returns a cv_distance object with W", {
                        add_random = TRUE, plot = FALSE)
 
     expect_s3_class(res, "cv_distance")
-    expect_named(res, c("distances", "W", "plot"))
+    expect_named(res, c("distances", "W", "plot", "pbg"))
     W <- res$W
     expect_true(is.numeric(W))
     expect_true(all(c("CV", "LOO", "Random") %in% names(W)))

@@ -26,7 +26,7 @@ test_that("cv_summary returns structural info without a raster", {
     s <- cv_summary(scv)
 
     expect_s3_class(s, "cv_summary")
-    expect_named(s, c("n_folds", "is_loo", "records", "distances", "novelty", "warnings"))
+    expect_named(s, c("n_folds", "is_loo", "records", "distances", "novelty", "pbg", "warnings"))
     expect_equal(s$n_folds, length(scv$folds_list))
     expect_false(s$is_loo)
     expect_s3_class(s$records, "data.frame")

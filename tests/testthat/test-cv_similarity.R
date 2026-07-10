@@ -26,7 +26,7 @@ test_that("cv_similarity returns a cv_similarity object with MESS", {
                          plot = FALSE, progress = FALSE)
 
     expect_s3_class(res, "cv_similarity")
-    expect_named(res, c("extrapolation", "overall", "plot"))
+    expect_named(res, c("extrapolation", "overall", "plot", "pbg"))
     expect_true(ggplot2::is_ggplot(res$plot))
 })
 
