@@ -96,15 +96,18 @@ cv_summary <- function(
 
     distances <- NULL
     novelty <- NULL
+    pbg <- FALSE
     if(want_distance){
         if(is.null(x)){
             stop("'x' (the sample points) is required to compute the distance/novelty diagnostics.")
         }
         # only the per-fold summary is needed, so skip the random baseline (add_random = FALSE)
-        distances <- .cv_distance_data(
+        dist_data <- .cv_distance_data(
             cv = cv, x = x, r = r, pred_points = pred_points, model_domain = model_domain,
             add_random = FALSE, num_sample = num_sample, seed = seed
-        )$distances
+        )
+        distances <- dist_data$distances
+        pbg <- isTRUE(dist_data$pbg)
         if(want_novelty){
             novelty <- .cv_similarity_data(
                 cv = cv, x = x, r = r, method = method,
@@ -119,6 +122,7 @@ cv_summary <- function(
         records = cv$records,
         distances = distances,
         novelty = novelty,
+        pbg = pbg,
         warnings = .cv_warnings(cv, distances = distances, min_test = min_test, is_loo = is_loo)
     )
     class(out) <- "cv_summary"
@@ -243,6 +247,9 @@ print.cv_summary <- function(x, ...){
     if(!is.null(x$novelty)){
         cat("\nEnvironmental novelty (extrapolation):\n")
         .print_capped(x$novelty)
+    }
+    if(isTRUE(x$pbg) && (!is.null(x$distances) || !is.null(x$novelty))){
+        cat("\nNote: presence-background object; distance and novelty diagnostics computed on presence points only (background samples excluded).\n")
     }
 
     cat("\nWarnings:\n")

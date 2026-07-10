@@ -142,7 +142,8 @@ cv_similarity <- function(
     out <- list(
         extrapolation = d$extrapolation,
         overall = d$overall,
-        plot = p
+        plot = p,
+        pbg = isTRUE(d$pbg)
     )
     class(out) <- "cv_similarity"
     invisible(out)
@@ -475,6 +476,9 @@ print.cv_similarity <- function(x, ...){
     if(!is.null(x$extrapolation) && nrow(x$extrapolation)){
         cat("\nPer-fold extrapolation summary:\n")
         print(x$extrapolation, row.names = FALSE)
+    }
+    if(isTRUE(x$pbg)){
+        cat("\nNote: presence-background object; similarity computed on presence points only (background samples excluded).\n")
     }
     invisible(x)
 }

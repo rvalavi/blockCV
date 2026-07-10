@@ -135,7 +135,8 @@ cv_distance <- function(
     out <- list(
         distances = d$distances,
         W = d$W,
-        plot = p
+        plot = p,
+        pbg = isTRUE(d$pbg)
     )
     class(out) <- "cv_distance"
     invisible(out)
@@ -340,6 +341,9 @@ print.cv_distance <- function(x, ...){
     if(!is.null(x$distances)){
         cat("\nPer-fold test-to-nearest-train distances:\n")
         print(x$distances, row.names = FALSE)
+    }
+    if(isTRUE(x$pbg)){
+        cat("\nNote: presence-background object; distances computed on presence points only (background samples excluded).\n")
     }
     invisible(x)
 }
