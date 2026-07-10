@@ -88,7 +88,7 @@ See [NEWS.md](NEWS.md) for the full changelog.
 To install the latest update of the package from GitHub use:
 
 ``` r
-remotes::install_github("rvalavi/blockCV", dependencies = TRUE)
+remotes::install_github("rvalavi/blockCV", build_vignettes = TRUE, dependencies = TRUE)
 ```
 
 Or installing from CRAN:
