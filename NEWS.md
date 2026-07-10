@@ -26,7 +26,7 @@
 - Fixed a train/test leakage bug in `cv_nndm(presence_bg = TRUE)` where the test fold used the presence's position instead of its row index, holding out the wrong point and leaving it in both train and test.
 - Fixed `plot.cv_spatial_autocor()` so single-layer autocorrelation objects plot correctly and multi-layer plots include the stored map panel.
 - `cv_plot` and `cv_similarity` now stop with a clear message when none of the requested `num_plots` folds exist (e.g. `num_plots = 99` for a 5-fold object), instead of silently reducing the selection to nothing and failing later with a confusing "undefined columns selected" error; out-of-range values are still dropped when at least one requested fold is valid.
-- Improved point-based `plot()` methods so they accept the original sample data and report missing data more clearly; issues [#59](https://github.com/rvalavi/blockCV/issues/59) and [#60](https://github.com/rvalavi/blockCV/issues/60).
+- Improved the fold-object `plot()` methods, now including `cv_spatial`, so they accept the original sample data and report missing data more clearly; issues [#59](https://github.com/rvalavi/blockCV/issues/59) and [#60](https://github.com/rvalavi/blockCV/issues/60).
 - `cv_spatial` avoids duplicate block-to-point intersection work when subsetting and assigning blocks; issue [#40](https://github.com/rvalavi/blockCV/issues/40).
 - Added `species_pb.csv`, a presence-background example dataset used in the `cv_buffer()` and `cv_cluster()` examples.
 - Added a second tutorial covering `cv_summary`, `cv_similarity`, `cv_distance`, and block-size selection with `cv_spatial_autocor` and `cv_block_size`.

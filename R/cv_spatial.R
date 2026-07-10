@@ -481,13 +481,24 @@ print.cv_spatial <- function(x, ...){
 
 #' @export
 #' @method plot cv_spatial
-plot.cv_spatial <- function(x, y, ...){
+plot.cv_spatial <- function(x, y, data = NULL, ...){
+    if(!missing(y) || !is.null(data)){
+        return(.plot_cv_fold_map(
+            cv = x,
+            y = if(!missing(y)) y else NULL,
+            data = data,
+            has_y = !missing(y),
+            ...
+        ))
+    }
+
     if("folds" %in% names(x$blocks)){
         plot(x$blocks["folds"])
     } else{
         plot(x$blocks)
     }
-    message("Please use cv_plot function to plot each fold.")
+    message("Supply sample data (e.g. plot(cv, samples)) to plot each fold with cv_plot.")
+    invisible(x$blocks)
 }
 
 

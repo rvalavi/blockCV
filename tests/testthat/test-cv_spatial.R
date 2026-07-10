@@ -369,3 +369,17 @@ test_that("block_shape and selection are recorded and printed", {
     expect_equal(ub$block_shape, "user-defined")
     expect_output(print(ub), "user-defined")
 })
+
+
+test_that("cv_spatial plot delegates to cv_plot when sample data is supplied", {
+    scv <- cv_spatial(x = pa_data, k = 5, hexagon = FALSE, size = 450000,
+                      selection = "systematic", biomod2 = FALSE,
+                      progress = FALSE, plot = FALSE)
+
+    # no data: draws the block map and points to cv_plot
+    expect_message(plot(scv))
+
+    # sample data supplied: delegates to cv_plot and returns a ggplot
+    from_plot <- plot(scv, data = pa_data, num_plots = 1:2)
+    expect_true(ggplot2::is_ggplot(from_plot))
+})
