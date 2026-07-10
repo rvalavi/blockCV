@@ -53,8 +53,10 @@ You can choose any of the folds to be shown e.g. \code{1:3} or \code{c(2, 7, 16,
 
 \item{bg_alpha}{numeric; opacity of the \emph{background} points (response \code{0}) when the \code{cv}
 object was built with \code{presence_bg = TRUE} (see \sQuote{Details}). Lower values fade them so the
-presences (response \code{1}) stand out; set \code{bg_alpha = points_alpha} to disable the fading. Has no
-effect for objects that are not presence-background. The default is \code{0.1}.}
+presences (response \code{1}) stand out; set \code{bg_alpha = points_alpha} to disable the fading. Values
+above \code{points_alpha} are capped at \code{points_alpha} (with a warning) so the background is never
+drawn more prominent than the presences. Has no effect for objects that are not presence-background. The
+default is \code{0.1}.}
 
 \item{label_size}{integer; size of fold labels when a \code{cv_spatial} object is used.}
 

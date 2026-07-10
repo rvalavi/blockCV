@@ -31,8 +31,10 @@
 #' @param points_alpha numeric; the opacity of points
 #' @param bg_alpha numeric; opacity of the \emph{background} points (response \code{0}) when the \code{cv}
 #' object was built with \code{presence_bg = TRUE} (see \sQuote{Details}). Lower values fade them so the
-#' presences (response \code{1}) stand out; set \code{bg_alpha = points_alpha} to disable the fading. Has no
-#' effect for objects that are not presence-background. The default is \code{0.1}.
+#' presences (response \code{1}) stand out; set \code{bg_alpha = points_alpha} to disable the fading. Values
+#' above \code{points_alpha} are capped at \code{points_alpha} (with a warning) so the background is never
+#' drawn more prominent than the presences. Has no effect for objects that are not presence-background. The
+#' default is \code{0.1}.
 #' @param label_size integer; size of fold labels when a \code{cv_spatial} object is used.
 #' @param remove_na logical; whether to remove excluded points in \code{cv_buffer} from the plot
 #' @param combine_folds logical; if \code{TRUE}, all folds are shown in a single map with points
@@ -111,6 +113,14 @@ cv_plot <- function(
     # presence-background objects: fade the background (0s) so the presences stand out
     pbg_column <- if(isTRUE(cv$presence_bg)) cv$column else NULL
     pbg_plot <- !is.null(pbg_column) && !missing(x) && pbg_column %in% names(x)
+    # background points must never be drawn more prominent than the presences
+    if(pbg_plot && bg_alpha > points_alpha){
+        warning("'bg_alpha' cannot exceed 'points_alpha'; using 'points_alpha' so ",
+                "background points are never more prominent than presences.", call. = FALSE)
+        bg_alpha <- points_alpha
+    }
+    # only annotate the fade when the background is actually drawn more transparent
+    pbg_faded <- pbg_plot && bg_alpha < points_alpha
 
     # make geom_tile for raster plots
     if(!is.null(r)){
@@ -206,7 +216,7 @@ cv_plot <- function(
             .cv_point_layers(x, ggplot2::aes(col = get("folds")), points_alpha, bg_alpha, bg_pts) +
             ggplot2::scale_color_manual(values = fold_colors) +
             ggplot2::labs(x = "", y = "", col = "Folds",
-                          caption = if(pbg_plot) "Presence-background: background points (0) shown faded" else NULL) + # set the axes labes to NULL
+                          caption = if(pbg_faded) "Presence-background: background points (0) shown faded" else NULL) + # set the axes labes to NULL
             ggplot2::theme_bw() +
             ggplot2::guides(fill = "none")
 
@@ -219,8 +229,9 @@ cv_plot <- function(
             .cv_point_layers(x_long, ggplot2::aes(col = get("value")), points_alpha, bg_alpha, bg_long) +
             ggplot2::scale_color_manual(values = points_colors, na.value = "#BEBEBE03") +
             ggplot2::facet_wrap(~get("folds"), nrow = nrow, ncol = ncol) +
-            ggplot2::labs(x = "", y = "", col = "",
-                          caption = if(pbg_plot) "Presence-background: background points (0) shown faded" else NULL) + # set the axes labes to NULL
+            ggplot2::labs(
+                x = "", y = "", col = "", caption = if(pbg_faded) "Presence-background: background points (0) shown faded" else NULL
+            ) + # set the axes labes to NULL
             ggplot2::theme_bw() +
             ggplot2::guides(fill = "none")
     }

@@ -109,3 +109,32 @@ test_that("point-based plots explain and use the original sample data", {
     plt_cluster <- plot(cl, pa_data[1:50, ], combine_folds = TRUE)
     expect_true(ggplot2::is_ggplot(plt_cluster))
 })
+
+
+test_that("cv_plot only notes the background fade when bg_alpha < points_alpha", {
+    clpb <- cv_cluster(
+        x = pa_data[1:100, ],
+        column = "occ",
+        k = 3,
+        presence_bg = TRUE,
+        report = FALSE
+    )
+
+    # background more transparent than presences: the fade note is drawn
+    p_fade <- cv_plot(cv = clpb, x = pa_data[1:100, ], combine_folds = TRUE,
+                      points_alpha = 0.7, bg_alpha = 0.1)
+    expect_match(p_fade$labels$caption, "faded")
+
+    # bg_alpha == points_alpha disables the fade, so no note
+    p_equal <- cv_plot(cv = clpb, x = pa_data[1:100, ], combine_folds = TRUE,
+                       points_alpha = 0.7, bg_alpha = 0.7)
+    expect_null(p_equal$labels$caption)
+
+    # bg_alpha above points_alpha is capped (with a warning) and not called faded
+    expect_warning(
+        p_cap <- cv_plot(cv = clpb, x = pa_data[1:100, ], combine_folds = TRUE,
+                         points_alpha = 0.2, bg_alpha = 0.9),
+        "cannot exceed"
+    )
+    expect_null(p_cap$labels$caption)
+})
