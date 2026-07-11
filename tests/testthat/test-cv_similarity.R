@@ -28,6 +28,10 @@ test_that("cv_similarity returns a cv_similarity object with MESS", {
     expect_s3_class(res, "cv_similarity")
     expect_named(res, c("extrapolation", "overall", "plot", "pbg"))
     expect_true(ggplot2::is_ggplot(res$plot))
+    expect_identical(
+        res$plot$labels$title,
+        sprintf("Environmental novelty of test points (MESS < 0): %.1f%% overall", res$overall)
+    )
 })
 
 test_that("cv_similarity is silent by default in non-interactive sessions", {
@@ -69,6 +73,10 @@ test_that("cv_similarity returns an extrapolation table and a spatial map", {
                         plot = FALSE, progress = FALSE)
     expect_s3_class(mp, "cv_similarity")
     expect_true(ggplot2::is_ggplot(mp$plot))
+    expect_identical(
+        mp$plot$labels$title,
+        sprintf("Environmental novelty of test points (MESS < 0): %.1f%% overall", mp$overall)
+    )
     expect_true(any(vapply(mp$plot$layers, function(l) inherits(l$geom, "GeomSf"), logical(1))))
 })
 

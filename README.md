@@ -7,7 +7,7 @@ status](https://github.com/rvalavi/blockCV/workflows/R-CMD-check/badge.svg)](htt
 [![CRAN](https://img.shields.io/cran/v/blockCV?label=CRAN&color=brightgreen)](https://CRAN.R-project.org/package=blockCV)
 [![total](https://cranlogs.r-pkg.org/badges/grand-total/blockCV)](https://CRAN.R-project.org/package=blockCV)
 [![License](https://img.shields.io/badge/license-GPL%20(%3E=%203)-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
-[![Methods in Ecology & Evolution](https://img.shields.io/badge/Methods%20in%20Ecology%20%26%20Evolution-10,%20225--232-blue.svg)](https://doi.org/10.1111/2041-210X.13107)
+[![Methods in Ecology & Evolution](https://img.shields.io/badge/Methods%20in%20Ecology%20%26%20Evolution-10,%20225--232-A61E22.svg)](https://doi.org/10.1111/2041-210X.13107)
 
 ### Spatially and environmentally separated folds for cross-validation
 
@@ -118,7 +118,10 @@ vignette("tutorial_1", package = "blockCV")
 
 ## Basic usage
 
-This code snippet showcases some of the package's functionalities, but for more comprehensive tutorials, please refer to the vignette included with the package (and above).
+The examples below highlight a few common workflows. See the
+[vignettes](#vignettes)—especially `tutorial_1` for fold construction and
+`tutorial_2` for diagnostics—for full demonstrations, interpretation, and
+guidance on choosing among methods.
 
 ``` r
 # loading the package
@@ -129,7 +132,7 @@ library(terra) # working with spatial raster data
 
 ``` r
 # load raster data; the pipe operator |> is available in R v4.1 or higher
-myrasters <- system.file("extdata/au/", package = "blockCV") |>
+covars <- system.file("extdata/au/", package = "blockCV") |>
   list.files(full.names = TRUE) |>
   terra::rast()
 
@@ -143,44 +146,85 @@ pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 ``` r
 # spatial blocking by specified range and random assignment
 sb <- cv_spatial(
-    x = pa_data, # sf or SpatialPoints of sample data (e.g. species data)
-    column = "occ", # optional response column for fold records/balancing
-    r = myrasters, # a raster for background (optional)
-    size = 450000, # size of the blocks in metres
-    k = 5, # number of folds
-    hexagon = TRUE, # use hexagonal blocks - default
+    x = pa_data,          # sf or SpatialPoints of sample data (e.g. species data)
+    column = "occ",       # optional response column for fold records/balancing
+    r = covars,           # a raster for background (optional)
+    size = 450000,        # size of the blocks in metres
+    k = 5,                # number of folds
+    hexagon = TRUE,       # use hexagonal blocks - default
     selection = "random", # random blocks-to-fold
-    iteration = 100, # search for balanced folds
-    biomod2 = TRUE # also create folds for biomod2
+    balance = TRUE,       # find balanced folds
+    iteration = 100,      # search for balanced folds
+    biomod2 = TRUE        # also create folds for biomod2
 )
 ```
+![](man/figures/cv_spat.jpg)
 
-![](https://i.ibb.co/WGfrF7B/Rplot1.png)
+Use `cv_plot()` or the generic `plot()` method to visualise the folds.
 
-Or create spatial clusters for k-fold cross-validation:
+```r
+plot(sb, pa_data, combine_folds = TRUE)
+```
+![](man/figures/cv_spat_folds.jpg)
+
+`cv_similarity()` compares each testing fold with its corresponding training
+data to identify environmental extrapolation. Negative MESS values flag test
+points outside the environmental range represented by their training data.
+The distribution and map views show how much extrapolation occurs and where,
+while the returned object also provides per-fold and overall summaries.
 
 ``` r
-# create spatial clusters
+sim1 <- cv_similarity(cv = sb, x = pa_data, r = covars, method = "MESS")
+sim2 <- cv_similarity(cv = sb, x = pa_data, r = covars, method = "MESS", type = "map")
+
+sim_map <- sim2$plot +
+    ggplot2::labs(x = "Longitude", y = "Latitude")
+
+cowplot::plot_grid(sim1$plot, sim_map, nrow = 1)
+```
+
+![](man/figures/cv_sim.jpg)
+
+`cv_cluster()` can be tailored to different validation goals. For spatial
+clustering, `balance = TRUE` forms additional candidate clusters and assigns
+them to folds to improve record or response-class balance; `k_multiplier`
+controls the trade-off with geographical compactness. For environmental
+clustering, `spatial_weight` adds a soft geographical constraint so
+environmentally similar folds are less spatially scattered.
+
+``` r
+# balanced spatial clustering
 set.seed(6)
-sc <- cv_cluster(
-    x = pa_data, 
-    column = "occ", # optionally count classes/bins in folds
-    k = 5
+bc <- cv_cluster(
+    x = pa_data,
+    column = "occ",
+    k = 5,
+    balance = TRUE,
+    k_multiplier = 3
+)
+
+# spatially constrained environmental clustering
+set.seed(6)
+sec <- cv_cluster(
+    x = pa_data,
+    r = covars,
+    column = "occ",
+    k = 5,
+    spatial_weight = 0.4
 )
 ```
 
 ``` r
-# now plot the created folds
-cv_plot(
-    cv = sc, # a blockCV object
-    x = pa_data, # sample points
-    r = myrasters[[1]], # optionally add a raster background
-    points_alpha = 0.5,
-    nrow = 2
-)
+bc_plot <- cv_plot(bc, x = pa_data, combine_folds = TRUE) +
+    ggplot2::labs(title = "Balanced spatial clustering")
+
+sec_plot <- cv_plot(sec, x = pa_data, combine_folds = TRUE) +
+    ggplot2::labs(title = "Spatially constrained (spatial_weight = 0.4)")
+
+cowplot::plot_grid(bc_plot, sec_plot, nrow = 1)
 ```
 
-![](https://i.ibb.co/dGrF9xp/Rplot02.png)
+![](man/figures/cv_clust.jpg)
 
 Create k-fold NNDM folds:
 
@@ -189,7 +233,7 @@ Create k-fold NNDM folds:
 knn <- cv_knndm(
     x = pa_data,
     column = "occ", # optionally prefer class-complete folds
-    r = myrasters[[1]], # prediction area, or use pred_points/model_domain
+    r = covars, # prediction area, or use pred_points/model_domain
     k = 5,
     num_sample = 5000
 )
@@ -200,7 +244,7 @@ knn <- cv_knndm(
 cv_distance(
     cv = sb,
     x = pa_data,
-    r = myrasters[[1]],
+    r = covars,
     num_sample = 5000
 )
 ```
@@ -211,7 +255,7 @@ suitable size for spatial blocks:
 ``` r
 # exploring the effective range of spatial autocorrelation in raster covariates or sample data
 cv_spatial_autocor(
-    r = myrasters, # a SpatRaster object or path to files
+    r = covars, # a SpatRaster object or path to files
     num_sample = 5000, # number of cells to be used
     plot = TRUE
 )
@@ -229,7 +273,7 @@ interactive session using a Shiny app.
 ``` r
 # a shiny interactive app to aid selecting a size for spatial blocks
 cv_block_size(
-    r = myrasters[[1]],
+    r = covars[[1]],
     x = pa_data, # optionally add sample points
     column = "occ",
     min_size = 2e5,

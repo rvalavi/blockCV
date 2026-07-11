@@ -358,9 +358,10 @@ cv_similarity <- function(
 
     # ---- labels/colours shared by both plot types ----
     col_name <- switch(method, mess = "MESS", l1 = "L1 similarity score", l2 = "L2 similarity score")
-    novel_label <- if(MESS) "novel (MESS < 0)" else "beyond the baseline (score < 0)"
-    sub_txt <- if(is.na(overall_pct)) NULL else
-        sprintf("Extrapolating test points %s: %.1f%% overall", novel_label, overall_pct)
+    novelty_threshold <- if(MESS) "MESS < 0" else "score < 0"
+    title_txt <- if(is.na(overall_pct)) NULL else
+        sprintf("Environmental novelty of test points (%s): %.1f%% overall",
+                novelty_threshold, overall_pct)
     pbg_caption <- if(pbg) "Presence-background object: similarity computed on presences only" else NULL
     cols <- c("#B2182B", "#D6604D", "#F4A582", "#F7F7F7", "#92C5DE", "#4393C3", "#2166AC")
     points_colors <- if(is.null(points_colors)) cols else points_colors
@@ -379,7 +380,7 @@ cv_similarity <- function(
             ggplot2::scale_color_gradientn(colours = points_colors,
                                            limits = c(-maxabs, maxabs),
                                            na.value = "#BEBEBE") +
-            ggplot2::labs(colour = col_name, subtitle = sub_txt, caption = pbg_caption) +
+            ggplot2::labs(colour = col_name, title = title_txt, caption = pbg_caption) +
             ggplot2::theme_bw()
         return(p1)
     }
@@ -458,7 +459,7 @@ cv_similarity <- function(
         ggplot2::scale_color_gradientn(colours = points_colors,
                                        limits = c(-maxabs, maxabs),
                                        na.value = "#BEBEBE03") +
-        ggplot2::labs(x = "Folds", y = y_name, col = col_name, subtitle = sub_txt,
+        ggplot2::labs(x = "Folds", y = y_name, col = col_name, title = title_txt,
                       caption = pbg_caption) +
         ggplot2::theme_bw()
 
