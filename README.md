@@ -147,7 +147,7 @@ sb <- cv_spatial(
     x = pa_data,          # sf or SpatialPoints of sample data (e.g. species data)
     column = "occ",       # optional response column for fold records/balancing
     r = covars,           # a raster for background (optional)
-    size = 450000,        # size of the blocks in metres
+    size = 350000,        # size of the blocks in metres
     k = 5,                # number of folds
     hexagon = TRUE,       # use hexagonal blocks - default
     selection = "random", # random blocks-to-fold
