@@ -3,8 +3,8 @@
 [![R build
 status](https://github.com/rvalavi/blockCV/workflows/R-CMD-check/badge.svg)](https://github.com/rvalavi/blockCV/actions)
 [![codecov](https://codecov.io/gh/rvalavi/blockCV/branch/master/graph/badge.svg)](https://codecov.io/gh/rvalavi/blockCV)
-[![CRAN
-version](https://www.r-pkg.org/badges/version/blockCV)](https://CRAN.R-project.org/package=blockCV)
+[![GitHub](https://img.shields.io/github/r-package/v/rvalavi/blockCV/master?label=GitHub)](https://github.com/rvalavi/blockCV)
+[![CRAN](https://img.shields.io/cran/v/blockCV?label=CRAN&color=brightgreen)](https://CRAN.R-project.org/package=blockCV)
 [![total](https://cranlogs.r-pkg.org/badges/grand-total/blockCV)](https://CRAN.R-project.org/package=blockCV)
 [![License](https://img.shields.io/badge/license-GPL%20(%3E=%203)-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
 [![Methods in Ecology & Evolution](https://img.shields.io/badge/Methods%20in%20Ecology%20%26%20Evolution-10,%20225--232-blue.svg)](https://doi.org/10.1111/2041-210X.13107)
