@@ -119,9 +119,7 @@ vignette("tutorial_1", package = "blockCV")
 ## Basic usage
 
 The examples below highlight a few common workflows. See the
-[vignettes](#vignettes)—especially `tutorial_1` for fold construction and
-`tutorial_2` for diagnostics—for full demonstrations, interpretation, and
-guidance on choosing among methods.
+[vignettes](#vignettes) for more information and complete examples.
 
 ``` r
 # loading the package
