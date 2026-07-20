@@ -1,8 +1,8 @@
 Package: blockCV
 Type: Package
-Title: Spatial, Environmental, and Grouped Cross-Validation
+Title: Spatial and Environmental Blocking for Cross-Validation
 Version: 4.0-0
-Date: 2026-07-10
+Date: 2026-07-20
 Authors@R: c(person("Roozbeh", "Valavi", role = c("aut", "cre"),
                     email = "valavi.r@gmail.com", comment = c(ORCID = "0000-0003-2495-5277")),
              person("Jane", "Elith", role = "aut",
@@ -20,8 +20,8 @@ Description: Creates spatially or environmentally separated, or
     group-preserving, training and testing folds for k-fold,
     leave-group-out, and leave-one-out cross-validation. Provides spatial
     blocking, clustering, buffering, and nearest-neighbour distance-matching
-    methods, together with tools to visualise and diagnose fold balance,
-    train-test separation, and environmental novelty. Also estimates spatial
+    methods, together with tools to visualise folds, summarise fold sizes and class balance, 
+    and assess train–test separation and environmental novelty. Also estimates spatial
     autocorrelation ranges in point samples and continuous raster covariates
     to provide an initial distance scale for designing spatial folds. Methods
     are described in Valavi, R. et al. (2019)
