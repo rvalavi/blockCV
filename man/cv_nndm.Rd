@@ -75,6 +75,14 @@ An object of class S3. A list of objects including:
     \item{folds_list - a list containing the folds. Each fold has two vectors with the training (first) and testing (second) indices}
     \item{k - number of the folds}
     \item{size - the distance band to separate training and testing folds)}
+    \item{exclusion - a data.frame with one row per fold: the fold number, the row index of its
+    test point in \code{x} (\code{test_id}), and the \code{exclusion_distance} matched to that point.
+    Unlike \code{\link{cv_buffer}}, where the exclusion distance is the constant \code{size}, NNDM
+    matches a distinct radius to each test point: every point within \code{exclusion_distance} of the
+    test point is held out, and the points beyond it form the training set. Note this is \emph{not}
+    capped by \code{size}: the matching only thins neighbours closer than \code{size}, so a point
+    whose nearest neighbour already lies beyond \code{size} is left untouched and reports its
+    (larger) natural nearest-neighbour distance}
     \item{column - the name of the column if provided}
     \item{presence_bg - whether this was treated as presence-background data}
     \item{records - a table with the number of points in each category of training and testing}

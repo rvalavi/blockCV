@@ -3,6 +3,7 @@ expect_names <- c(
     "k",
     "column",
     "size",
+    "exclusion",
     "plot",
     "presence_bg",
     "records"
@@ -43,6 +44,21 @@ test_that("test that cv_nndm function works properly with presence-absence data"
     expect_equal(dim(bloo$records), c(nrow(pa_data), 4))
     expect_true(!all(bloo$records == 0))
 
+    # the exclusion radius reported for each fold must reproduce that fold's split
+    expect_s3_class(bloo$exclusion, "data.frame")
+    expect_equal(names(bloo$exclusion), c("fold", "test_id", "exclusion_distance"))
+    expect_equal(nrow(bloo$exclusion), bloo$k)
+    expect_true(all(bloo$exclusion$exclusion_distance > 0))
+    dmat <- sf::st_distance(pa_data)
+    units(dmat) <- NULL
+    for(i in seq_len(bloo$k)){
+        expect_equal(
+            as.numeric(which(dmat[bloo$exclusion$test_id[i], ] > bloo$exclusion$exclusion_distance[i])),
+            sort(bloo$folds_list[[i]][[1]])
+        )
+        expect_true(bloo$exclusion$test_id[i] %in% bloo$folds_list[[i]][[2]])
+    }
+
 })
 
 
@@ -67,6 +83,10 @@ test_that("test that cv_nndm function works properly with presence-background da
     expect_equal(bloo$presence_bg, TRUE)
     expect_equal(dim(bloo$records), c(sum(pa_data$occ), 4))
     expect_true(!all(bloo$records == 0))
+
+    # in presence-background, every fold's exclusion is keyed to a presence record
+    expect_equal(nrow(bloo$exclusion), bloo$k)
+    expect_true(all(pa_data$occ[bloo$exclusion$test_id] == 1))
 
 })
 

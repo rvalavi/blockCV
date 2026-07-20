@@ -70,7 +70,7 @@ designing spatial folds.
 -   Made fold balancing explicit in `cv_spatial`, `cv_cluster`, and
     `cv_knndm`; added presence-background balancing and quantile binning
     (`num_bins`) for continuous or count responses
--   Added spatially constrained environmental clustering through
+-   Added spatially-constrained environmental clustering through
     `cv_cluster(spatial_weight = ...)`
 -   Added combined-fold maps to `cv_plot` and informative print methods
     for fold and diagnostic objects
@@ -143,7 +143,7 @@ pa_data <- read.csv(system.file("extdata/", "species.csv", package = "blockCV"))
 ``` r
 # spatial blocking by specified range and random assignment
 sb <- cv_spatial(
-    x = pa_data,          # sf or SpatialPoints of sample data (e.g. species data)
+    x = pa_data,          # sf object of sample points (e.g. species data)
     column = "occ",       # optional response column for fold records/balancing
     r = covars,           # a raster for background (optional)
     size = 350000,        # size of the blocks in metres
@@ -200,7 +200,7 @@ bc <- cv_cluster(
     k_multiplier = 3
 )
 
-# spatially constrained environmental clustering
+# spatially-constrained environmental clustering
 set.seed(6)
 sec <- cv_cluster(
     x = pa_data,
@@ -216,7 +216,7 @@ bc_plot <- cv_plot(bc, x = pa_data, combine_folds = TRUE) +
     ggplot2::labs(title = "Balanced spatial clustering")
 
 sec_plot <- cv_plot(sec, x = pa_data, combine_folds = TRUE) +
-    ggplot2::labs(title = "Spatially constrained environmental clustering")
+    ggplot2::labs(title = "Spatially-constrained environmental clustering")
 
 cowplot::plot_grid(bc_plot, sec_plot, nrow = 1)
 ```
