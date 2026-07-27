@@ -282,6 +282,11 @@ cv_block_size(
 
 Please report issues at: <https://github.com/rvalavi/blockCV/issues>
 
+## Acknowledgements
+
+Special thanks to **Eleanor Stern**, who created the original artwork for
+the `blockCV` logo.
+
 ## Citation
 
 To cite package **blockCV** in publications, please use:
