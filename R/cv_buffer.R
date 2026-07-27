@@ -49,7 +49,9 @@
 #' @seealso \code{\link{cv_nndm}}, \code{\link{cv_spatial}}, and \code{\link{cv_spatial_autocor}};
 #' \code{\link{cv_plot}} to visualise, and \code{\link{cv_distance}} and \code{\link{cv_similarity}} to evaluate, the folds
 #'
-#' @references Radosavljevic, A., & Anderson, R. P. (2014). Making better Maxent models of species
+#' @references Valavi, R., Elith, J., Lahoz-Monfort, J. J., & Guillera-Arroita, G. (2019). blockCV: An R package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. Methods in Ecology and Evolution, 10(2), 225-232. doi:10.1111/2041-210X.13107.
+#'
+#' Radosavljevic, A., & Anderson, R. P. (2014). Making better Maxent models of species
 #' distributions: Complexity, overfitting and evaluation. Journal of Biogeography, 41, 629–643. https://doi.org/10.1111/jbi.12227
 #'
 #' @return An object of class S3. A list of objects including:
