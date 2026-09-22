@@ -102,3 +102,14 @@ test_that("cv_distance works on a leave-one-out object (no Random curve)", {
 test_that("cv_distance errors on a non-cv object", {
     expect_error(cv_distance(cv = list(a = 1), x = pa_data, r = aus, plot = FALSE))
 })
+
+
+test_that("print and plot methods for cv_distance run", {
+    res <- cv_distance(cv = scv, x = pa_data, r = aus,
+                       num_sample = 2000, seed = 1, plot = FALSE)
+
+    expect_output(print(res), "cv_distance diagnostic")
+    expect_output(print(res), "Wasserstein")
+    expect_output(print(res), "Per-fold")
+    expect_true(ggplot2::is_ggplot(plot(res)))
+})

@@ -90,3 +90,39 @@ test_that("cv_summary works on a leave-one-out object", {
     # structural warnings are skipped for leave-one-out designs
     expect_equal(nrow(s$warnings), 0L)
 })
+
+
+test_that(".cv_warnings flags empty test folds and skips rare classes", {
+    records <- data.frame(
+        train_0 = c(50, 50, 50),
+        train_1 = c(30, 30, 30),
+        test_0  = c( 0, 10, 10),  # fold1: no test points at all
+        test_1  = c( 0,  5,  0)   # class 1 too rare (n = 5 < 2k) to check imbalance
+    )
+    fake <- list(folds_list = vector("list", 3), records = records, column = "occ")
+
+    w <- blockCV:::.cv_warnings(fake, distances = NULL, min_test = 5L, is_loo = FALSE)
+    expect_true("empty_test" %in% w$type)
+    expect_equal(w$fold[w$type == "empty_test"], 1)
+})
+
+
+test_that("print.cv_summary renders records, diagnostics and warnings", {
+    s <- cv_summary(scv, x = pa_data, r = aus, num_sample = 2000, seed = 1, progress = FALSE)
+
+    expect_output(print(s), "blockCV fold-quality summary")
+    expect_output(print(s), "Fold sizes")
+    expect_output(print(s), "distances")
+    expect_output(print(s), "novelty")
+    expect_output(print(s), "Warnings")
+    expect_invisible(print(s))
+})
+
+
+test_that("print.cv_summary omits the size table for leave-one-out objects", {
+    bloo <- cv_buffer(x = pa_data, size = 250000, progress = FALSE, report = FALSE)
+    s <- cv_summary(bloo)
+
+    expect_output(print(s), "leave-one-out")
+    expect_output(print(s), "none")  # no structural warnings
+})

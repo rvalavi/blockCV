@@ -187,3 +187,24 @@ test_that("cv_nndm errors when x and r have mismatched CRS", {
     )
 
 })
+
+
+test_that("cv_nndm print, summary and plot methods run", {
+    bloo <- cv_nndm(
+        x = pa_data,
+        column = "occ",
+        r = aus,
+        size = 250000,
+        num_sample = 3000,
+        presence_bg = FALSE,
+        plot = FALSE,
+        report = FALSE
+    )
+
+    expect_output(print(bloo), "NNDM")
+    expect_output(summary(bloo), "training and testing fold")
+    # no data supplied: draws the stored diagnostic plot
+    expect_true(ggplot2::is_ggplot(plot(bloo)))
+    # data supplied: draws the fold map instead
+    expect_true(ggplot2::is_ggplot(plot(bloo, data = pa_data)))
+})

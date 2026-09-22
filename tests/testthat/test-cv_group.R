@@ -228,3 +228,53 @@ test_that("cv_group plotting requires data and returns ggplot objects", {
     from_plot <- plot(res, data = pts, combine_folds = TRUE)
     expect_true(ggplot2::is_ggplot(from_plot))
 })
+
+
+test_that("cv_group validates the iteration and k arguments", {
+    pts <- group_test_data()
+
+    expect_error(
+        cv_group(x = pts, group_col = "site", iteration = c(1, 2), report = FALSE),
+        "single integer"
+    )
+    expect_error(
+        cv_group(x = pts, group_col = "site", k = "x", report = FALSE),
+        "single integer value or NULL"
+    )
+    expect_error(
+        cv_group(x = pts, group_col = "site", k = 1, report = FALSE),
+        "2 or higher"
+    )
+})
+
+
+test_that("cv_group drops to leave-group-out when k >= number of groups", {
+    pts <- group_test_data()  # six groups
+
+    expect_message(
+        res <- cv_group(x = pts, group_col = "site", k = 100,
+                        report = FALSE, biomod2 = FALSE),
+        "using leave-group-out"
+    )
+    expect_equal(res$type, "Leave-group-out")
+
+    # in leave-group-out mode the balance argument is ignored
+    expect_message(
+        cv_group(x = pts, group_col = "site", column = "occ", balance = TRUE,
+                 report = FALSE, biomod2 = FALSE),
+        "balance' is ignored"
+    )
+})
+
+
+test_that("cv_group print, summary and report render", {
+    pts <- group_test_data()
+
+    expect_output(
+        res <- cv_group(x = pts, group_col = "site", column = "occ", k = 3,
+                        report = TRUE, biomod2 = FALSE),
+        "train"
+    )
+    expect_output(print(res), "grouped")
+    expect_output(summary(res), "training and testing fold")
+})

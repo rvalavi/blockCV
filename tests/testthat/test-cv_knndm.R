@@ -222,3 +222,23 @@ test_that("test cv_knndm errors with mismatched or missing CRS", {
     reproj <- sf::st_transform(pa_data, 4326)
     expect_error(cv_knndm(x = reproj, r = aus, k = 5, num_sample = 2000))
 })
+
+
+test_that("cv_knndm print and plot methods run", {
+    set.seed(1)
+    knn <- cv_knndm(
+        x = pa_data,
+        column = "occ",
+        r = aus,
+        k = 5,
+        num_sample = 3000,
+        plot = FALSE,
+        report = FALSE
+    )
+
+    expect_output(print(knn), "kNNDM")
+    # no data supplied: draws the stored diagnostic plot
+    expect_true(ggplot2::is_ggplot(plot(knn)))
+    # data supplied: draws the fold map instead
+    expect_true(ggplot2::is_ggplot(plot(knn, data = pa_data)))
+})
