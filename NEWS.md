@@ -1,3 +1,13 @@
+# version 4.0-1
+
+## Added
+
+- Added `points_size` to `cv_plot` to control the size of sample points; issue [#68](https://github.com/rvalavi/blockCV/issues/68).
+
+## Fixed
+
+- Fixed `cv_cluster()` handling of constant raster layers during scaling and improved errors for missing raster values; issue [#70](https://github.com/rvalavi/blockCV/issues/70).
+
 # version 4.0-0
 
 ## Added

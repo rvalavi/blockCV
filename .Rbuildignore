@@ -6,6 +6,7 @@
 ^doc$
 ^Meta$
 cran_comments.md
+cran-comments.md
 .github/
 man/figures/logo.png
 tests/testthat/_snaps/

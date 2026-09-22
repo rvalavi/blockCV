@@ -15,6 +15,7 @@ scv <- cv_spatial(
     k = 5,
     selection = "random",
     iteration = 1,
+    balance = FALSE,
     biomod2 = FALSE,
     plot = FALSE,
     report = FALSE,

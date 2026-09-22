@@ -15,6 +15,7 @@ cv_plot(
   remove_na = TRUE,
   raster_colors = gray.colors(10, alpha = 1),
   points_colors = c("#E69F00", "#56B4E9"),
+  points_size = 1.5,
   points_alpha = 0.7,
   bg_alpha = 0.1,
   label_size = 4,
@@ -48,6 +49,8 @@ You can choose any of the folds to be shown e.g. \code{1:3} or \code{c(2, 7, 16,
 \item{raster_colors}{character; a character vector of colours for raster background e.g. \code{terrain.colors(20)}}
 
 \item{points_colors}{character; two colours to be used for train and test points}
+
+\item{points_size}{numeric; the size of points.}
 
 \item{points_alpha}{numeric; the opacity of points}
 

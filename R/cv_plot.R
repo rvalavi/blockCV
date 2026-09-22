@@ -28,6 +28,7 @@
 #' @param max_pixels integer; maximum number of pixels used for plotting \code{r}
 #' @param raster_colors character; a character vector of colours for raster background e.g. \code{terrain.colors(20)}
 #' @param points_colors character; two colours to be used for train and test points
+#' @param points_size numeric; the size of points.
 #' @param points_alpha numeric; the opacity of points
 #' @param bg_alpha numeric; opacity of the \emph{background} points (response \code{0}) when the \code{cv}
 #' object was built with \code{presence_bg = TRUE} (see \sQuote{Details}). Lower values fade them so the
@@ -79,6 +80,7 @@ cv_plot <- function(
         remove_na = TRUE,
         raster_colors = gray.colors(10, alpha = 1),
         points_colors = c("#E69F00", "#56B4E9"),
+        points_size = 1.5,
         points_alpha = 0.7,
         bg_alpha = 0.1,
         label_size = 4,
@@ -213,7 +215,8 @@ cv_plot <- function(
             switch(!is.null(r), geom_rast) + # only switch works with ggplot
             switch(!is.null(r), geom_rast_col) +
             switch(has_blocks, geom_poly) +
-            .cv_point_layers(x, ggplot2::aes(col = get("folds")), points_alpha, bg_alpha, bg_pts) +
+            .cv_point_layers(x, ggplot2::aes(col = get("folds")), points_size,
+                             points_alpha, bg_alpha, bg_pts) +
             ggplot2::scale_color_manual(values = fold_colors) +
             ggplot2::labs(x = "", y = "", col = "Folds",
                           caption = if(pbg_faded) "Presence-background: background points (0) shown faded" else NULL) + # set the axes labes to NULL
@@ -226,7 +229,8 @@ cv_plot <- function(
             switch(!is.null(r), geom_rast) + # only switch works with ggplot
             switch(!is.null(r), geom_rast_col) +
             switch(has_blocks, geom_poly) +
-            .cv_point_layers(x_long, ggplot2::aes(col = get("value")), points_alpha, bg_alpha, bg_long) +
+            .cv_point_layers(x_long, ggplot2::aes(col = get("value")), points_size,
+                             points_alpha, bg_alpha, bg_long) +
             ggplot2::scale_color_manual(values = points_colors, na.value = "#BEBEBE03") +
             ggplot2::facet_wrap(~get("folds"), nrow = nrow, ncol = ncol) +
             ggplot2::labs(
@@ -243,13 +247,15 @@ cv_plot <- function(
 # point layer(s) for cv_plot. When 'bg' is supplied, the background is drawn first
 # at 'bg_alpha' and the presences on top at 'points_alpha', so presence-background 
 # maps highlight the presences. Both layers keep the same 'mapping' (fold or train/test colour).
-.cv_point_layers <- function(data, mapping, points_alpha, bg_alpha, bg = NULL){
+.cv_point_layers <- function(data, mapping, points_size, points_alpha, bg_alpha, bg = NULL){
     if(is.null(bg) || !any(bg)){
-        return(ggplot2::geom_sf(mapping, alpha = points_alpha))
+        return(ggplot2::geom_sf(mapping, size = points_size, alpha = points_alpha))
     }
     list(
-        ggplot2::geom_sf(data = data[bg, ], mapping = mapping, alpha = bg_alpha),
-        ggplot2::geom_sf(data = data[!bg, ], mapping = mapping, alpha = points_alpha)
+        ggplot2::geom_sf(data = data[bg, ], mapping = mapping,
+                         size = points_size, alpha = bg_alpha),
+        ggplot2::geom_sf(data = data[!bg, ], mapping = mapping,
+                         size = points_size, alpha = points_alpha)
     )
 }
 

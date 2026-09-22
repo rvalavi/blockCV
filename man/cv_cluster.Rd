@@ -39,7 +39,8 @@ supported; categorical (factor) layers are rejected because k-means relies on Eu
 
 \item{k}{integer value. The number of desired folds for cross-validation. The default is \code{k = 5}.}
 
-\item{scale}{logical; whether to scale the input rasters (recommended) for clustering.}
+\item{scale}{logical; whether to scale the input rasters (recommended) for clustering. Constant layers are ignored with
+a warning when scaling is enabled.}
 
 \item{raster_cluster}{logical; if \code{TRUE}, the clustering is done over the entire raster layer,
 otherwise it will be over the extracted raster values of the sample points. See details for more information.}
@@ -114,6 +115,7 @@ and fold sizes or classes can be balanced with \code{balance = TRUE}; see Detail
 As k-means algorithms use Euclidean distance to estimate clusters, the input raster covariates should be quantitative variables.
 Since variables with wider ranges of values might dominate the clusters and bias the environmental clustering (Hastie et al., 2009),
 all the input rasters are first scaled and centred (\code{scale = TRUE}) within the function.
+Constant raster layers are ignored with a warning before scaling because they provide no clustering information.
 
 If \code{raster_cluster = TRUE}, the clustering is done in the raster space. In this approach the clusters will be consistent throughout the region
 and different sample datasets in the same region (for comparison). However, this may result in a cluster(s)
@@ -122,8 +124,8 @@ especially when species data is not dispersed throughout the region or the numbe
 case, the number of folds is less than specified \code{k}. If \code{raster_cluster = FALSE}, the clustering will be done in
 species points and the number of the folds will be the same as \code{k}.
 
-Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster
-value should be deleted prior to the analysis or another raster layer must be provided.
+Each input raster layer must contain a finite, non-missing value at every sample point. Records without raster values
+should be deleted prior to the analysis or another raster layer must be provided.
 
 By default (\code{balance = FALSE}) the points are clustered directly into \code{k} groups, so the folds are compact but their
 sizes -- and the number of records of each class -- can be very uneven. When \code{balance = TRUE}, the points are instead

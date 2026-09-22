@@ -13,6 +13,7 @@
 #' As k-means algorithms use Euclidean distance to estimate clusters, the input raster covariates should be quantitative variables.
 #' Since variables with wider ranges of values might dominate the clusters and bias the environmental clustering (Hastie et al., 2009),
 #' all the input rasters are first scaled and centred (\code{scale = TRUE}) within the function.
+#' Constant raster layers are ignored with a warning before scaling because they provide no clustering information.
 #'
 #' If \code{raster_cluster = TRUE}, the clustering is done in the raster space. In this approach the clusters will be consistent throughout the region
 #' and different sample datasets in the same region (for comparison). However, this may result in a cluster(s)
@@ -21,8 +22,8 @@
 #' case, the number of folds is less than specified \code{k}. If \code{raster_cluster = FALSE}, the clustering will be done in
 #' species points and the number of the folds will be the same as \code{k}.
 #'
-#' Note that the input raster layer should cover all the species points, otherwise an error will rise. The records with no raster
-#' value should be deleted prior to the analysis or another raster layer must be provided.
+#' Each input raster layer must contain a finite, non-missing value at every sample point. Records without raster values
+#' should be deleted prior to the analysis or another raster layer must be provided.
 #'
 #' By default (\code{balance = FALSE}) the points are clustered directly into \code{k} groups, so the folds are compact but their
 #' sizes -- and the number of records of each class -- can be very uneven. When \code{balance = TRUE}, the points are instead
@@ -56,7 +57,8 @@
 #' @param r a terra SpatRaster object of covariates to identify environmental groups. If provided, clustering will be done
 #' in environmental space rather than spatial coordinates of sample points. Only numeric (quantitative) covariates are
 #' supported; categorical (factor) layers are rejected because k-means relies on Euclidean distance.
-#' @param scale logical; whether to scale the input rasters (recommended) for clustering.
+#' @param scale logical; whether to scale the input rasters (recommended) for clustering. Constant layers are ignored with
+#' a warning when scaling is enabled.
 #' @param raster_cluster logical; if \code{TRUE}, the clustering is done over the entire raster layer,
 #' otherwise it will be over the extracted raster values of the sample points. See details for more information.
 #' @param num_sample integer; the number of samples from raster layers to build the clusters (when \code{raster_cluster = FALSE}).
@@ -212,14 +214,54 @@ cv_cluster <- function(
         }
         # k-means needs numeric covariates; reject categorical (factor) layers
         .check_r_numeric(r)
+        # Check the unscaled values first so missing raster data are not
+        # confused with non-finite values introduced by scaling.
+        x_vals_raw <- terra::extract(r, x, ID = FALSE)
+        finite_raw <- is.finite(as.matrix(x_vals_raw))
+        if(!all(finite_raw)){
+            missing_rows <- sum(!apply(finite_raw, 1, all))
+            missing_layers <- names(x_vals_raw)[!apply(finite_raw, 2, all)]
+            stop(
+                sprintf(
+                    "Raster values are missing or non-finite at %d sample point(s) in layer(s): %s.\n",
+                    missing_rows,
+                    paste(missing_layers, collapse = ", ")
+                ),
+                "Ensure every sample point falls on a finite, non-NA cell in every raster layer.",
+                call. = FALSE
+            )
+        }
         # scale?
         if (scale){
-            tryCatch(
-                {
-                    r <- terra::scale(r)
-                },
+            # Constant layers have no effect on Euclidean distances and would
+            # be converted to NaN by terra::scale(). Ignore them explicitly.
+            ranges <- terra::global(r, c("min", "max"), na.rm = TRUE)
+            constant <- is.finite(ranges$min) & is.finite(ranges$max) &
+                ranges$min == ranges$max
+            if(any(constant)){
+                constant_names <- names(r)[constant]
+                if(all(constant)){
+                    stop(
+                        "Environmental clustering requires at least one raster layer with varying values.\n",
+                        "All supplied raster layers are constant: ",
+                        paste(constant_names, collapse = ", "), ".",
+                        call. = FALSE
+                    )
+                }
+                warning(
+                    "Ignoring constant raster layer(s), which provide no information for environmental clustering: ",
+                    paste(constant_names, collapse = ", "), ".",
+                    call. = FALSE
+                )
+                r <- r[[!constant]]
+            }
+            r <- tryCatch(
+                terra::scale(r),
                 error = function(cond) {
-                    message("Scaling the raster failed!")
+                    stop(
+                        "Scaling the raster layers failed: ", conditionMessage(cond),
+                        call. = FALSE
+                    )
                 }
             )
         }
@@ -246,10 +288,15 @@ cv_cluster <- function(
         cluster_ids <- as.integer(kms$cluster)
 
     } else{
-        # a general check to make sure x is covered by r
+        # Extract the values used by k-means. Missing values in the original
+        # raster were checked above; any non-finite values here arose later.
         x_vals <- terra::extract(r, x, ID = FALSE)
-        if (anyNA(x_vals)){
-            stop("The input raster layer does not cover all the column points.")
+        if (!all(is.finite(as.matrix(x_vals)))){
+            stop(
+                "Raster processing produced missing or non-finite values at the sample points.\n",
+                "Check the raster layers for zero or near-zero variance, or use 'scale = FALSE'.",
+                call. = FALSE
+            )
         }
         # blending geography (spatial_weight > 0) uses Euclidean distance on coordinates
         if(spatial_weight > 0 && isTRUE(sf::st_is_longlat(x))){

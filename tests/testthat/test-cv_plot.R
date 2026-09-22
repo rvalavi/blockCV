@@ -12,15 +12,22 @@ test_that("test that cv_plot function works", {
         k = 5,
         selection = "random",
         iteration = 1,
+        balance = FALSE,
         biomod2 = FALSE,
         plot = FALSE,
         progress = FALSE
     )
 
-    plt <- cv_plot(cv = scv, x = pa_data)
+    plt <- cv_plot(cv = scv, x = pa_data, points_size = 0.25)
 
     expect_true(exists("plt"))
     expect_true(ggplot2::is_ggplot(plt))
+    layer_sizes <- vapply(
+        plt$layers,
+        function(layer) if(is.null(layer$aes_params$size)) NA_real_ else layer$aes_params$size,
+        numeric(1)
+    )
+    expect_true(any(layer_sizes == 0.25, na.rm = TRUE))
 
 })
 
@@ -32,6 +39,7 @@ test_that("cv_plot combine_folds shows a single fold map for k-fold objects", {
         k = 5,
         selection = "random",
         iteration = 1,
+        balance = FALSE,
         biomod2 = FALSE,
         plot = FALSE,
         progress = FALSE
@@ -122,8 +130,12 @@ test_that("cv_plot only notes the background fade when bg_alpha < points_alpha",
 
     # background more transparent than presences: the fade note is drawn
     p_fade <- cv_plot(cv = clpb, x = pa_data[1:100, ], combine_folds = TRUE,
-                      points_alpha = 0.7, bg_alpha = 0.1)
+                      points_size = 0.25, points_alpha = 0.7, bg_alpha = 0.1)
     expect_match(p_fade$labels$caption, "faded")
+    expect_equal(
+        unname(vapply(p_fade$layers, function(layer) layer$aes_params$size, numeric(1))),
+        c(0.25, 0.25)
+    )
 
     # bg_alpha == points_alpha disables the fade, so no note
     p_equal <- cv_plot(cv = clpb, x = pa_data[1:100, ], combine_folds = TRUE,

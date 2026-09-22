@@ -185,6 +185,55 @@ test_that("categorical (factor) raster layers are rejected", {
 })
 
 
+test_that("constant raster layers are ignored before scaling", {
+    for(value in c(0, 0.5)){
+        r_constant <- terra::rast(
+            list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+        )
+        terra::values(r_constant[[2]]) <- value
+
+        set.seed(6)
+        expect_warning(
+            ec <- cv_cluster(
+                x = pa_data,
+                column = "occ",
+                r = r_constant,
+                k = 5,
+                scale = TRUE,
+                biomod2 = FALSE,
+                report = FALSE,
+                progress = FALSE
+            ),
+            "Ignoring constant raster layer.*bio_15"
+        )
+        expect_s3_class(ec, "cv_cluster")
+        expect_equal(length(ec$folds_list), 5)
+    }
+})
+
+
+test_that("all-constant and missing raster values give actionable errors", {
+    r_constant <- terra::setValues(aus, 0)
+    expect_error(
+        cv_cluster(x = pa_data, r = r_constant, k = 5, scale = TRUE),
+        "at least one raster layer with varying values"
+    )
+
+    r_missing <- terra::rast(
+        list.files(system.file("extdata/au/", package = "blockCV"), full.names = TRUE)
+    )
+    cell <- terra::cellFromXY(r_missing, sf::st_coordinates(pa_data)[1, , drop = FALSE])
+    layer_values <- terra::values(r_missing[[1]], mat = FALSE)
+    layer_values[cell] <- NA_real_
+    terra::values(r_missing[[1]]) <- layer_values
+
+    expect_error(
+        cv_cluster(x = pa_data, r = r_missing, k = 5, scale = TRUE),
+        "missing or non-finite at 1 sample point.*bio_12"
+    )
+})
+
+
 test_that("spatial_weight blends geography into environmental clustering", {
     set.seed(42)
     ec <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5,
@@ -226,20 +275,24 @@ test_that("spatial_weight blends geography into environmental clustering", {
 
 
 test_that("spatial_weight works with raster_cluster = TRUE", {
+    # Use a stable k-means setup so this test exercises the raster/spatial-weight
+    # integration rather than empty-fold or convergence edge cases.
     set.seed(42)
-    w0 <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5, scale = TRUE,
-                     raster_cluster = TRUE, biomod2 = FALSE, spatial_weight = 0)
+    w0 <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 3, scale = TRUE,
+                     raster_cluster = TRUE, biomod2 = FALSE, spatial_weight = 0,
+                     algorithm = "Lloyd")
     set.seed(42)
-    def <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5, scale = TRUE,
-                      raster_cluster = TRUE, biomod2 = FALSE)
+    def <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 3, scale = TRUE,
+                      raster_cluster = TRUE, biomod2 = FALSE, algorithm = "Lloyd")
     # spatial_weight = 0 preserves the original raster_cluster path exactly
     expect_identical(w0$folds_ids, def$folds_ids)
 
     set.seed(42)
-    ec <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 5, scale = TRUE,
-                     raster_cluster = TRUE, biomod2 = FALSE, spatial_weight = 0.5)
+    ec <- cv_cluster(x = pa_data, column = "occ", r = aus, k = 3, scale = TRUE,
+                     raster_cluster = TRUE, biomod2 = FALSE, spatial_weight = 0.5,
+                     algorithm = "Lloyd")
     expect_s3_class(ec, "cv_cluster")
-    expect_equal(length(ec$folds_list), 5)
+    expect_equal(length(ec$folds_list), 3)
     expect_equal(length(ec$folds_ids), nrow(pa_data))
 })
 

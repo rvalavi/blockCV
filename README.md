@@ -2,7 +2,7 @@
 
 [![R build
 status](https://github.com/rvalavi/blockCV/workflows/R-CMD-check/badge.svg)](https://github.com/rvalavi/blockCV/actions)
-[![codecov](https://codecov.io/gh/rvalavi/blockCV/branch/master/graph/badge.svg)](https://codecov.io/gh/rvalavi/blockCV)
+[![codecov](https://codecov.io/gh/rvalavi/blockCV/branch/master/graph/badge.svg)](https://app.codecov.io/gh/rvalavi/blockCV)
 [![GitHub](https://img.shields.io/github/r-package/v/rvalavi/blockCV/master?label=GitHub)](https://github.com/rvalavi/blockCV)
 [![CRAN](https://img.shields.io/cran/v/blockCV?label=CRAN&color=brightgreen)](https://CRAN.R-project.org/package=blockCV)
 [![total](https://cranlogs.r-pkg.org/badges/grand-total/blockCV)](https://CRAN.R-project.org/package=blockCV)

@@ -13,6 +13,7 @@ scv <- cv_spatial(
     x = pa_data,
     selection = "random",
     iteration = 1,
+    balance = FALSE,
     biomod2 = FALSE,
     plot = FALSE,
     report = FALSE,
