@@ -52,7 +52,7 @@ jobs:
           covr::codecov(
             quiet = FALSE,
             function_exclusions = c(
-              "rangeExplorer", "foldExplorer", "cv_block_size", ".check_pkgs"
+              "cv_block_size", ".check_pkgs"
             )
           )
         shell: Rscript {0}
