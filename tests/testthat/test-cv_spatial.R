@@ -383,3 +383,50 @@ test_that("cv_spatial plot delegates to cv_plot when sample data is supplied", {
     from_plot <- plot(scv, data = pa_data, num_plots = 1:2)
     expect_true(ggplot2::is_ggplot(from_plot))
 })
+
+
+test_that("cv_spatial predefined selection honours user fold assignments", {
+    user_poly <- .make_blocks(x_obj = pa_data, blocksize = 450000)
+
+    # predefined requires both user_blocks and folds_column
+    expect_error(
+        cv_spatial(x = pa_data, user_blocks = user_poly, selection = "predefined",
+                   biomod2 = FALSE, plot = FALSE, progress = FALSE),
+        "user_blocks' and 'folds_column'"
+    )
+    # folds_column must exist in user_blocks
+    expect_error(
+        cv_spatial(x = pa_data, user_blocks = user_poly, folds_column = "nope",
+                   selection = "predefined", biomod2 = FALSE, plot = FALSE, progress = FALSE),
+        "no column named"
+    )
+    # fold numbers must be numeric integers
+    user_poly$folds_chr <- rep(letters[1:2], length.out = nrow(user_poly))
+    expect_error(
+        cv_spatial(x = pa_data, user_blocks = user_poly, folds_column = "folds_chr",
+                   selection = "predefined", biomod2 = FALSE, plot = FALSE, progress = FALSE),
+        "integer numbers"
+    )
+    user_poly$folds_fractional <- rep(c(1, 2.5), length.out = nrow(user_poly))
+    expect_error(
+        cv_spatial(x = pa_data, user_blocks = user_poly, folds_column = "folds_fractional",
+                   selection = "predefined", biomod2 = FALSE, plot = FALSE, progress = FALSE),
+        "integer numbers"
+    )
+
+    # a valid predefined assignment builds the folds from the supplied column
+    # (hexagon = FALSE, since hexagonal blocks force random/systematic selection)
+    user_poly$fold_id <- rep(1:3, length.out = nrow(user_poly))
+    scv <- cv_spatial(x = pa_data, user_blocks = user_poly, folds_column = "fold_id", k = 3,
+                      selection = "predefined", hexagon = FALSE,
+                      biomod2 = FALSE, plot = FALSE, progress = FALSE)
+    expect_s3_class(scv, "cv_spatial")
+    expect_equal(scv$selection, "predefined")
+    expect_equal(scv$k, 3)
+
+    point_blocks <- sf::st_intersects(pa_data, user_poly)
+    assignments_match <- vapply(seq_along(point_blocks), function(i) {
+        scv$folds_ids[i] %in% user_poly$fold_id[point_blocks[[i]]]
+    }, logical(1))
+    expect_true(all(assignments_match))
+})

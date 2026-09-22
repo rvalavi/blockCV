@@ -33,6 +33,18 @@ test_that("cv_similarity returns a cv_similarity object with MESS", {
         res$plot$labels$title,
         sprintf("Environmental novelty of test points (MESS < 0): %.1f%% overall", res$overall)
     )
+
+    # S3 methods (reuse the object built above; no extra sampling)
+    expect_output(print(res), "cv_similarity diagnostic")
+    expect_output(print(res), "extrapolation")
+    expect_true(ggplot2::is_ggplot(plot(res)))
+})
+
+
+test_that(".messi3 returns NA for empty or constant reference variables", {
+    expected <- rep(NA_real_, 3)
+    expect_identical(blockCV:::.messi3(c(1, 2, 3), numeric(0)), expected)
+    expect_identical(blockCV:::.messi3(c(1, 2, 3), rep(5, 4)), expected)
 })
 
 test_that("cv_similarity is silent by default in non-interactive sessions", {

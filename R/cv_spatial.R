@@ -216,7 +216,9 @@ cv_spatial <- function(
         if(!folds_column %in% colnames(user_blocks)){
             stop(sprintf("There is no column named '%s' in 'user_blocks'.\n", folds_column))
         }
-        if(!is.numeric(user_blocks[,folds_column, drop = TRUE])){
+        fold_numbers <- user_blocks[, folds_column, drop = TRUE]
+        if(!is.numeric(fold_numbers) || anyNA(fold_numbers) ||
+           any(!is.finite(fold_numbers)) || any(fold_numbers != floor(fold_numbers))){
             stop("The fold numbers in 'folds_column' must be integer numbers.")
         }
     }
