@@ -1,3 +1,11 @@
+# version 4.0-2
+
+## Fixed
+
+- Fixed geographic grid crashes in `cv_spatial_autocor()`; issue [#71](https://github.com/rvalavi/blockCV/issues/71).
+- Fixed predefined fold counts in `cv_spatial()` and Test/Train labels in `cv_plot()`; issue [#72](https://github.com/rvalavi/blockCV/issues/72).
+- Fixed size limits, unit conversion, and slider bounds in `cv_block_size()`; issue [#73](https://github.com/rvalavi/blockCV/issues/73).
+
 # version 4.0-1
 
 ## Added
