@@ -69,16 +69,13 @@ cv_block_size <- function(
     }
 
     size_short <- min(xrange, yrange)
-    size_long <- min(xrange, yrange)
-    min_size <- ifelse(is.null(min_size), size_short / 20, min_size)
-    max_size <- ifelse(is.null(max_size), size_short, max_size)
-
+    size_long <- max(xrange, yrange)
     if(sf::st_is_longlat(x_obj)){
-        min_size <- min_size * 111325
-        max_size <- max_size * 111325
         size_long <- size_long * 111325
         size_short <- size_short * 111325
     }
+    min_size <- ifelse(is.null(min_size), size_short / 20, min_size)
+    max_size <- ifelse(is.null(max_size), size_short, max_size)
 
     if(max_size > size_long){ # limit the maximum range to the maximum extent of the map
         message("Selected range is bigger than the extent of the base map. The range is set to the biggest extent (X or Y).\n")
@@ -86,7 +83,10 @@ cv_block_size <- function(
     }
     min_size <- round(min_size)
     max_size <- round(max_size)
-    val <- round(size_short / 10)
+    if(min_size <= 0 || min_size >= max_size){
+        stop("'min_size' must be positive and smaller than 'max_size' after limiting it to the map extent.")
+    }
+    val <- min(max(round(size_short / 10), min_size), max_size)
 
     if(!missing(r)){
         map_df <- terra::spatSample(r[[1]],

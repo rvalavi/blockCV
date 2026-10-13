@@ -215,8 +215,13 @@ cv_spatial_autocor <- function(
         size <- the_range / deg_to_metre
     }
 
-    # make an object for plotting
-    vis_block <- sf::st_make_grid(x_obj, cellsize = round(size), what = "polygons")
+    # Clip geographic cells in coordinate space before spherical intersection.
+    grid_obj <- if(sf::st_is_longlat(x_obj)) sf::st_set_crs(x_obj, NA) else x_obj
+    vis_block <- sf::st_make_grid(grid_obj, cellsize = size, what = "polygons")
+    if(sf::st_is_longlat(x_obj)){
+        vis_block <- sf::st_crop(vis_block, sf::st_bbox(grid_obj))
+        vis_block <- sf::st_set_crs(vis_block, sf::st_crs(x_obj))
+    }
     vis_block <- sf::st_sf(vis_block[x_obj])
     vis_block$folds <- 1:nrow(vis_block)
     plot_data <- list(blocks = vis_block)

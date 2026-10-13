@@ -350,8 +350,7 @@ cv_plot <- function(
     # convert back to sf
     x_long <- sf::st_as_sf(x_reshape, sf_column_name = sf_colname)
     # convert to factor for plotting
-    x_long$value <- as.factor(x_long$value)
-    levels(x_long$value) <- c("Test", "Train")
+    x_long$value <- factor(x_long$value, levels = c(0, 1), labels = c("Test", "Train"))
 
     return(x_long)
 }

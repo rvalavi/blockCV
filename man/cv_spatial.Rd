@@ -81,7 +81,8 @@ ignored when scoring the balance. Requires a binary numeric \code{column}. The d
 the species (response) points. If \code{selection = 'predefined'}, this argument and \strong{folds_column} must be supplied.}
 
 \item{folds_column}{character. Indicating the name of the column (in \code{user_blocks}) in which the associated folds are stored.
-This argument is necessary if you choose the 'predefined' selection.}
+This argument is necessary if you choose the 'predefined' selection.
+Fold numbers must be consecutive integers starting at 1; their number determines \code{k}.}
 
 \item{deg_to_metre}{integer. The conversion rate of metres to degree. See the details section for more information.}
 

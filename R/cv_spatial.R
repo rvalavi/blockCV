@@ -82,6 +82,7 @@
 #' the species (response) points. If \code{selection = 'predefined'}, this argument and \strong{folds_column} must be supplied.
 #' @param folds_column character. Indicating the name of the column (in \code{user_blocks}) in which the associated folds are stored.
 #' This argument is necessary if you choose the 'predefined' selection.
+#' Fold numbers must be consecutive integers starting at 1; their number determines \code{k}.
 #' @param deg_to_metre integer. The conversion rate of metres to degree. See the details section for more information.
 #' @param biomod2 logical. Creates a matrix of folds that can be directly used in the \pkg{biomod2} package as
 #' a \emph{CV.user.table} for cross-validation.
@@ -221,6 +222,10 @@ cv_spatial <- function(
            any(!is.finite(fold_numbers)) || any(fold_numbers != floor(fold_numbers))){
             stop("The fold numbers in 'folds_column' must be integer numbers.")
         }
+        fold_ids <- sort(unique(fold_numbers))
+        if(any(fold_ids != seq_along(fold_ids))){
+            stop("The fold numbers in 'folds_column' must be consecutive integers starting at 1.")
+        }
     }
 
     # change the r to terra object
@@ -237,6 +242,13 @@ cv_spatial <- function(
         message("Hexagon blocks can only be used with random or systematic selections!\nThe random selection is used.")
     }
 
+    if(selection == "predefined"){
+        k_user <- length(fold_ids)
+        if(!missing(k) && !isTRUE(k == k_user)){
+            message("'k' is taken from 'folds_column' for predefined selection: k = ", k_user)
+        }
+        k <- k_user
+    }
     if(selection=="checkerboard") k <- 2
 
     tryCatch(
